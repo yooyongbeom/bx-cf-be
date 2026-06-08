@@ -1,0 +1,62 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+group = 'com.bwg.channel.backend'
+version = '0.0.1-SNAPSHOT'
+description = 'bankwareglobal channel backend discovery (Eureka)'
+
+// bootJAR로 패키징
+bootJar.enabled = true
+jar.enabled = false
+
+java {
+//    toolchain {
+//        languageVersion = JavaLanguageVersion.of(17)
+//    }
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:2.7.14"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2021.0.8"
+    }
+}
+
+dependencies {
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+def activeProfile = project.hasProperty('profile') ? project.property('profile') : 'local'
+processResources {
+    // 기존 모듈의 리소스 디렉토리 유지
+    from(sourceSets.main.resources.srcDirs)
+
+    // 루트 프로젝트의 공통 리소스 디렉토리 (배너 파일 등) 복사
+    from(rootProject.file("src/main/resources")) {
+        include "banner.txt"
+        into "."
+    }
+
+    // 활성화된 프로파일에 해당하는 설정 파일만 복사
+    // 1. 모듈별 공통
+    def moduleYml = rootProject.file("src/main/resources/config/${project.name}/application.yml")
+    if (moduleYml.exists()) {
+        from(moduleYml) { into "." }
+    }
+    // 2. 모듈별 profile별 설정
+    def profileDir = rootProject.file("src/main/resources/config/${project.name}/${activeProfile}")
+    if (profileDir.exists()) {
+        from(profileDir) { into "." }
+    }
+}

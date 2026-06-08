@@ -1,0 +1,2 @@
+rootProject.name = 'bx-cf-be'
+include("common", "api-gateway", "discovery-svc", "auth-core", "auth-svc")

@@ -1,0 +1,115 @@
+{
+	"info": {
+		"_postman_id": "0fc016ae-0ad7-4f04-8e82-adb610c4126d",
+		"name": "BX-CF-BE-LCL",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n    \"usrId\": \"yongbeom.yoo\"\r\n    ,\"usrPwd\": \"796d52c40104fd4e867cddeafee7a6efb62a0d1120510c816ca8f26ad6fba5ab\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:18081/channel/backend/api/v1/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "18081",
+					"path": [
+						"channel",
+						"backend",
+						"api",
+						"v1",
+						"auth",
+						"login"
+					],
+					"query": [
+						{
+							"key": "usrId",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "로그인성공테스트",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5b25nYmVvbS55b28iLCJyb2xlcyI6WyJST0xFX1VTRVIiLCJST0xFX0FETUlOIl0sImlhdCI6MTc1ODg3MDM3NCwiZXhwIjoxNzU4ODcwNDM0fQ.eOZ2KZJ6CPyYE5S5Dvp2SiMp6kJGnoHHiCvgLy-VZpc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:18081/te/home",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "18081",
+					"path": [
+						"te",
+						"home"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh 요청",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5b25nYmVvbS55b28iLCJpYXQiOjE3NTg4NzAwNzcsImV4cCI6MTc1OTQ3NDg3N30.GSIGM03po5_Ny-7c9jDkfSUIWhXoPiDt7M--A_pTSlQ\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:18081/channel/backend/api/v1/auth/refresh-token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "18081",
+					"path": [
+						"channel",
+						"backend",
+						"api",
+						"v1",
+						"auth",
+						"refresh-token"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

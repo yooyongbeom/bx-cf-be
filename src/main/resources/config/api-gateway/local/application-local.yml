@@ -1,0 +1,27 @@
+spring:
+  config:
+    import: "classpath:/application-authcore-local.yml"   # auth-core 설정 import
+  lifecycle:
+    timeout-per-shutdown-phase: 35s
+server:
+  port: 18081
+bwgProp:
+  test: "api-gateway"
+eureka:
+  instance:
+    prefer-ip-address: false
+    hostname: localhost
+    ip-address: localhost
+  client:
+    service-url:
+      defaultZone: "http://localhost:18761/eureka"
+    register-with-eureka: true    # Gateway를 Eureka에 등록
+    fetch-registry: true          # 다른 서비스 정보 조회 가능
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          gateway: DEBUG
+  thymeleaf:
+    cache: false

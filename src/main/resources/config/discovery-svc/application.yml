@@ -1,0 +1,9 @@
+spring:
+  profiles:
+    active: local
+  application:
+     name: bwg-channel-backend-discovery
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false

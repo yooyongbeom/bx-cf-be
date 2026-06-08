@@ -1,0 +1,65 @@
+spring:
+  profiles:
+    active: local
+  application:
+     name: bwg-channel-backend-api-gateway
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+  cloud:
+    gateway:
+      globalcors:
+        corsconfiguration:
+          '[/**]':
+            allowedOrigins: '*'
+            allowedMethods:
+              - POST
+              - GET
+      # eureka에 등록된 서비스 이름 자동으로 라우트에서 사용가능
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        #인증서비스, 로그인/토큰 발급, 권한관리
+        - id: auth-svc
+          uri: lb://BWG-CHANNEL-BACKEND-AUTH-SVC
+          #uri: http://localhost:18082
+          predicates:
+            - Path=/channel/backend/api/v1/auth/**
+          filters:
+            - StripPrefix=4    # context-path 세그먼트 수에 맞게
+            #- RewritePath=/channel/backend/api/v1/(?<remaining>.*), /${remaining}
+  devtools:
+    livereload:
+      enabled: false
+    restart:
+      log-condition-evaluation-delta: false
+  webflux:
+#    base-path: /channel/backend/api/v1
+# actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never  # health 상태 상세 보기
+  info:
+    git:
+      mode: simple
+    java:
+      enabled: true
+    os:
+      enabled: true
+    env:
+      enabled: true
+info:
+  app:
+    name: channel-backend-gateway
+    version: 0.0.1
+    company: BankwareGlobal
