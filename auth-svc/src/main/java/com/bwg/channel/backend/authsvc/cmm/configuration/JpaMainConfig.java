@@ -1,6 +1,5 @@
 package com.bwg.channel.backend.authsvc.cmm.configuration;
 
-import com.p6spy.engine.spy.P6DataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -32,7 +31,7 @@ public class JpaMainConfig {
     @Primary // 여러 DataSource 중 기본으로 사용할 DataSource임을 명시
     @Bean(name = "jpaMainDataSource")
     public DataSource dataSource(@Qualifier("originalJpaMainDataSource") DataSource originalDataSource) {
-        return new P6DataSource(originalDataSource);
+        return originalDataSource;
     }
 
     @Primary
@@ -51,8 +50,11 @@ public class JpaMainConfig {
         // properties.put("hibernate.show_sql", "true"); // yml 설정으로 대체
         // properties.put("hibernate.format_sql", "true"); // yml 설정으로 대체
         properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
-        em.setJpaPropertyMap(properties);
 
+        // Hibernate 6에서 쿼리 최적화를 위해 사용하는 설정
+        properties.put("hibernate.format_sql", true);
+
+        em.setJpaPropertyMap(properties);
         return em;
     }
     @Primary

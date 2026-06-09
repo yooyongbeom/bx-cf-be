@@ -45,11 +45,11 @@ public class SecurityConfig {
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) throws Exception {
-        http
+        return http
                 // 기본 인증 메커니즘 제거 (rest api용)
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)   // Basic Auth 끔
-                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)   // /login 페이지 끔
-                .csrf(ServerHttpSecurity.CsrfSpec::disable)             // csrf 보안이 필요 없음. disable
+                .httpBasic(httpBasic -> httpBasic.disable())    // Basic Auth 끔
+                .formLogin(form -> form.disable())              // /login 페이지 끔
+                .csrf(csrf -> csrf.disable())                   // csrf 보안이 필요 없음. disable
                 .authorizeExchange(auth -> auth
                         .pathMatchers(PERMIT_URL_ARRAY).permitAll()
                         .pathMatchers("GET", "/te/st.do").permitAll()
@@ -59,9 +59,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new WebFluxCustomAuthEntryPoint())     // 인증실패 커스텀
                         .accessDeniedHandler(new WebFluxCustomAccessDeniedHandler())     // 권한없음 커스텀
                 )
-                .addFilterAt(new WebFluxJwtAuthFilter(jwtUtil), SecurityWebFiltersOrder.AUTHENTICATION);
-                ;
-
-        return http.build();
+                .addFilterAt(new WebFluxJwtAuthFilter(jwtUtil), SecurityWebFiltersOrder.AUTHENTICATION)
+                .build();
     }
 }

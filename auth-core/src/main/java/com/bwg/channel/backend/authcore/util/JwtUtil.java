@@ -1,7 +1,7 @@
 package com.bwg.channel.backend.authcore.util;
 
 import io.jsonwebtoken.*;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
