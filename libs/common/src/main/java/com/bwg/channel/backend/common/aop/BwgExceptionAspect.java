@@ -23,12 +23,7 @@ public class BwgExceptionAspect {
         } catch (BwgException e) {
             throw e;
         } catch (Exception e) {
-            throw new BwgException.Builder<BwgException.Builder<?>>() {
-                @Override
-                public BwgException build() {
-                    return new BwgException(this) {};
-                }
-            }.message(e.getMessage()).cause(e).build();
+            throw BwgException.of(BwgException.FALLBACK_CODE, BwgException.FALLBACK_MSG, e);
         }
     }
 }

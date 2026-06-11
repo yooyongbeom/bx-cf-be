@@ -29,6 +29,20 @@ public class BwgException extends RuntimeException {
     public Map<String, Object> getDetails()    { return details; }
     public Instant getOccurredAt()             { return occurredAt; }
 
+    public static BwgException of(String code, String msg, Throwable cause) {
+        return new BwgException(new SimpleBuilder(code, msg, cause)) {};
+    }
+
+    private static final class SimpleBuilder extends Builder<SimpleBuilder> {
+        SimpleBuilder(String code, String msg, Throwable cause) {
+            this.message(msg).cause(cause).code(new BwgErrorCode() {
+                @Override public String getCode() { return code; }
+                @Override public String getMsg()  { return msg;  }
+            });
+        }
+        @Override public BwgException build() { return new BwgException(this) {}; }
+    }
+
     @SuppressWarnings("unchecked")
     public abstract static class Builder<B extends Builder<B>> {
         private String message;

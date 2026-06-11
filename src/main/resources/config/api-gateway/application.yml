@@ -10,6 +10,9 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
       - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
   main:
     allow-bean-definition-overriding: true
     web-application-type: reactive
@@ -35,7 +38,14 @@ spring:
             - Path=/channel/backend/api/v1/auth/**
           filters:
             - StripPrefix=4    # context-path 세그먼트 수에 맞게
-            #- RewritePath=/channel/backend/api/v1/(?<remaining>.*), /${remaining}
+        #상품서비스
+        - id: product-svc
+          uri: lb://BWG-CHANNEL-BACKEND-PRODUCT-SVC
+          #uri: http://localhost:18083
+          predicates:
+            - Path=/channel/backend/api/v1/product/**
+          filters:
+            - StripPrefix=4
   devtools:
     livereload:
       enabled: false

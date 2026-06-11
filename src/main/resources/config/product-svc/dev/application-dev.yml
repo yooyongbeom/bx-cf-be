@@ -40,7 +40,7 @@ eureka:
     ip-address: localhost
   client:
     service-url:
-      defaultZone: "http://localhost:18761/eureka"
+      defaultZone: "http://192.168.11.197:18761/eureka"
     register-with-eureka: true
     fetch-registry: true
 
