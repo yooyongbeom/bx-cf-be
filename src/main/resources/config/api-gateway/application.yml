@@ -18,13 +18,6 @@ spring:
     web-application-type: reactive
   cloud:
     gateway:
-      globalcors:
-        corsconfiguration:
-          '[/**]':
-            allowedOrigins: '*'
-            allowedMethods:
-              - POST
-              - GET
       # eureka에 등록된 서비스 이름 자동으로 라우트에서 사용가능
       discovery:
         locator:
