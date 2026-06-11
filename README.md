@@ -4,22 +4,42 @@ BWG 채널 백엔드 공통 프레임워크 프로젝트. MSA 기반의 인증/�
 
 ---
 
+## 📁 프로젝트 구조
+
+```
+bx-cf-be/
+  libs/
+    common/       공통 응답/예외/유틸 라이브러리
+    auth-core/    JWT 인증 필터 및 공통 인증 라이브러리
+  infra/
+    discovery-svc/  서비스 등록 및 발견 (Eureka Server)
+    api-gateway/    라우팅 및 보안 필터링 (Spring Cloud Gateway)
+  services/
+    auth-svc/     사용자 인증 및 토큰 발급
+    product-svc/  상품 관리
+```
+
+---
+
 ## 🚀 서비스 구성 및 실행 순서
 
 로컬 환경 구동 시 다음 순서대로 서비스 실행 권장.
 
-1.  **Discovery Service (`discovery-svc`)**: 서비스 등록 및 발견 (Eureka) - Port: 18761
-2.  **Auth Service (`auth-svc`)**: 사용자 인증 및 토큰 발급 - Port: 18081 (Internal: 18082)
-3.  **API Gateway (`api-gateway`)**: 라우팅 및 보안 필터링 - Port: 18081
+1. **Discovery Service (`discovery-svc`)**: 서비스 등록 및 발견 (Eureka) - Port: 18761
+2. **Auth Service (`auth-svc`)**: 사용자 인증 및 토큰 발급 - Port: 18082
+3. **Product Service (`product-svc`)**: 상품 관리 - Port: 18083
+4. **API Gateway (`api-gateway`)**: 라우팅 및 보안 필터링 - Port: 18081
 
 ---
 
 ## 🔗 주요 접속 정보 (Local)
 
--   **Eureka Dashboard**: [http://localhost:18761/](http://localhost:18761/)
--   **H2 Database Console (Auth)**: [http://localhost:18082/auth/h2-console](http://localhost:18082/auth/h2-console)
-    -   JDBC URL: `jdbc:h2:mem:auth-db`
--   **Postman Collection**: `reffile/BX-CF-BE-LCL.postman_collection.json` 참조
+- **Eureka Dashboard**: [http://localhost:18761/](http://localhost:18761/)
+- **H2 Database Console (Auth)**: [http://localhost:18082/h2-console](http://localhost:18082/h2-console)
+  - JDBC URL: `jdbc:h2:mem:auth-db`
+- **H2 Database Console (Product)**: [http://localhost:18083/h2-console](http://localhost:18083/h2-console)
+  - JDBC URL: `jdbc:h2:mem:product-db`
+- **Postman Collection**: `reffile/BX-CF-BE-LCL.postman_collection.json` 참조
 
 ---
 
@@ -68,17 +88,17 @@ BWG 채널 백엔드 공통 프레임워크 프로젝트. MSA 기반의 인증/�
 ## 🔐 인증 및 토큰 재발급 프로세스
 
 ### 1. 로그인 (Login)
--   **Endpoint**: `POST /channel/backend/api/v1/auth/login`
--   **Body**: `{ "usrId": "ID", "usrPwd": "SHA-256-PWD" }`
+- **Endpoint**: `POST /channel/backend/api/v1/auth/login`
+- **Body**: `{ "usrId": "ID", "usrPwd": "SHA-256-PWD" }`
 
 ### 2. 토큰 검증 및 재발급 흐름
-1.  클라이언트는 API 요청 시 `Authorization: Bearer <AccessToken>` 헤더 포함.
-2.  Gateway 및 Auth Filter에서 Access Token 검증.
-3.  **Token 만료 시**: 서버는 `-1004 (EXPIRED_TOKEN)` 코드 반환.
-4.  **클라이언트 대응**: `-1004` 에러 수신 시, Refresh Token으로 재발급 API 호출.
-    -   **Endpoint**: `POST /channel/backend/api/v1/auth/refresh-token`
-    -   **Body**: `{ "refreshToken": "..." }`
-5.  **성공 시**: 새로운 Access/Refresh Token 발급받아 기존 요청 재시도.
+1. 클라이언트는 API 요청 시 `Authorization: Bearer <AccessToken>` 헤더 포함.
+2. Gateway 및 Auth Filter에서 Access Token 검증.
+3. **Token 만료 시**: 서버는 `-1004 (EXPIRED_TOKEN)` 코드 반환.
+4. **클라이언트 대응**: `-1004` 에러 수신 시, Refresh Token으로 재발급 API 호출.
+   - **Endpoint**: `POST /channel/backend/api/v1/auth/refresh-token`
+   - **Body**: `{ "refreshToken": "..." }`
+5. **성공 시**: 새로운 Access/Refresh Token 발급받아 기존 요청 재시도.
 
 ---
 
@@ -87,9 +107,12 @@ BWG 채널 백엔드 공통 프레임워크 프로젝트. MSA 기반의 인증/�
 ```bash
 # JAR 실행 예시
 java -jar -Dspring.profiles.active=local -Dfile.encoding=UTF-8 discovery-svc-0.0.1-SNAPSHOT.jar
+java -jar -Dspring.profiles.active=local -Dfile.encoding=UTF-8 auth-svc-0.0.1-SNAPSHOT.jar
+java -jar -Dspring.profiles.active=local -Dfile.encoding=UTF-8 product-svc-0.0.1-SNAPSHOT.jar
+java -jar -Dspring.profiles.active=local -Dfile.encoding=UTF-8 api-gateway-0.0.1-SNAPSHOT.jar
 ```
 
 ---
 
 ## 📄 참고 문서
--   상세 아키텍처 및 프로세스 설명: `reffile/웹앱 프레임워크_구축 v0.5 2025.09.19.pptx`
+- 상세 아키텍처 및 프로세스 설명: `reffile/웹앱 프레임워크_구축 v0.5 2025.09.19.pptx`

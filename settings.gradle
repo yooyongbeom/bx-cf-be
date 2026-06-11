@@ -1,2 +1,9 @@
 rootProject.name = 'bx-cf-be'
-include("common", "api-gateway", "discovery-svc", "auth-core", "auth-svc")
+include(
+    "libs:common",
+    "libs:auth-core",
+    "infra:api-gateway",
+    "infra:discovery-svc",
+    "services:auth-svc",
+    "services:product-svc"
+)

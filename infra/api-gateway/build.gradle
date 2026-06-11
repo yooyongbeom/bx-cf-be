@@ -1,0 +1,92 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+group = 'com.bwg.channel.backend'
+version = '0.0.1-SNAPSHOT'
+description = 'bankwareglobal channel backend api gateway'
+
+// bootJAR로 패키징
+bootJar.enabled = true
+jar.enabled = false
+
+java {
+//    toolchain {
+//        languageVersion = JavaLanguageVersion.of(17)
+//    }
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:3.3.4"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.1"
+    }
+}
+
+dependencies {
+    implementation project(":libs:common")
+    implementation project(":libs:auth-core")
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    compileOnly ("org.projectlombok:lombok")
+    annotationProcessor ("org.projectlombok:lombok")
+
+    implementation ("org.springframework.boot:spring-boot-starter-security")
+    //implementation("org.springframework.boot:spring-boot-starter-webflux") // Gateway는 WebFlux 필요
+    implementation("org.springframework.cloud:spring-cloud-starter-gateway")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
+
+    testImplementation ("org.springframework.boot:spring-boot-starter-test")
+    testImplementation ("org.springframework.security:spring-security-test")
+    testRuntimeOnly ("org.junit.platform:junit-platform-launcher")
+
+
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'     // 테스트용
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+def activeProfile = project.hasProperty('profile') ? project.property('profile') : 'local'
+processResources {
+
+    // 중복 허용 전략 설정 (같은 파일이 있으면 무시)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // 기존 모듈의 리소스 디렉토리 유지
+    from(sourceSets.main.resources.srcDirs)
+
+    // 루트 프로젝트의 공통 리소스 디렉토리 (배너 파일 등) 복사
+    from(rootProject.file("src/main/resources")) {
+        include "banner.txt"
+        into "."
+    }
+
+    // 활성화된 프로파일에 해당하는 설정 파일만 복사
+    // 1. 모듈별 공통
+    def moduleYml = rootProject.file("src/main/resources/config/${project.name}/application.yml")
+    if (moduleYml.exists()) {
+        from(moduleYml) { into "." }
+    }
+    // 2. 모듈별 profile별 설정
+    def profileDir = rootProject.file("src/main/resources/config/${project.name}/${activeProfile}")
+    if (profileDir.exists()) {
+        from(profileDir) { into "." }
+    }
+
+    // 3. auth-core 설정
+    def authCoreDir = rootProject.file("src/main/resources/config/auth-core/${activeProfile}")
+    if (authCoreDir.exists()) {
+        from(authCoreDir) {
+            rename { fileName -> "application-authcore-${activeProfile}.yml" }
+        }
+    }
+}
