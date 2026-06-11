@@ -12,6 +12,11 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Configuration
@@ -39,6 +44,19 @@ public class SecurityConfig {
     };
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
     public WebFluxJwtAuthFilter WebFlux() {
         return new WebFluxJwtAuthFilter(jwtUtil);
     }
@@ -46,6 +64,7 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) throws Exception {
         return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // 기본 인증 메커니즘 제거 (rest api용)
                 .httpBasic(httpBasic -> httpBasic.disable())    // Basic Auth 끔
                 .formLogin(form -> form.disable())              // /login 페이지 끔
