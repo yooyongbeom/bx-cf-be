@@ -3,7 +3,7 @@ package com.bwg.channel.backend.authsvc.controller;
 import com.bwg.channel.backend.authsvc.domain.dto.LoginDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.service.AuthenticationService;
-import com.bwg.channel.backend.common.constants.enums.AuthErrorCode;
+import com.bwg.channel.backend.authcore.constants.AuthErrorCode;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;

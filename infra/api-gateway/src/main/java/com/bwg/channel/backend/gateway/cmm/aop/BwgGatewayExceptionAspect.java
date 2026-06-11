@@ -1,7 +1,7 @@
 package com.bwg.channel.backend.gateway.cmm.aop;
 
-import com.bwg.channel.backend.common.constants.enums.GatewayErrorCode;
-import com.bwg.channel.backend.common.exception.BwgGatewayException;
+import com.bwg.channel.backend.gateway.cmm.constants.GatewayErrorCode;
+import com.bwg.channel.backend.gateway.cmm.exception.BwgGatewayException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;

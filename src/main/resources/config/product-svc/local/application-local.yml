@@ -1,28 +1,23 @@
 spring:
   datasource:
     jpa-main:
-      jdbc-url: jdbc:h2:mem:product-db
-      driver-class-name: org.h2.Driver
-      username: sa
-      password:
+      jdbc-url: jdbc:postgresql://192.168.11.197:5432/bxcfdb
+      driver-class-name: org.postgresql.Driver
+      username: bxcf
+      password: "1111"
       hikari:
         pool-name: jpa-main-hikari-pool
     mybatis-main:
-      jdbc-url: jdbc:h2:mem:product-db
-      driver-class-name: org.h2.Driver
-      username: sa
-      password:
+      jdbc-url: jdbc:postgresql://192.168.11.197:5432/bxcfdb
+      driver-class-name: org.postgresql.Driver
+      username: bxcf
+      password: "1111"
       hikari:
         pool-name: mybatis-main-hikari-pool
 
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: none
     properties:
       hibernate:
         show_sql: false

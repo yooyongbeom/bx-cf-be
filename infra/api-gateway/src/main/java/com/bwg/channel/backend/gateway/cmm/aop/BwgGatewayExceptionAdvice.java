@@ -1,8 +1,8 @@
 package com.bwg.channel.backend.gateway.cmm.aop;
 
-import com.bwg.channel.backend.common.constants.enums.GatewayErrorCode;
+import com.bwg.channel.backend.gateway.cmm.constants.GatewayErrorCode;
+import com.bwg.channel.backend.gateway.cmm.exception.BwgGatewayException;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
-import com.bwg.channel.backend.common.exception.BwgGatewayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

@@ -1,7 +1,7 @@
 package com.bwg.channel.backend.authcore.filter;
 
 import com.bwg.channel.backend.authcore.util.JwtUtil;
-import com.bwg.channel.backend.common.constants.enums.AuthErrorCode;
+import com.bwg.channel.backend.authcore.constants.AuthErrorCode;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

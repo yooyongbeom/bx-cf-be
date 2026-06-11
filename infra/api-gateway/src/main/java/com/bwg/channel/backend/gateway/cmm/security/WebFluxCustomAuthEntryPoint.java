@@ -1,6 +1,6 @@
 package com.bwg.channel.backend.gateway.cmm.security;
 
-import com.bwg.channel.backend.common.constants.enums.AuthErrorCode;
+import com.bwg.channel.backend.authcore.constants.AuthErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
