@@ -58,31 +58,29 @@ tasks.named('test') {
 def activeProfile = project.hasProperty('profile') ? project.property('profile') : 'local'
 processResources {
 
-    // 중복 허용 전략 설정 (같은 파일이 있으면 무시)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    // 기존 모듈의 리소스 디렉토리 유지
     from(sourceSets.main.resources.srcDirs)
 
-    // 루트 프로젝트의 공통 리소스 디렉토리 (배너 파일 등) 복사
+    // banner
     from(rootProject.file("src/main/resources")) {
         include "banner.txt"
         into "."
     }
 
-    // 활성화된 프로파일에 해당하는 설정 파일만 복사
-    // 1. 모듈별 공통
+    // 모듈 공통 설정
     def moduleYml = rootProject.file("src/main/resources/config/${project.name}/application.yml")
     if (moduleYml.exists()) {
         from(moduleYml) { into "." }
     }
-    // 2. 모듈별 profile별 설정
+
+    // 지정된 프로파일 설정만 포함
     def profileDir = rootProject.file("src/main/resources/config/${project.name}/${activeProfile}")
     if (profileDir.exists()) {
         from(profileDir) { into "." }
     }
 
-    // 3. auth-core 설정
+    // auth-core 설정
     def authCoreDir = rootProject.file("src/main/resources/config/auth-core/${activeProfile}")
     if (authCoreDir.exists()) {
         from(authCoreDir) {

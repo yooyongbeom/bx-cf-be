@@ -50,11 +50,13 @@ processResources {
 
     from(sourceSets.main.resources.srcDirs)
 
+    // banner
     from(rootProject.file("src/main/resources")) {
         include "banner.txt"
         into "."
     }
 
+    // mapper 파일
     def mapperDir = rootProject.file("src/main/resources/mapper/${project.name}")
     if (mapperDir.exists()) {
         from(mapperDir) {
@@ -63,16 +65,19 @@ processResources {
         }
     }
 
+    // 모듈 공통 설정
     def moduleYml = rootProject.file("src/main/resources/config/${project.name}/application.yml")
     if (moduleYml.exists()) {
         from(moduleYml) { into "." }
     }
 
+    // 지정된 프로파일 설정만 포함
     def profileDir = rootProject.file("src/main/resources/config/${project.name}/${activeProfile}")
     if (profileDir.exists()) {
         from(profileDir) { into "." }
     }
 
+    // auth-core 설정
     def authCoreDir = rootProject.file("src/main/resources/config/auth-core/${activeProfile}")
     if (authCoreDir.exists()) {
         from(authCoreDir) {
