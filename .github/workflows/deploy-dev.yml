@@ -6,26 +6,104 @@ on:
       - develop
 
 jobs:
-  deploy:
+  detect:
     runs-on: self-hosted
-
+    outputs:
+      auth:      ${{ steps.filter.outputs.auth }}
+      product:   ${{ steps.filter.outputs.product }}
+      all:       ${{ steps.filter.outputs.all }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          filters: |
+            auth:
+              - 'services/auth-svc/**'
+            product:
+              - 'services/product-svc/**'
+            all:
+              - 'libs/**'
+              - 'infra/**'
+              - 'scripts/**'
+              - '.github/workflows/**'
+
+  deploy-auth:
+    needs: detect
+    if: needs.detect.outputs.all != 'true' && needs.detect.outputs.auth == 'true'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build bootJar (dev profile)
+      - name: Build auth-svc
+        run: ./gradlew :services:auth-svc:bootJar -Pprofile=dev --no-daemon
+
+      - name: Deploy auth-svc
+        run: |
+          mkdir -p ~/apps/bx-cf-be/auth-svc
+          cp build/dist/bx-cf-be/auth-svc-*.jar ~/apps/bx-cf-be/auth-svc/auth-svc-0.0.1-SNAPSHOT.jar
+
+      - name: Restart auth-svc
+        run: |
+          PID_FILE=~/apps/bx-cf-be/auth-svc/auth-svc.pid
+          if [ -f "$PID_FILE" ]; then
+            kill $(cat $PID_FILE) 2>/dev/null || true
+            rm -f $PID_FILE
+          fi
+          nohup java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
+            -Dspring.profiles.active=dev \
+            -jar ~/apps/bx-cf-be/auth-svc/auth-svc-0.0.1-SNAPSHOT.jar \
+            > ~/apps/bx-cf-be/logs/auth-svc.log 2>&1 &
+          echo $! > $PID_FILE
+
+  deploy-product:
+    needs: detect
+    if: needs.detect.outputs.all != 'true' && needs.detect.outputs.product == 'true'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build product-svc
+        run: ./gradlew :services:product-svc:bootJar -Pprofile=dev --no-daemon
+
+      - name: Deploy product-svc
+        run: |
+          mkdir -p ~/apps/bx-cf-be/product-svc
+          cp build/dist/bx-cf-be/product-svc-*.jar ~/apps/bx-cf-be/product-svc/product-svc-0.0.1-SNAPSHOT.jar
+
+      - name: Restart product-svc
+        run: |
+          PID_FILE=~/apps/bx-cf-be/product-svc/product-svc.pid
+          if [ -f "$PID_FILE" ]; then
+            kill $(cat $PID_FILE) 2>/dev/null || true
+            rm -f $PID_FILE
+          fi
+          nohup java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
+            -Dspring.profiles.active=dev \
+            -jar ~/apps/bx-cf-be/product-svc/product-svc-0.0.1-SNAPSHOT.jar \
+            > ~/apps/bx-cf-be/logs/product-svc.log 2>&1 &
+          echo $! > $PID_FILE
+
+  deploy-all:
+    needs: detect
+    if: needs.detect.outputs.all == 'true'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build all services
         run: ./gradlew :infra:discovery-svc:bootJar :infra:api-gateway:bootJar :services:auth-svc:bootJar :services:product-svc:bootJar -Pprofile=dev --no-daemon
 
-      - name: Copy JARs to apps directory
+      - name: Deploy all JARs
         run: |
           mkdir -p ~/apps/bx-cf-be/logs
           mkdir -p ~/apps/bx-cf-be/discovery-svc
@@ -37,12 +115,12 @@ jobs:
           cp build/dist/bx-cf-be/product-svc-*.jar   ~/apps/bx-cf-be/product-svc/product-svc-0.0.1-SNAPSHOT.jar
           cp build/dist/bx-cf-be/api-gateway-*.jar   ~/apps/bx-cf-be/api-gateway/api-gateway-0.0.1-SNAPSHOT.jar
 
-      - name: Stop services
+      - name: Stop all services
         run: |
           chmod +x ${{ github.workspace }}/scripts/stop-all.sh
           ${{ github.workspace }}/scripts/stop-all.sh || true
 
-      - name: Start services
+      - name: Start all services
         run: |
           chmod +x ${{ github.workspace }}/scripts/start-all.sh
           ${{ github.workspace }}/scripts/start-all.sh
