@@ -1,0 +1,45 @@
+name: Deploy Dev
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build bootJar (dev profile)
+        run: ./gradlew :infra:discovery-svc:bootJar :infra:api-gateway:bootJar :services:auth-svc:bootJar :services:product-svc:bootJar -Pprofile=dev --no-daemon
+
+      - name: Copy JARs to apps directory
+        run: |
+          mkdir -p ~/apps/bx-cf-be/logs
+          mkdir -p ~/apps/bx-cf-be/discovery-svc
+          mkdir -p ~/apps/bx-cf-be/auth-svc
+          mkdir -p ~/apps/bx-cf-be/product-svc
+          mkdir -p ~/apps/bx-cf-be/api-gateway
+          cp build/dist/bx-cf-be/discovery-svc-*.jar ~/apps/bx-cf-be/discovery-svc/discovery-svc-0.0.1-SNAPSHOT.jar
+          cp build/dist/bx-cf-be/auth-svc-*.jar      ~/apps/bx-cf-be/auth-svc/auth-svc-0.0.1-SNAPSHOT.jar
+          cp build/dist/bx-cf-be/product-svc-*.jar   ~/apps/bx-cf-be/product-svc/product-svc-0.0.1-SNAPSHOT.jar
+          cp build/dist/bx-cf-be/api-gateway-*.jar   ~/apps/bx-cf-be/api-gateway/api-gateway-0.0.1-SNAPSHOT.jar
+
+      - name: Stop services
+        run: |
+          chmod +x ${{ github.workspace }}/scripts/stop-all.sh
+          ${{ github.workspace }}/scripts/stop-all.sh || true
+
+      - name: Start services
+        run: |
+          chmod +x ${{ github.workspace }}/scripts/start-all.sh
+          ${{ github.workspace }}/scripts/start-all.sh
