@@ -53,12 +53,12 @@ jobs:
             kill $(cat $PID_FILE) 2>/dev/null || true
             rm -f $PID_FILE
           fi
-          env -u RUNNER_TRACKING_ID setsid bash -c '
-            echo $$ > '"$PID_FILE"'
-            exec java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
-              -Dspring.profiles.active=dev \
-              -jar ~/apps/bx-cf-be/auth-svc/auth-svc-0.0.1-SNAPSHOT.jar
-          ' < /dev/null > /dev/null 2>&1 &
+          mkdir -p ~/apps/bx-cf-be/logs
+          env -u RUNNER_TRACKING_ID nohup java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
+            -Dspring.profiles.active=dev \
+            -jar ~/apps/bx-cf-be/auth-svc/auth-svc-0.0.1-SNAPSHOT.jar \
+            < /dev/null > ~/apps/bx-cf-be/logs/auth-svc-bootstrap.log 2>&1 &
+          echo $! > $PID_FILE
 
       - name: Notify Jandi
         if: always()
@@ -107,12 +107,12 @@ jobs:
             kill $(cat $PID_FILE) 2>/dev/null || true
             rm -f $PID_FILE
           fi
-          env -u RUNNER_TRACKING_ID setsid bash -c '
-            echo $$ > '"$PID_FILE"'
-            exec java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
-              -Dspring.profiles.active=dev \
-              -jar ~/apps/bx-cf-be/product-svc/product-svc-0.0.1-SNAPSHOT.jar
-          ' < /dev/null > /dev/null 2>&1 &
+          mkdir -p ~/apps/bx-cf-be/logs
+          env -u RUNNER_TRACKING_ID nohup java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
+            -Dspring.profiles.active=dev \
+            -jar ~/apps/bx-cf-be/product-svc/product-svc-0.0.1-SNAPSHOT.jar \
+            < /dev/null > ~/apps/bx-cf-be/logs/product-svc-bootstrap.log 2>&1 &
+          echo $! > $PID_FILE
 
       - name: Notify Jandi
         if: always()

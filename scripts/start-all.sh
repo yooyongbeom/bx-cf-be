@@ -3,17 +3,21 @@ BASE=~/apps/bx-cf-be
 PROFILE=dev
 JAVA_OPTS="-Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m"
 
-# GitHub Actions self-hosted runner는 job 종료 시 자식 프로세스를 모두 정리한다.
-# - RUNNER_TRACKING_ID 환경변수를 제거하고(env -u)
-# - setsid 로 runner 와 분리된 새 세션을 만들어
-# 서비스가 job 종료 후에도 살아있게 한다.
+mkdir -p $BASE/logs
+
+# GitHub Actions self-hosted runner(macOS)는 job 종료 시
+# RUNNER_TRACKING_ID 환경변수가 일치하는 자식 프로세스를 모두 정리한다.
+# env -u 로 이 변수를 제거해 runner 의 정리 대상에서 벗어나게 한다.
+# (setsid 는 macOS 에 없으므로 사용하지 않는다)
+# 초기 부팅 로그는 bootstrap 로그로 남겨 기동 실패 시 원인을 확인한다.
 start_svc() {
   local name=$1
   local jar=$2
-  env -u RUNNER_TRACKING_ID setsid bash -c "
-    echo \$\$ > $BASE/$name/$name.pid
-    exec java $JAVA_OPTS -Dspring.profiles.active=$PROFILE -jar $jar
-  " < /dev/null > /dev/null 2>&1 &
+  env -u RUNNER_TRACKING_ID nohup java $JAVA_OPTS \
+    -Dspring.profiles.active=$PROFILE \
+    -jar $jar \
+    < /dev/null > $BASE/logs/$name-bootstrap.log 2>&1 &
+  echo $! > $BASE/$name/$name.pid
 }
 
 echo "Starting discovery-svc..."
