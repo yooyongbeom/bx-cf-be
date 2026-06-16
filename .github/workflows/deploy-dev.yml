@@ -56,8 +56,30 @@ jobs:
           nohup java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
             -Dspring.profiles.active=dev \
             -jar ~/apps/bx-cf-be/auth-svc/auth-svc-0.0.1-SNAPSHOT.jar \
-            > ~/apps/bx-cf-be/logs/auth-svc.log 2>&1 &
+            > /dev/null 2>&1 &
           echo $! > $PID_FILE
+
+      - name: Notify Jandi
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR="#00C73C"
+            TITLE="✅ 배포 성공 - auth-svc"
+          else
+            COLOR="#F84B4B"
+            TITLE="❌ 배포 실패 - auth-svc"
+          fi
+          curl -s -X POST "${{ secrets.JANDI_HOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"body\": \"$TITLE\",
+              \"connectColor\": \"$COLOR\",
+              \"connectInfo\": [
+                {\"title\": \"브랜치\", \"description\": \"${{ github.ref_name }}\"},
+                {\"title\": \"커밋\", \"description\": \"${{ github.event.head_commit.message }}\"},
+                {\"title\": \"작업자\", \"description\": \"${{ github.actor }}\"}
+              ]
+            }"
 
   deploy-product:
     needs: detect
@@ -87,8 +109,30 @@ jobs:
           nohup java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
             -Dspring.profiles.active=dev \
             -jar ~/apps/bx-cf-be/product-svc/product-svc-0.0.1-SNAPSHOT.jar \
-            > ~/apps/bx-cf-be/logs/product-svc.log 2>&1 &
+            > /dev/null 2>&1 &
           echo $! > $PID_FILE
+
+      - name: Notify Jandi
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR="#00C73C"
+            TITLE="✅ 배포 성공 - product-svc"
+          else
+            COLOR="#F84B4B"
+            TITLE="❌ 배포 실패 - product-svc"
+          fi
+          curl -s -X POST "${{ secrets.JANDI_HOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"body\": \"$TITLE\",
+              \"connectColor\": \"$COLOR\",
+              \"connectInfo\": [
+                {\"title\": \"브랜치\", \"description\": \"${{ github.ref_name }}\"},
+                {\"title\": \"커밋\", \"description\": \"${{ github.event.head_commit.message }}\"},
+                {\"title\": \"작업자\", \"description\": \"${{ github.actor }}\"}
+              ]
+            }"
 
   deploy-all:
     needs: detect
@@ -124,3 +168,25 @@ jobs:
         run: |
           chmod +x ${{ github.workspace }}/scripts/start-all.sh
           ${{ github.workspace }}/scripts/start-all.sh
+
+      - name: Notify Jandi
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR="#00C73C"
+            TITLE="✅ 배포 성공 - 전체 서비스"
+          else
+            COLOR="#F84B4B"
+            TITLE="❌ 배포 실패 - 전체 서비스"
+          fi
+          curl -s -X POST "${{ secrets.JANDI_HOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"body\": \"$TITLE\",
+              \"connectColor\": \"$COLOR\",
+              \"connectInfo\": [
+                {\"title\": \"브랜치\", \"description\": \"${{ github.ref_name }}\"},
+                {\"title\": \"커밋\", \"description\": \"${{ github.event.head_commit.message }}\"},
+                {\"title\": \"작업자\", \"description\": \"${{ github.actor }}\"}
+              ]
+            }"
