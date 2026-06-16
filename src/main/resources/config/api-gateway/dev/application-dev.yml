@@ -17,6 +17,9 @@ eureka:
       defaultZone: "http://192.168.11.197:18761/eureka"
     register-with-eureka: true
     fetch-registry: true
+app:
+  log-path: /Users/channelunit/apps/bx-cf-be/logs
+
 logging:
   level:
     org:

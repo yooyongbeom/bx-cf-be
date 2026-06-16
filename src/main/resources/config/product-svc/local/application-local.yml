@@ -44,6 +44,9 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
 
+app:
+  log-path: C:/work/bx-cf-be/logs
+
 logging:
   level:
     p6spy: INFO

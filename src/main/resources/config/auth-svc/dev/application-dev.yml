@@ -52,6 +52,9 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
 
+app:
+  log-path: /Users/channelunit/apps/bx-cf-be/logs
+
 logging:
   level:
     p6spy: INFO
