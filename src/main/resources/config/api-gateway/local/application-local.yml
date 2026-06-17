@@ -3,6 +3,11 @@ spring:
     import: "classpath:/application-authcore-local.yml"   # auth-core 설정 import
   lifecycle:
     timeout-per-shutdown-phase: 35s
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true    # local 개발 편의: 서비스 직접 라우팅 허용 (dev/운영은 공통 설정에서 off)
 server:
   port: 18081
 bwgProp:

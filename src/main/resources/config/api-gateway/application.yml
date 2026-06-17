@@ -18,11 +18,26 @@ spring:
     web-application-type: reactive
   cloud:
     gateway:
-      # eureka에 등록된 서비스 이름 자동으로 라우트에서 사용가능
+      # eureka에 등록된 서비스 이름으로 /{service-id}/** 라우트 자동 생성.
+      # 예측 가능한 두 번째 라우팅 표면이 생기므로 기본 off, 개발 편의가 필요한 local에서만 on.
       discovery:
         locator:
-          enabled: true
+          enabled: false
       routes:
+        # ===== Swagger 집계: 각 서비스 api-docs 프록시 =====
+        # springdoc이 선점하는 /v3/api-docs/{group} 과 충돌을 피하려 별도 프리픽스 사용
+        - id: auth-svc-api-docs
+          uri: lb://BWG-CHANNEL-BACKEND-AUTH-SVC
+          predicates:
+            - Path=/auth-svc/v3/api-docs
+          filters:
+            - SetPath=/auth/v3/api-docs    # auth-svc context-path(/auth) 기준
+        - id: product-svc-api-docs
+          uri: lb://BWG-CHANNEL-BACKEND-PRODUCT-SVC
+          predicates:
+            - Path=/product-svc/v3/api-docs
+          filters:
+            - SetPath=/product/v3/api-docs # product-svc context-path(/product) 기준
         #인증서비스, 로그인/토큰 발급, 권한관리
         - id: auth-svc
           uri: lb://BWG-CHANNEL-BACKEND-AUTH-SVC
@@ -46,6 +61,17 @@ spring:
       log-condition-evaluation-delta: false
   webflux:
 #    base-path: /channel/backend/api/v1
+
+# Swagger UI 집계: 한 화면에서 드롭다운으로 서비스별 문서 전환
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    persist-authorization: true   # Authorize 한 토큰을 새로고침/재접속에도 유지 (localStorage)
+    urls:
+      - name: auth-svc
+        url: /auth-svc/v3/api-docs
+      - name: product-svc
+        url: /product-svc/v3/api-docs
 # actuator
 management:
   endpoints:

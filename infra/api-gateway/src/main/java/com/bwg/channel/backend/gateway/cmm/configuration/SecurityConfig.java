@@ -37,6 +37,9 @@ public class SecurityConfig {
             /*swagger v3*/
             "/v3/api-docs/**",
             "/swagger-ui/**",
+            /*swagger 집계: 서비스별 api-docs 프록시 경로*/
+            "/auth-svc/v3/api-docs",
+            "/product-svc/v3/api-docs",
             "/favicon.ico",
             "/actuator/info",
             "/actuator/health",

@@ -32,6 +32,39 @@ discovery-svc → auth-svc + product-svc → api-gateway
 
 Postman: `reffile/BX-CF-BE-LCL.postman_collection.json`
 
+## Swagger (API 문서)
+
+게이트웨이에서 서비스별 문서를 한 화면에 모아 제공한다. (게이트웨이 기동 후 접속)
+
+| 환경 | Swagger UI |
+| --- | --- |
+| local | http://localhost:18081/swagger-ui.html |
+| dev | http://192.168.11.197:18081/swagger-ui.html |
+
+- 우측 상단 **Select a definition** 드롭다운에서 auth-svc / product-svc 전환.
+- Schemas 목록에는 DTO만 표시(공통 응답 래퍼 제외). 응답 모델에는 공통 응답 구조(success/code/msg/payload)가 인라인으로 표시된다.
+
+### Authorize (JWT) 사용법
+
+product-svc API는 JWT가 필요하다(auth-svc 로그인/토큰 발급은 불필요). 토큰을 발급받아 Authorize에 등록하면 이후 요청에 자동으로 `Authorization: Bearer ...` 가 붙는다.
+
+1. **Select a definition → auth-svc** 선택.
+2. `POST /channel/backend/api/v1/auth/login` → **Try it out** → 입력 후 **Execute**.
+
+   ```json
+   // 응답 payload 에서 accessToken 복사
+   {
+     "success": true, "code": "0", "msg": "success",
+     "payload": { "accessToken": "eyJhbGciOi...", "refreshToken": "..." }
+   }
+   ```
+
+3. 우측 상단 **Authorize 🔒** 클릭 → `bearerAuth` 입력란에 **accessToken 값만** 붙여넣기(앞에 `Bearer ` 안 붙여도 됨) → **Authorize**.
+4. **Select a definition → product-svc** 로 바꿔 API 호출 → 자물쇠가 잠긴 상태로 토큰이 자동 전송된다.
+
+> 한 번 Authorize한 토큰은 새로고침/재접속에도 유지된다(`springdoc.swagger-ui.persist-authorization`). 단 토큰 만료 시간이 지나면 `-1004`(401)가 나므로 재로그인 후 다시 Authorize 한다.
+> local 기본 만료는 테스트용으로 짧게 설정돼 있으니 필요 시 `config/auth-core/local/application-local.yml` 의 `access-token-validity-ms` 로 조정한다.
+
 ## 빌드
 
 ```bash
@@ -48,6 +81,26 @@ Postman: `reffile/BX-CF-BE-LCL.postman_collection.json`
 java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
      -Dspring.profiles.active=dev \
      -jar 서비스명.jar
+```
+
+## 설정 (프로파일)
+
+설정 파일은 각 모듈이 아니라 루트의 `src/main/resources/config/` 아래에 모여 있고, 빌드 시 `processResources`가 **선택된 프로파일 파일만** 각 jar로 복사한다.
+
+```
+src/main/resources/config/
+├── {module}/application.yml              모듈 공통 (항상 포함)
+├── {module}/{profile}/application-{profile}.yml   프로파일별 (선택 포함)
+└── auth-core/{profile}/...               auth-core 공통 설정 (application-authcore-{profile}.yml 로 포함)
+```
+
+- 프로파일은 빌드 인자 `-Pprofile=dev` 로 결정 (미지정 시 `local`).
+- 예: `-Pprofile=dev` 로 빌드하면 `config/{module}/dev/` 의 파일만 패키징된다.
+- 모듈 자체(`각 모듈/src/main/resources`)에 같은 이름의 파일을 두면 `duplicatesStrategy=EXCLUDE` 로 그쪽이 우선되어 위 공통 설정이 무시되니 주의.
+
+```bash
+# 빌드 시 프로파일 지정
+./gradlew :services:auth-svc:bootJar -Pprofile=dev
 ```
 
 ## 공통 응답 규격
@@ -76,6 +129,14 @@ POST /channel/backend/api/v1/auth/refresh-token
 GET /channel/backend/api/v1/product/list?useYn=Y&productNm=펀드
 GET /channel/backend/api/v1/product/{productId}
 ```
+
+상품 API는 게이트웨이에서 JWT 인증이 필요하다. 요청 헤더에 로그인으로 발급받은 토큰을 넣는다.
+
+```
+Authorization: Bearer <accessToken>
+```
+
+토큰이 없거나 유효하지 않으면 `-1003`, 만료 시 `-1004` 반환. (auth-svc 로그인/토큰 발급은 인증 불필요)
 
 ## 에러 코드
 

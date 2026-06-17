@@ -36,4 +36,7 @@ dependencies {
 
     // MyBatis
     api 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
+
+    // OpenAPI(swagger) 모델 타입 - 공통 헬퍼 컴파일용. 런타임 springdoc 스타터는 각 서비스가 제공
+    compileOnly 'org.springdoc:springdoc-openapi-starter-common:2.6.0'
 }
