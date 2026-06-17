@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "0fc016ae-0ad7-4f04-8e82-adb610c4126d",
-		"name": "BX-CF-BE-LCL",
+		"_postman_id": "1ac127bf-0bd2-4f5e-9f93-bce721d05e28",
+		"name": "BX-CF-BE-DEV",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -26,10 +26,9 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:18081/channel/backend/api/v1/auth/login",
+							"raw": "http://192.168.11.197/channel/backend/api/v1/auth/login",
 							"protocol": "http",
-							"host": ["localhost"],
-							"port": "18081",
+							"host": ["192.168.11.197"],
 							"path": ["channel", "backend", "api", "v1", "auth", "login"]
 						}
 					},
@@ -50,10 +49,9 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:18081/channel/backend/api/v1/auth/refresh-token",
+							"raw": "http://192.168.11.197/channel/backend/api/v1/auth/refresh-token",
 							"protocol": "http",
-							"host": ["localhost"],
-							"port": "18081",
+							"host": ["192.168.11.197"],
 							"path": ["channel", "backend", "api", "v1", "auth", "refresh-token"]
 						}
 					},
@@ -75,10 +73,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:18081/te/home",
+							"raw": "http://192.168.11.197/te/home",
 							"protocol": "http",
-							"host": ["localhost"],
-							"port": "18081",
+							"host": ["192.168.11.197"],
 							"path": ["te", "home"]
 						}
 					},
@@ -105,10 +102,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:18081/channel/backend/api/v1/product/list?useYn=Y",
+							"raw": "http://192.168.11.197/channel/backend/api/v1/product/list?useYn=Y",
 							"protocol": "http",
-							"host": ["localhost"],
-							"port": "18081",
+							"host": ["192.168.11.197"],
 							"path": ["channel", "backend", "api", "v1", "product", "list"],
 							"query": [
 								{
@@ -141,10 +137,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:18081/channel/backend/api/v1/product/1",
+							"raw": "http://192.168.11.197/channel/backend/api/v1/product/1",
 							"protocol": "http",
-							"host": ["localhost"],
-							"port": "18081",
+							"host": ["192.168.11.197"],
 							"path": ["channel", "backend", "api", "v1", "product", "1"]
 						}
 					},
