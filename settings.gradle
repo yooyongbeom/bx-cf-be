@@ -2,6 +2,7 @@ rootProject.name = 'bx-cf-be'
 include(
     "libs:common",
     "libs:auth-core",
+    "libs:type-bridge",
     "infra:api-gateway",
     "infra:discovery-svc",
     "services:auth-svc",

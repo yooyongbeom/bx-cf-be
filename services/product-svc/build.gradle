@@ -21,6 +21,7 @@ dependencyManagement {
 dependencies {
     implementation project(':libs:common')
     implementation project(':libs:auth-core')
+    implementation project(':libs:type-bridge')
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 

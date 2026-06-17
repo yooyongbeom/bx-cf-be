@@ -1,6 +1,7 @@
 package com.bwg.channel.backend.authsvc.domain.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.bwg.channel.backend.typebridge.annotation.ApiDto;
+import com.bwg.channel.backend.typebridge.annotation.ApiField;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,37 +9,42 @@ import java.util.List;
 
 @Getter
 @Setter
-@Schema(description = "로그인 요청/응답 정보")
+@ApiDto(
+    name = "Login",
+    endpoints = {"login", "erp-login"}
+)
 public class LoginDto {
 
-    @Schema(description = "사용자 ID", example = "hong.gildong")
+    @ApiField(description = "사용자 ID", example = "hong.gildong",
+              required = {"login", "erp-login"})
     private String usrId;
 
-    @Schema(description = "사용자명", example = "홍길동")
-    private String usrNm;
-
-    @Schema(description = "직위명", example = "대리")
-    private String positDivName;
-
-    @Schema(description = "부서명", example = "채널개발팀")
-    private String deptName;
-
-    @Schema(description = "비밀번호")
+    @ApiField(description = "비밀번호", format = "password",
+              required = {"login"},
+              exclude = {"erp-login"})
     private String usrPwd;
 
-    @Schema(description = "액세스 토큰", accessMode = Schema.AccessMode.READ_ONLY)
+    @ApiField(description = "사용자명", example = "홍길동", responseOnly = true)
+    private String usrNm;
+
+    @ApiField(description = "직위명", example = "대리", responseOnly = true)
+    private String positDivName;
+
+    @ApiField(description = "부서명", example = "채널개발팀", responseOnly = true)
+    private String deptName;
+
+    @ApiField(description = "액세스 토큰", responseOnly = true)
     private String accessToken;
 
-    @Schema(description = "액세스 토큰 만료 일시", accessMode = Schema.AccessMode.READ_ONLY)
+    @ApiField(description = "액세스 토큰 만료 일시", responseOnly = true)
     private String accessTokenExpiresAt;
 
-    @Schema(description = "리프레시 토큰", accessMode = Schema.AccessMode.READ_ONLY)
+    @ApiField(description = "리프레시 토큰", responseOnly = true)
     private String refreshToken;
 
-    @Schema(description = "리프레시 토큰 만료 일시", accessMode = Schema.AccessMode.READ_ONLY)
+    @ApiField(description = "리프레시 토큰 만료 일시", responseOnly = true)
     private String refreshTokenExpiresAt;
 
-    @Schema(description = "권한 목록", accessMode = Schema.AccessMode.READ_ONLY)
+    @ApiField(description = "권한 목록", responseOnly = true)
     private List<String> roles;
 }
-

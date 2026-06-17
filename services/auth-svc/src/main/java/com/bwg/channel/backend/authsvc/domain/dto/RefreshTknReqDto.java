@@ -1,12 +1,13 @@
 package com.bwg.channel.backend.authsvc.domain.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.bwg.channel.backend.typebridge.annotation.ApiDto;
+import com.bwg.channel.backend.typebridge.annotation.ApiField;
 import lombok.Data;
 
 @Data
-@Schema(description = "토큰 재발급 요청 정보")
+@ApiDto(name = "RefreshTkn", endpoints = {"refresh-token"}, generateResponse = false)
 public class RefreshTknReqDto {
 
-    @Schema(description = "리프레시 토큰", requiredMode = Schema.RequiredMode.REQUIRED)
+    @ApiField(description = "리프레시 토큰", required = {"refresh-token"})
     private String refreshToken;
 }

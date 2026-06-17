@@ -1,27 +1,29 @@
 package com.bwg.channel.backend.productsvc.domain.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.bwg.channel.backend.typebridge.annotation.ApiDto;
+import com.bwg.channel.backend.typebridge.annotation.ApiField;
 import lombok.Data;
 
 @Data
-@Schema(description = "상품 정보")
+@ApiDto(name = "Product", endpoints = {})
 public class ProductDto {
 
-    @Schema(description = "상품 ID", example = "1001")
-    private Long   productId;
+    @ApiField(description = "상품 ID", example = "1001", optional = {"list"})
+    private Long productId;
 
-    @Schema(description = "상품명", example = "안정형 펀드")
+    @ApiField(description = "상품명", example = "안정형 펀드", optional = {"list"})
     private String productNm;
 
-    @Schema(description = "상품 설명")
+    @ApiField(description = "상품 설명", optional = {"list"})
     private String productDesc;
 
-    @Schema(description = "가격", example = "100000")
-    private Long   price;
+    @ApiField(description = "가격", example = "100000", optional = {"list"})
+    private Long price;
 
-    @Schema(description = "재고 수량", example = "50")
+    @ApiField(description = "재고 수량", example = "50", optional = {"list"})
     private Integer stockQty;
 
-    @Schema(description = "사용 여부 (Y/N)", example = "Y")
+    @ApiField(description = "사용 여부 (Y/N)", example = "Y",
+              allowableValues = {"Y", "N"}, optional = {"list"})
     private String useYn;
 }

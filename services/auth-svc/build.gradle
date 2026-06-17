@@ -31,6 +31,7 @@ dependencyManagement {
 dependencies {
     implementation project(':libs:common')
     implementation project(':libs:auth-core')
+    implementation project(':libs:type-bridge')    // Customizer 빈이 런타임에 등록되어야 함
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
