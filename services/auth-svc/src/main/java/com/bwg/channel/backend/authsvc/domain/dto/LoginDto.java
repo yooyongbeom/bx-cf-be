@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @ApiDto(
-    name = "Login",
+    name = "Auth",
     endpoints = {"login", "erp-login"}
 )
 public class LoginDto {
