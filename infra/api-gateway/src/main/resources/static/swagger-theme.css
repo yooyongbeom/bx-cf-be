@@ -53,6 +53,13 @@ body.bwg-dark .swagger-ui .opblock-tag {
 body.bwg-dark .swagger-ui .opblock-tag:hover {
     background: #2c2c2e !important;
 }
+body.bwg-dark .swagger-ui .opblock-tag a,
+body.bwg-dark .swagger-ui .opblock-tag span {
+    color: #e0e0e0 !important;
+}
+body.bwg-dark .swagger-ui .opblock-tag small {
+    color: #a0a0a0 !important;
+}
 
 /* Operation 블록 공통 */
 body.bwg-dark .swagger-ui .opblock {
