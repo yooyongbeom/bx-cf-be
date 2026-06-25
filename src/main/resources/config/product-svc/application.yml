@@ -10,8 +10,6 @@ spring:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
       - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
       - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
-  profiles:
-    active: local
   application:
     name: bwg-channel-backend-product-svc
   devtools:

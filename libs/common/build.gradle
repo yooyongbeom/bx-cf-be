@@ -22,8 +22,8 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.14.2'
     api 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
 
-    api 'org.springframework.boot:spring-boot-starter-web'
-    api 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     // Spring Boot AOP
     api 'org.springframework.boot:spring-boot-starter-aop'

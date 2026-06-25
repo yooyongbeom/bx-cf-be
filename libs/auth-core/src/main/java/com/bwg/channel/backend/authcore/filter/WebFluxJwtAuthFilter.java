@@ -32,7 +32,7 @@ public class WebFluxJwtAuthFilter implements WebFilter {
         if (token != null) {
             try {
                 // 1. 토큰 유효성 검증
-                jwtUtil.validateToken(token);
+                jwtUtil.validateAccessToken(token);
 
                 // 2. 토큰이 유효하면 인증 객체를 السياق الأمني (Security Context)에 저장
                 Authentication authentication = jwtUtil.getAuthenticationFromToken(token);

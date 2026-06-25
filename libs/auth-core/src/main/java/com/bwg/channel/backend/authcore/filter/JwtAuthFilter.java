@@ -34,7 +34,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             try {
-                jwtUtil.validateToken(token); // 토큰 유효성 검증
+                jwtUtil.validateAccessToken(token); // Access Token 유효성 검증
                 Authentication authentication = jwtUtil.getAuthenticationFromToken(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (ExpiredJwtException e) {

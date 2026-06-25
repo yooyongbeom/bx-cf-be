@@ -48,20 +48,16 @@ public class ResponseWrapperSchemaCustomizer implements OpenApiCustomizer {
                 wrapperPayload.put(entry.getKey(), payload);
             }
         }
-        if (wrapperPayload.isEmpty()) {
-            return;
-        }
-
         // 응답의 래퍼 $ref -> 공통 응답 구조 인라인 객체로 교체 (참조 깨짐 방지 + 공통 응답 구조 유지)
         if (openApi.getPaths() != null) {
-            openApi.getPaths().values().forEach(path -> rewritePath(path, wrapperPayload));
+            openApi.getPaths().values().forEach(path -> rewritePath(path, wrapperPayload, schemas));
         }
 
         // 래퍼 스키마 제거 (이름이 목록에 노출되지 않음)
-        schemas.keySet().removeAll(wrapperPayload.keySet());
+        // Keep wrapper schemas so any generated $ref that remains after rewriting stays resolvable.
     }
 
-    private void rewritePath(PathItem path, Map<String, Schema> wrapperPayload) {
+    private void rewritePath(PathItem path, Map<String, Schema> wrapperPayload, Map<String, Schema> componentSchemas) {
         for (Operation op : path.readOperations()) {
             ApiResponses responses = op.getResponses();
             if (responses == null) {
@@ -74,8 +70,12 @@ public class ResponseWrapperSchemaCustomizer implements OpenApiCustomizer {
                 }
                 for (MediaType mediaType : content.values()) {
                     String wrapper = refName(mediaType.getSchema());
-                    if (wrapper != null && wrapperPayload.containsKey(wrapper)) {
-                        mediaType.setSchema(inlineCommonResponse(wrapperPayload.get(wrapper)));
+                    if (wrapper != null && isWrapper(wrapper)) {
+                        Schema payload = wrapperPayload.get(wrapper);
+                        if (payload == null) {
+                            payload = inferPayloadSchema(wrapper, componentSchemas);
+                        }
+                        mediaType.setSchema(inlineCommonResponse(payload));
                     }
                 }
             }
@@ -108,5 +108,20 @@ public class ResponseWrapperSchemaCustomizer implements OpenApiCustomizer {
         }
         String ref = schema.get$ref();
         return ref.startsWith(REF_PREFIX) ? ref.substring(REF_PREFIX.length()) : null;
+    }
+
+    private Schema<?> inferPayloadSchema(String wrapperName, Map<String, Schema> componentSchemas) {
+        String payloadName = null;
+        if (wrapperName.startsWith("ApiResponse")) {
+            payloadName = wrapperName.substring("ApiResponse".length());
+        } else if (wrapperName.startsWith("CommonResponse")) {
+            payloadName = wrapperName.substring("CommonResponse".length());
+        }
+
+        if (payloadName == null || payloadName.isBlank() || !componentSchemas.containsKey(payloadName)) {
+            return null;
+        }
+
+        return new Schema<>().$ref(REF_PREFIX + payloadName);
     }
 }

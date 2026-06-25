@@ -6,11 +6,13 @@ import com.bwg.channel.backend.productsvc.domain.dto.ProductDto;
 import com.bwg.channel.backend.productsvc.repository.ProductRepository;
 import com.bwg.channel.backend.productsvc.repository.mybatis.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component("mybatisProduct")
+@Primary
 @RequiredArgsConstructor
 public class MybatisProductRepositoryAdapter implements ProductRepository {
 

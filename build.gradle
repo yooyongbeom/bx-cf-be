@@ -41,6 +41,10 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
     // 모든 서브 프로젝트에서 Spring Boot 테스트 환경 사용 가능
     // Junit, Mockito, Spring Test
     dependencies {

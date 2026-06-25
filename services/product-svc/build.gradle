@@ -20,6 +20,7 @@ dependencyManagement {
 
 dependencies {
     implementation project(':libs:common')
+    implementation project(':libs:business-common')
     implementation project(':libs:auth-core')
     implementation project(':libs:type-bridge')
 
@@ -28,6 +29,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
     // Swagger / OpenAPI (서블릿 MVC)
@@ -35,6 +37,7 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'com.h2database:h2'
 
     // DB
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.1'

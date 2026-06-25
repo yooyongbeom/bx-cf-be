@@ -1,4 +1,4 @@
-# BX-CF-BE
+﻿# BX-CF-BE
 
 BWG 채널 백엔드 프레임워크. Spring Boot 3.3 / Java 21 / MSA 구조.
 
@@ -27,8 +27,8 @@ discovery-svc → auth-svc + product-svc → api-gateway
 
 | 환경 | Eureka | DB |
 | --- | --- | --- |
-| local | http://localhost:18761 | jdbc:postgresql://192.168.11.197:5432/bxcfdb |
-| dev | http://192.168.11.197:18761 | jdbc:postgresql://192.168.11.197:5432/bxcfdb |
+| local | http://localhost:18761 | jdbc:postgresql://192.168.110.217:5432/bxcfdb |
+| dev | http://192.168.110.217:18761 | jdbc:postgresql://192.168.110.217:5432/bxcfdb |
 
 Postman: `reffile/BX-CF-BE-LCL.postman_collection.json`
 
@@ -39,7 +39,7 @@ Postman: `reffile/BX-CF-BE-LCL.postman_collection.json`
 | 환경 | Swagger UI |
 | --- | --- |
 | local | http://localhost:18081/swagger-ui.html |
-| dev | http://192.168.11.197:18081/swagger-ui.html |
+| dev | http://192.168.110.217:18081/swagger-ui.html |
 
 - 우측 상단 **Select a definition** 드롭다운에서 auth-svc / product-svc 전환.
 - Schemas 목록에는 DTO만 표시(공통 응답 래퍼 제외). 응답 모델에는 공통 응답 구조(success/code/msg/payload)가 인라인으로 표시된다.
@@ -64,6 +64,69 @@ product-svc API는 JWT가 필요하다(auth-svc 로그인/토큰 발급은 불�
 
 > 한 번 Authorize한 토큰은 새로고침/재접속에도 유지된다(`springdoc.swagger-ui.persist-authorization`). 단 토큰 만료 시간이 지나면 `-1004`(401)가 나므로 재로그인 후 다시 Authorize 한다.
 > local 기본 만료는 테스트용으로 짧게 설정돼 있으니 필요 시 `config/auth-core/local/application-local.yml` 의 `access-token-validity-ms` 로 조정한다.
+
+## 개발 환경 요구사항
+
+| 항목 | 버전 |
+| --- | --- |
+| Java | 21 |
+| Gradle | 8.8 |
+| PostgreSQL | 16 |
+| Spring Boot | 3.3.4 |
+
+## type-bridge
+
+`libs/type-bridge` 모듈이 SpringDoc OpenAPI Customizer를 통해 DTO → TypeScript 타입을 자동 생성한다.
+
+### DTO 어노테이션
+
+```java
+@ApiDto(name = "Auth", endpoints = {"login", "erp-login"})
+public class LoginDto {
+
+    @ApiField(description = "사용자 ID", example = "hong.gildong", required = {"login", "erp-login"})
+    private String usrId;
+
+    @ApiField(description = "비밀번호", format = "password", required = {"login"}, exclude = {"erp-login"})
+    private String usrPwd;
+
+    @ApiField(description = "사용자명", responseOnly = true)
+    private String usrNm;
+}
+```
+
+- `@ApiDto(name, endpoints)` — OpenAPI 스키마 이름과 엔드포인트 목록 지정
+- `@ApiField(required, exclude, responseOnly)` — 엔드포인트별 필드 포함/제외 제어
+- `generateResponse = false` — 응답 스키마 생성 불필요한 경우 (ex. RefreshTknReqDto)
+
+### 프론트엔드 TypeScript 타입 생성
+
+```bash
+npx openapi-typescript http://192.168.110.217:18081/v3/api-docs -o src/types/api.d.ts
+```
+
+생성 결과: `AuthLoginRequest`, `AuthErpLoginRequest`, `AuthResponse`, `ApiResponse«AuthResponse»` 등
+
+## WBS / GitHub Projects
+
+- **이슈 목록**: https://github.com/yooyongbeom/bx-cf-be/issues
+- **Projects 보드**: https://github.com/users/yooyongbeom/projects/2
+
+3단계 / 3개월 일정 (2026-07-01 ~ 2026-09-28):
+
+| 단계 | 기간 | 주제 |
+| --- | --- | --- |
+| 1단계 | 7/1 ~ 7/27 | 기초 구조 완성 (인프라, 보안, API, 비즈니스 로직) |
+| 2단계 | 7/28 ~ 8/30 | MSA 안정화 및 운영 기반 (CI/CD, 테스트, 모니터링) |
+| 3단계 | 9/1 ~ 9/28 | 고급 MSA 패턴 및 배포 고도화 (Kafka, SAGA, Rolling Update) |
+
+## scripts/
+
+| 파일 | 설명 |
+| --- | --- |
+| `github-projects-rebuild.ps1` | 기존 이슈 전체 삭제 후 WBS 재구성 (이슈 생성 → 서브이슈 연결 → 로드맵 날짜 설정) |
+
+실행 전 `gh auth login` 및 `gh auth refresh -s read:project` 필요.
 
 ## 빌드
 

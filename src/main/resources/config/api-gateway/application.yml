@@ -2,8 +2,6 @@ spring:
   threads:
     virtual:
       enabled: true
-  profiles:
-    active: local
   application:
      name: bwg-channel-backend-api-gateway
   autoconfigure:
@@ -67,6 +65,7 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     persist-authorization: true   # Authorize 한 토큰을 새로고침/재접속에도 유지 (localStorage)
+
     urls:
       - name: auth-svc
         url: /auth-svc/v3/api-docs

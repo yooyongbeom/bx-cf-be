@@ -2,8 +2,6 @@ spring:
   threads:
     virtual:
       enabled: true
-  profiles:
-    active: local
   application:
      name: bwg-channel-backend-discovery
 eureka:

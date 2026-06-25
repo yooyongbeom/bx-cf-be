@@ -77,7 +77,7 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
         // 1. Refresh Token 검증
         String refreshToken = paramDto.getRefreshToken();
         try {
-            jwtUtil.validateToken(refreshToken);
+            jwtUtil.validateRefreshToken(refreshToken);
         } catch (Exception e) {
             throw new BwgAuthException.Builder()
                     .code(AuthErrorCode.INVALID_TOKEN)

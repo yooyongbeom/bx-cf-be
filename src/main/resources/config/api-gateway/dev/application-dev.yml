@@ -1,4 +1,4 @@
-spring:
+﻿spring:
   config:
     import: "classpath:/application-authcore-dev.yml"   # auth-core 설정 import
   lifecycle:
@@ -14,7 +14,7 @@ eureka:
     ip-address: localhost
   client:
     service-url:
-      defaultZone: "http://192.168.11.197:18761/eureka"
+      defaultZone: "http://192.168.110.217:18761/eureka"
     register-with-eureka: true
     fetch-registry: true
 app:

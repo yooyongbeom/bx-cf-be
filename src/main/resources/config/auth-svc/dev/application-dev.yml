@@ -1,8 +1,8 @@
-spring:
+﻿spring:
   datasource:
     # 'jpa-main' DataSource (JPA용)
     jpa-main:
-      jdbc-url: jdbc:postgresql://192.168.11.197:5432/bxcfdb
+      jdbc-url: jdbc:postgresql://192.168.110.217:5432/bxcfdb
       driver-class-name: org.postgresql.Driver
       username: bxcf
       password: "1111"
@@ -10,7 +10,7 @@ spring:
         pool-name: jpa-main-hikari-pool
     # 'mybatis-main' DataSource (MyBatis용)
     mybatis-main:
-      jdbc-url: jdbc:postgresql://192.168.11.197:5432/bxcfdb
+      jdbc-url: jdbc:postgresql://192.168.110.217:5432/bxcfdb
       driver-class-name: org.postgresql.Driver
       username: bxcf
       password: "1111"
@@ -48,7 +48,7 @@ eureka:
     ip-address: localhost
   client:
     service-url:
-      defaultZone: "http://192.168.11.197:18761/eureka"
+      defaultZone: "http://192.168.110.217:18761/eureka"
     register-with-eureka: true
     fetch-registry: true
 

@@ -11,14 +11,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 @RestControllerAdvice
 public class BwgGatewayExceptionAdvice {
     private static final Logger log = LoggerFactory.getLogger(BwgGatewayExceptionAdvice.class);
     @ExceptionHandler({BwgGatewayException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    protected ResponseEntity<ApiResponse<Void>> bwgAuthExServerError(HttpServletRequest request, BwgGatewayException e) {
+    protected ResponseEntity<ApiResponse<Void>> bwgAuthExServerError(BwgGatewayException e) {
         // 빌더로 만든 예외에서 코드와 메시지를 추출
         String code = e.getCode() != null ? e.getCode().getCode() : GatewayErrorCode.SERVER_ERROR.getCode();
         String msg = e.getMessage() != null ? e.getMessage() : GatewayErrorCode.SERVER_ERROR.getMsg();

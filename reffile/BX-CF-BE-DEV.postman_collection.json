@@ -1,4 +1,4 @@
-{
+﻿{
 	"info": {
 		"_postman_id": "1ac127bf-0bd2-4f5e-9f93-bce721d05e28",
 		"name": "BX-CF-BE-DEV",
@@ -26,9 +26,9 @@
 							}
 						},
 						"url": {
-							"raw": "http://192.168.11.197/channel/backend/api/v1/auth/login",
+							"raw": "http://192.168.110.217/channel/backend/api/v1/auth/login",
 							"protocol": "http",
-							"host": ["192.168.11.197"],
+							"host": ["192.168.110.217"],
 							"path": ["channel", "backend", "api", "v1", "auth", "login"]
 						}
 					},
@@ -49,9 +49,9 @@
 							}
 						},
 						"url": {
-							"raw": "http://192.168.11.197/channel/backend/api/v1/auth/refresh-token",
+							"raw": "http://192.168.110.217/channel/backend/api/v1/auth/refresh-token",
 							"protocol": "http",
-							"host": ["192.168.11.197"],
+							"host": ["192.168.110.217"],
 							"path": ["channel", "backend", "api", "v1", "auth", "refresh-token"]
 						}
 					},
@@ -73,9 +73,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://192.168.11.197/te/home",
+							"raw": "http://192.168.110.217/te/home",
 							"protocol": "http",
-							"host": ["192.168.11.197"],
+							"host": ["192.168.110.217"],
 							"path": ["te", "home"]
 						}
 					},
@@ -102,9 +102,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://192.168.11.197/channel/backend/api/v1/product/list?useYn=Y",
+							"raw": "http://192.168.110.217/channel/backend/api/v1/product/list?useYn=Y",
 							"protocol": "http",
-							"host": ["192.168.11.197"],
+							"host": ["192.168.110.217"],
 							"path": ["channel", "backend", "api", "v1", "product", "list"],
 							"query": [
 								{
@@ -137,9 +137,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://192.168.11.197/channel/backend/api/v1/product/1",
+							"raw": "http://192.168.110.217/channel/backend/api/v1/product/1",
 							"protocol": "http",
-							"host": ["192.168.11.197"],
+							"host": ["192.168.110.217"],
 							"path": ["channel", "backend", "api", "v1", "product", "1"]
 						}
 					},

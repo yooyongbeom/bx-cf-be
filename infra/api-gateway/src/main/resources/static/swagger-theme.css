@@ -1,0 +1,43 @@
+/* ===== BX-CF-BE Swagger Dark/Light Theme Toggle ===== */
+
+#bwg-theme-btn {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    z-index: 9999;
+    padding: 5px 16px;
+    border-radius: 20px;
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    background: rgba(0, 0, 0, 0.28);
+    color: #fff;
+    font-size: 13px;
+    font-family: sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, border-color 0.2s;
+}
+#bwg-theme-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.85);
+}
+
+/* Dark mode: invert the swagger-ui container (brightness reversed, hue restored) */
+body.bwg-dark {
+    background-color: #1a1a1a;
+}
+body.bwg-dark .swagger-ui {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* Re-invert images/icons so they look normal */
+body.bwg-dark .swagger-ui img,
+body.bwg-dark .swagger-ui .download-url-wrapper .select-label select {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* Code blocks: double-invert to restore original appearance */
+body.bwg-dark .swagger-ui pre,
+body.bwg-dark .swagger-ui code,
+body.bwg-dark .swagger-ui .highlight-code pre {
+    filter: invert(1) hue-rotate(180deg);
+}
