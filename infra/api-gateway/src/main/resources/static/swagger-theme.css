@@ -291,3 +291,67 @@ body.bwg-dark .swagger-ui .curl-command {
     background: #2c2c2e !important;
     color: #c8c8c8 !important;
 }
+
+/* ── Authorize 모달 ── */
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux {
+    background: #1c1c1e !important;
+    border: 1px solid #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-header {
+    background: #2c2c2e !important;
+    border-bottom: 1px solid #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-header h3 {
+    color: #e0e0e0 !important;
+}
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-header .close-modal {
+    color: #e0e0e0 !important;
+    background: transparent !important;
+}
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content {
+    background: #1c1c1e !important;
+    color: #d0d0d0 !important;
+}
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content p,
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content h4,
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content h5,
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content label {
+    color: #d0d0d0 !important;
+}
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content .wrapper {
+    background: #1c1c1e !important;
+}
+/* 입력 필드 */
+body.bwg-dark .swagger-ui .dialog-ux input[type=text],
+body.bwg-dark .swagger-ui .dialog-ux input[type=password] {
+    background: #2c2c2e !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #555 !important;
+}
+/* 구분선 */
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content hr {
+    border-color: #3a3a3c !important;
+}
+/* scopes / 권한 설명 */
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content .scopes,
+body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content .scope-def {
+    color: #b0b0b0 !important;
+}
+/* Authorize / Logout / Close 버튼 */
+body.bwg-dark .swagger-ui .dialog-ux .btn.modal-btn-auth-authorize,
+body.bwg-dark .swagger-ui .dialog-ux .btn.authorize {
+    color: #49cc90 !important;
+    border-color: #49cc90 !important;
+    background: transparent !important;
+}
+body.bwg-dark .swagger-ui .dialog-ux .btn.modal-btn-auth-logout {
+    color: #f93e3e !important;
+    border-color: #f93e3e !important;
+    background: transparent !important;
+}
+body.bwg-dark .swagger-ui .dialog-ux .btn-done,
+body.bwg-dark .swagger-ui .dialog-ux .btn.modal-btn-close {
+    color: #e0e0e0 !important;
+    border-color: #888 !important;
+    background: #3a3a3c !important;
+}

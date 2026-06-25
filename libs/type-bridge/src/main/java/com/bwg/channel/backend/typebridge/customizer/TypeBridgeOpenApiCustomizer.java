@@ -140,29 +140,34 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
 
                         if (!components.getSchemas().containsKey(newKey)) {
                             components.getSchemas().put(newKey,
-                                    clonePayloadRef(e.getValue(), dtoName, responseName));
+                                    cloneSchemaRefs(e.getValue(), dtoName, responseName));
                         }
                     });
         }
     }
 
-    /** schema의 properties 중 dtoName을 $ref로 갖는 필드를 responseName으로 교체한 복사본 반환 */
-    private Schema<?> clonePayloadRef(Schema<?> original, String dtoName, String responseName) {
-        Schema<Object> copy = new Schema<>();
+    /** schema 내부의 dtoName $ref를 responseName $ref로 교체한 복사본 반환 */
+    private Schema<?> cloneSchemaRefs(Schema<?> original, String dtoName, String responseName) {
+        if (original == null) return null;
+
+        Schema<Object> copy = original instanceof ArraySchema ? new ArraySchema() : new Schema<>();
         copy.setType(original.getType());
+        copy.setFormat(original.getFormat());
         copy.setDescription(original.getDescription());
+        copy.setNullable(original.getNullable());
+
+        if (original.get$ref() != null) {
+            copy.set$ref(original.get$ref().replace(dtoName, responseName));
+        }
+
+        if (original instanceof ArraySchema originalArray && originalArray.getItems() != null) {
+            ((ArraySchema) copy).setItems(cloneSchemaRefs(originalArray.getItems(), dtoName, responseName));
+        }
 
         if (original.getProperties() != null) {
             Map<String, Schema> newProps = new LinkedHashMap<>();
-            original.getProperties().forEach((propName, propSchema) -> {
-                if (propSchema.get$ref() != null && propSchema.get$ref().contains(dtoName)) {
-                    Schema<Object> replaced = new Schema<>();
-                    replaced.set$ref(propSchema.get$ref().replace(dtoName, responseName));
-                    newProps.put(propName, replaced);
-                } else {
-                    newProps.put(propName, propSchema);
-                }
-            });
+            original.getProperties().forEach((propName, propSchema) ->
+                    newProps.put(propName, cloneSchemaRefs(propSchema, dtoName, responseName)));
             copy.setProperties(newProps);
         }
 

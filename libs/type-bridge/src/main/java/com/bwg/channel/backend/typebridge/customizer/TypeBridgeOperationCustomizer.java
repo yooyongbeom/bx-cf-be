@@ -13,6 +13,7 @@ import org.springframework.web.method.HandlerMethod;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
@@ -64,8 +65,10 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
         if (!(genericReturn instanceof ParameterizedType pt)) return;
 
         Type[] typeArgs = pt.getActualTypeArguments();
-        if (typeArgs.length == 0 || !(typeArgs[0] instanceof Class<?> typeArg)) return;
+        if (typeArgs.length == 0) return;
 
+        Class<?> typeArg = resolveApiDtoType(typeArgs[0]);
+        if (typeArg == null) return;
         ApiDto apiDto = typeArg.getAnnotation(ApiDto.class);
         if (apiDto == null || !apiDto.generateResponse()) return;
 
@@ -86,6 +89,23 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
     }
 
     // ── 유틸 ──────────────────────────────────────────────────────────────
+
+    private Class<?> resolveApiDtoType(Type type) {
+        if (type instanceof Class<?> clazz) {
+            return clazz.getAnnotation(ApiDto.class) != null ? clazz : null;
+        }
+
+        if (type instanceof ParameterizedType pt) {
+            Type rawType = pt.getRawType();
+            if (rawType instanceof Class<?> rawClass
+                    && Collection.class.isAssignableFrom(rawClass)
+                    && pt.getActualTypeArguments().length > 0) {
+                return resolveApiDtoType(pt.getActualTypeArguments()[0]);
+            }
+        }
+
+        return null;
+    }
 
     private void replaceContentSchema(io.swagger.v3.oas.models.media.Content content, String schemaName) {
         if (content == null) return;
