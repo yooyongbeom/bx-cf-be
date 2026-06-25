@@ -192,11 +192,97 @@ body.bwg-dark .swagger-ui .download-url-wrapper .select-label select {
     border-color: #555 !important;
 }
 
-/* try-it-out 실행 버튼 */
+/* Try it out / Cancel 버튼 */
+body.bwg-dark .swagger-ui .btn.try-out__btn {
+    color: #e0e0e0 !important;
+    border-color: #888 !important;
+    background: #2c2c2e !important;
+}
+body.bwg-dark .swagger-ui .btn.try-out__btn:hover {
+    border-color: #ccc !important;
+    color: #fff !important;
+}
+
+/* Execute 버튼 */
 body.bwg-dark .swagger-ui .btn.execute {
     background: #4a90d9 !important;
     border-color: #4a90d9 !important;
     color: #fff !important;
+}
+
+/* Clear 버튼 (Execute 후 노출) */
+body.bwg-dark .swagger-ui .btn-clear,
+body.bwg-dark .swagger-ui .btn.btn-clear {
+    color: #e0e0e0 !important;
+    border-color: #e05c5c !important;
+    background: rgba(224,92,92,0.15) !important;
+}
+body.bwg-dark .swagger-ui .btn-clear:hover,
+body.bwg-dark .swagger-ui .btn.btn-clear:hover {
+    background: rgba(224,92,92,0.35) !important;
+}
+
+/* Reset 버튼 (파라미터 편집 중 노출) */
+body.bwg-dark .swagger-ui .btn-reset,
+body.bwg-dark .swagger-ui .btn.btn-reset,
+body.bwg-dark .swagger-ui .parameters-col_description input[type=reset],
+body.bwg-dark .swagger-ui button[type=reset] {
+    color: #e0e0e0 !important;
+    border-color: #888 !important;
+    background: #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui .btn-reset:hover,
+body.bwg-dark .swagger-ui .btn.btn-reset:hover {
+    border-color: #bbb !important;
+    background: #4a4a4c !important;
+}
+
+/* Example Value / Schema 탭 */
+body.bwg-dark .swagger-ui .tab li,
+body.bwg-dark .swagger-ui .tab li button {
+    color: #b0b0b0 !important;
+}
+body.bwg-dark .swagger-ui .tab li.active,
+body.bwg-dark .swagger-ui .tab li button.active,
+body.bwg-dark .swagger-ui .tab li.active button {
+    color: #fff !important;
+    font-weight: 600;
+}
+body.bwg-dark .swagger-ui .tab li:first-of-type:after {
+    background: #888 !important;
+}
+
+/* Example Value 내용 */
+body.bwg-dark .swagger-ui .example,
+body.bwg-dark .swagger-ui .example-col,
+body.bwg-dark .swagger-ui .model-example {
+    background: #2c2c2e !important;
+    color: #c8c8c8 !important;
+}
+body.bwg-dark .swagger-ui .body-param__text {
+    background: #2c2c2e !important;
+    color: #c8c8c8 !important;
+    border: 1px solid #555 !important;
+}
+
+/* Schema (모델 트리) */
+body.bwg-dark .swagger-ui .model-box {
+    background: #2c2c2e !important;
+}
+body.bwg-dark .swagger-ui .model-box .model,
+body.bwg-dark .swagger-ui .model .property,
+body.bwg-dark .swagger-ui .model .property.primitive,
+body.bwg-dark .swagger-ui table.model td {
+    color: #c8c8c8 !important;
+}
+body.bwg-dark .swagger-ui .prop-format {
+    color: #888 !important;
+}
+body.bwg-dark .swagger-ui .model span.prop-type {
+    color: #7ec8e3 !important;
+}
+body.bwg-dark .swagger-ui .model .toggle-handle {
+    background: #888 !important;
 }
 
 /* curl / request URL 영역 */
