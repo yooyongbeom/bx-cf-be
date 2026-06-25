@@ -1,28 +1,74 @@
 package com.bwg.channel.backend.gateway.cmm.configuration;
 
-import org.reactivestreams.Publisher;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * swagger-initializer.js 요청을 가로채어 다크/라이트 테마 토글 코드가 포함된 응답을 직접 반환한다.
+ * chain.filter()를 호출하지 않으므로 springdoc 핸들러와 충돌하지 않는다.
+ */
 @Component
 public class SwaggerThemeFilter implements WebFilter, Ordered {
 
-    private static final String INJECT =
-            "<link rel=\"stylesheet\" href=\"/swagger-theme.css\">\n" +
-            "<script src=\"/swagger-theme.js\"></script>\n";
+    private static final String INITIALIZER_JS =
+        "window.onload = function() {\n"
+        + "  //<editor-fold desc=\"Changeable Configuration Block\">\n"
+        + "  window.ui = SwaggerUIBundle({\n"
+        + "    url: \"https://petstore.swagger.io/v2/swagger.json\",\n"
+        + "    dom_id: '#swagger-ui',\n"
+        + "    deepLinking: true,\n"
+        + "    presets: [\n"
+        + "      SwaggerUIBundle.presets.apis,\n"
+        + "      SwaggerUIStandalonePreset\n"
+        + "    ],\n"
+        + "    plugins: [\n"
+        + "      SwaggerUIBundle.plugins.DownloadUrl\n"
+        + "    ],\n"
+        + "    layout: \"StandaloneLayout\" ,\n"
+        + "\n"
+        + "  \"configUrl\" : \"/v3/api-docs/swagger-config\",\n"
+        + "  \"persistAuthorization\" : true,\n"
+        + "  \"validatorUrl\" : \"\"\n"
+        + "\n"
+        + "  });\n"
+        + "  //</editor-fold>\n"
+        + "};\n"
+        + "\n"
+        + "(function(){\n"
+        + "  var l=document.createElement('link');\n"
+        + "  l.rel='stylesheet';l.href='/swagger-theme.css';\n"
+        + "  (document.head||document.documentElement).appendChild(l);\n"
+        + "\n"
+        + "  var K='bwg-swagger-theme';\n"
+        + "  function dark(){return document.body&&document.body.classList.contains('bwg-dark');}\n"
+        + "  function apply(d){\n"
+        + "    if(document.body)document.body.classList.toggle('bwg-dark',d);\n"
+        + "    var b=document.getElementById('bwg-theme-btn');\n"
+        + "    if(b)b.textContent=d?'\\u2600 Light':'\\u263e Dark';\n"
+        + "  }\n"
+        + "  function tryAddBtn(){\n"
+        + "    if(document.getElementById('bwg-theme-btn'))return;\n"
+        + "    if(!document.querySelector('.swagger-ui')){setTimeout(tryAddBtn,300);return;}\n"
+        + "    var b=document.createElement('button');\n"
+        + "    b.id='bwg-theme-btn';\n"
+        + "    b.textContent=dark()?'\\u2600 Light':'\\u263e Dark';\n"
+        + "    b.onclick=function(){var n=!dark();localStorage.setItem(K,n?'dark':'light');apply(n);};\n"
+        + "    document.body.appendChild(b);\n"
+        + "  }\n"
+        + "  window.addEventListener('load',function(){\n"
+        + "    if(localStorage.getItem(K)==='dark')apply(true);\n"
+        + "    setTimeout(tryAddBtn,300);\n"
+        + "  });\n"
+        + "})();\n";
 
     @Override
     public int getOrder() {
@@ -32,51 +78,17 @@ public class SwaggerThemeFilter implements WebFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-        // swagger-ui로 끝나는 경로 또는 index.html 포함 경로 모두 처리
-        boolean isSwaggerHtml = path.contains("swagger-ui") && path.endsWith("index.html")
-                || path.endsWith("/swagger-ui.html");
-        if (!isSwaggerHtml) {
+        if (!path.endsWith("swagger-initializer.js")) {
             return chain.filter(exchange);
         }
 
-        ServerHttpResponse original = exchange.getResponse();
-        DataBufferFactory factory = original.bufferFactory();
-
-        ServerHttpResponseDecorator decorated = new ServerHttpResponseDecorator(original) {
-
-            @Override
-            public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-                return super.writeWith(inject(body, factory));
-            }
-
-            @Override
-            public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-                return writeWith(Flux.from(body).flatMapSequential(p -> p));
-            }
-        };
-
-        // Content-Length 제거 (주입으로 길이가 달라짐)
-        decorated.getHeaders().remove(HttpHeaders.CONTENT_LENGTH);
-
-        return chain.filter(exchange.mutate().response(decorated).build());
-    }
-
-    private Flux<DataBuffer> inject(Publisher<? extends DataBuffer> body, DataBufferFactory factory) {
-        return Flux.from(body)
-                .buffer()
-                .map(buffers -> {
-                    DataBuffer joined = factory.join(buffers);
-                    byte[] bytes = new byte[joined.readableByteCount()];
-                    joined.read(bytes);
-                    DataBufferUtils.release(joined);
-
-                    String html = new String(bytes, StandardCharsets.UTF_8);
-                    if (html.contains("</body>")) {
-                        html = html.replace("</body>", INJECT + "</body>");
-                    } else {
-                        html = html + INJECT;
-                    }
-                    return factory.wrap(html.getBytes(StandardCharsets.UTF_8));
-                });
+        ServerHttpResponse response = exchange.getResponse();
+        byte[] bytes = INITIALIZER_JS.getBytes(StandardCharsets.UTF_8);
+        response.getHeaders().setContentType(
+            MediaType.parseMediaType("application/javascript;charset=UTF-8")
+        );
+        response.getHeaders().setContentLength(bytes.length);
+        DataBuffer buffer = response.bufferFactory().wrap(bytes);
+        return response.writeWith(Mono.just(buffer));
     }
 }

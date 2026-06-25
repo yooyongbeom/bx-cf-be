@@ -17,7 +17,6 @@ class UseYnTests {
         assertThat(UseYn.fromCode(" y ")).isEqualTo(UseYn.Y);
         assertThat(UseYn.fromCode("n")).isEqualTo(UseYn.N);
     }
-
     @Test
     void exposesBooleanSemantics() {
         assertThat(UseYn.Y.isYes()).isTrue();

@@ -41,7 +41,6 @@ public class SecurityConfig {
             "/auth-svc/v3/api-docs",
             "/product-svc/v3/api-docs",
             "/swagger-theme.css",
-            "/swagger-theme.js",
             "/favicon.ico",
             "/actuator/info",
             "/actuator/health",

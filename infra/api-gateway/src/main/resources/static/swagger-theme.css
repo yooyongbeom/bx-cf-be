@@ -2,42 +2,199 @@
 
 #bwg-theme-btn {
     position: fixed;
-    top: 10px;
+    top: 14px;
     right: 20px;
     z-index: 9999;
     padding: 5px 16px;
     border-radius: 20px;
-    border: 1.5px solid rgba(255, 255, 255, 0.55);
-    background: rgba(0, 0, 0, 0.28);
+    border: 1.5px solid rgba(255,255,255,0.5);
+    background: rgba(0,0,0,0.35);
     color: #fff;
     font-size: 13px;
     font-family: sans-serif;
     cursor: pointer;
     letter-spacing: 0.3px;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.2s;
 }
 #bwg-theme-btn:hover {
-    background: rgba(255, 255, 255, 0.18);
-    border-color: rgba(255, 255, 255, 0.85);
+    background: rgba(255,255,255,0.15);
 }
 
-/* Dark mode: invert the swagger-ui container (brightness reversed, hue restored) */
+/* ── Dark mode ── */
 body.bwg-dark {
-    background-color: #1a1a1a;
-}
-body.bwg-dark .swagger-ui {
-    filter: invert(1) hue-rotate(180deg);
+    background: #1c1c1e !important;
 }
 
-/* Re-invert images/icons so they look normal */
-body.bwg-dark .swagger-ui img,
-body.bwg-dark .swagger-ui .download-url-wrapper .select-label select {
-    filter: invert(1) hue-rotate(180deg);
+/* 전체 래퍼 */
+body.bwg-dark .swagger-ui,
+body.bwg-dark .swagger-ui .wrapper {
+    background: #1c1c1e;
+    color: #e0e0e0;
 }
 
-/* Code blocks: double-invert to restore original appearance */
+/* 상단 토픽바 */
+body.bwg-dark .swagger-ui .topbar {
+    background: #111 !important;
+}
+
+/* 정보 영역 */
+body.bwg-dark .swagger-ui .info .title,
+body.bwg-dark .swagger-ui .info p,
+body.bwg-dark .swagger-ui .info li,
+body.bwg-dark .swagger-ui .info a {
+    color: #d0d0d0;
+}
+
+/* API 태그(섹션 헤더) */
+body.bwg-dark .swagger-ui .opblock-tag {
+    color: #e0e0e0 !important;
+    border-bottom: 1px solid #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui .opblock-tag:hover {
+    background: #2c2c2e !important;
+}
+
+/* Operation 블록 공통 */
+body.bwg-dark .swagger-ui .opblock {
+    border-color: #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui .opblock .opblock-summary {
+    background: transparent !important;
+}
+body.bwg-dark .swagger-ui .opblock .opblock-summary-description,
+body.bwg-dark .swagger-ui .opblock-body p,
+body.bwg-dark .swagger-ui .opblock-description-wrapper p {
+    color: #c0c0c0 !important;
+}
+
+/* HTTP 메서드별 배경 */
+body.bwg-dark .swagger-ui .opblock.opblock-get    { background: rgba(97,175,254,.08) !important; border-color: #61affe !important; }
+body.bwg-dark .swagger-ui .opblock.opblock-post   { background: rgba(73,204,144,.08) !important; border-color: #49cc90 !important; }
+body.bwg-dark .swagger-ui .opblock.opblock-put    { background: rgba(252,161,48,.08) !important; border-color: #fca130 !important; }
+body.bwg-dark .swagger-ui .opblock.opblock-delete { background: rgba(249,62,62,.08)  !important; border-color: #f93e3e !important; }
+body.bwg-dark .swagger-ui .opblock.opblock-patch  { background: rgba(80,227,194,.08) !important; border-color: #50e3c2 !important; }
+
+/* opblock 섹션 헤더(Parameters / Request body 등) */
+body.bwg-dark .swagger-ui .opblock .opblock-section-header {
+    background: #2c2c2e !important;
+    border-bottom: 1px solid #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui .opblock .opblock-section-header h4,
+body.bwg-dark .swagger-ui .opblock .opblock-section-header label {
+    color: #e0e0e0 !important;
+}
+
+/* 파라미터 테이블 */
+body.bwg-dark .swagger-ui table thead tr th,
+body.bwg-dark .swagger-ui table thead tr td {
+    color: #c0c0c0 !important;
+    border-bottom: 1px solid #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui .parameter__name,
+body.bwg-dark .swagger-ui .parameter__type,
+body.bwg-dark .swagger-ui .parameter__in {
+    color: #b0b0b0 !important;
+}
+
+/* 입력 필드 */
+body.bwg-dark .swagger-ui input[type=text],
+body.bwg-dark .swagger-ui input[type=password],
+body.bwg-dark .swagger-ui input[type=search],
+body.bwg-dark .swagger-ui textarea,
+body.bwg-dark .swagger-ui select {
+    background: #2c2c2e !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #555 !important;
+}
+
+/* 코드/프리 블록 */
 body.bwg-dark .swagger-ui pre,
-body.bwg-dark .swagger-ui code,
+body.bwg-dark .swagger-ui .microlight,
 body.bwg-dark .swagger-ui .highlight-code pre {
-    filter: invert(1) hue-rotate(180deg);
+    background: #2c2c2e !important;
+    color: #c8c8c8 !important;
+}
+
+/* 응답 영역 */
+body.bwg-dark .swagger-ui .responses-inner h4,
+body.bwg-dark .swagger-ui .responses-inner h5,
+body.bwg-dark .swagger-ui .response-col_status,
+body.bwg-dark .swagger-ui .response-col_description {
+    color: #d0d0d0 !important;
+}
+body.bwg-dark .swagger-ui .response-col_links {
+    color: #aaa !important;
+}
+
+/* 스키마(Scheme) 컨테이너 */
+body.bwg-dark .swagger-ui .scheme-container {
+    background: #1c1c1e !important;
+    box-shadow: none !important;
+    border-bottom: 1px solid #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui .servers > label,
+body.bwg-dark .swagger-ui .schemes > label {
+    color: #b0b0b0 !important;
+}
+
+/* Authorize 버튼 */
+body.bwg-dark .swagger-ui .btn.authorize {
+    color: #49cc90 !important;
+    border-color: #49cc90 !important;
+    background: transparent !important;
+}
+
+/* 모델(Schema) 섹션 */
+body.bwg-dark .swagger-ui section.models {
+    border: 1px solid #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui section.models h4 {
+    color: #e0e0e0 !important;
+    background: #2c2c2e !important;
+    border-bottom: 1px solid #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui section.models .model-container {
+    background: #1c1c1e !important;
+    border-bottom: 1px solid #3a3a3c !important;
+}
+body.bwg-dark .swagger-ui .model,
+body.bwg-dark .swagger-ui .model-title,
+body.bwg-dark .swagger-ui .model span,
+body.bwg-dark .swagger-ui .prop-type {
+    color: #c8c8c8 !important;
+}
+
+/* 링크 */
+body.bwg-dark .swagger-ui a {
+    color: #61affe !important;
+}
+
+/* 화살표/아이콘 */
+body.bwg-dark .swagger-ui .arrow {
+    fill: #c0c0c0 !important;
+}
+body.bwg-dark .swagger-ui svg.arrow {
+    fill: #c0c0c0 !important;
+}
+
+/* 드롭다운 select (content-type 등) */
+body.bwg-dark .swagger-ui .content-type,
+body.bwg-dark .swagger-ui .download-url-wrapper .select-label select {
+    background: #2c2c2e !important;
+    color: #e0e0e0 !important;
+    border-color: #555 !important;
+}
+
+/* try-it-out 실행 버튼 */
+body.bwg-dark .swagger-ui .btn.execute {
+    background: #4a90d9 !important;
+    border-color: #4a90d9 !important;
+    color: #fff !important;
+}
+
+/* curl / request URL 영역 */
+body.bwg-dark .swagger-ui .request-snippet-container,
+body.bwg-dark .swagger-ui .curl-command {
+    background: #2c2c2e !important;
+    color: #c8c8c8 !important;
 }
