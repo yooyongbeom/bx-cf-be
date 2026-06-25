@@ -8,7 +8,7 @@ import lombok.Data;
  * 상품 조회 응답과 검색 조건을 담는 DTO
  */
 @Data
-@ApiDto(name = "Product", endpoints = {})
+@ApiDto(name = "Product", endpoints = {"list"})
 public class ProductDto {
 
     @ApiField(description = "상품 ID", example = "1001", optional = {"list"})

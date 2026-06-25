@@ -268,8 +268,8 @@ access token 만료 시 `-1004` 반환 → refresh-token API를 credentials 포�
 ### 상품
 
 ```
-GET /channel/backend/api/v1/product/list?useYn=Y&productNm=펀드
-GET /channel/backend/api/v1/product/{productId}
+POST /channel/backend/api/v1/product/list
+POST /channel/backend/api/v1/product/{productId}
 ```
 
 상품 API는 게이트웨이에서 JWT 인증이 필요하다. 요청 헤더에 로그인으로 발급받은 토큰을 넣는다.
