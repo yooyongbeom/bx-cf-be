@@ -4,6 +4,9 @@ import com.bwg.channel.backend.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.typebridge.annotation.ApiField;
 import lombok.Data;
 
+/**
+ * 상품 조회 응답과 검색 조건을 담는 DTO
+ */
 @Data
 @ApiDto(name = "Product", endpoints = {})
 public class ProductDto {

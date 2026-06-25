@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
 @Component
 public class TypeBridgeOperationCustomizer implements OperationCustomizer {
 
+    /**
+     * HandlerMethod의 요청/응답 DTO 메타데이터를 기준으로 오퍼레이션 스키마 참조를 교체한다.
+     */
     @Override
     public Operation customize(Operation operation, HandlerMethod handlerMethod) {
         String endpointId = extractEndpointId(handlerMethod);
@@ -94,25 +97,43 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
     private String extractEndpointId(HandlerMethod handlerMethod) {
         PostMapping post = handlerMethod.getMethodAnnotation(PostMapping.class);
         if (post != null && post.value().length > 0)
-            return post.value()[0].replaceFirst("^/", "");
+            return toEndpointId(post.value()[0]);
 
         GetMapping get = handlerMethod.getMethodAnnotation(GetMapping.class);
         if (get != null && get.value().length > 0)
-            return get.value()[0].replaceFirst("^/", "");
+            return toEndpointId(get.value()[0]);
 
         PutMapping put = handlerMethod.getMethodAnnotation(PutMapping.class);
         if (put != null && put.value().length > 0)
-            return put.value()[0].replaceFirst("^/", "");
+            return toEndpointId(put.value()[0]);
 
         DeleteMapping del = handlerMethod.getMethodAnnotation(DeleteMapping.class);
         if (del != null && del.value().length > 0)
-            return del.value()[0].replaceFirst("^/", "");
+            return toEndpointId(del.value()[0]);
 
         RequestMapping req = handlerMethod.getMethodAnnotation(RequestMapping.class);
         if (req != null && req.value().length > 0)
-            return req.value()[0].replaceFirst("^/", "");
+            return toEndpointId(req.value()[0]);
 
         return null;
+    }
+
+    private String toEndpointId(String mappingPath) {
+        String normalized = mappingPath.replaceFirst("^/", "").replaceFirst("/$", "");
+        if (normalized.isBlank()) return null;
+
+        String[] segments = normalized.split("/");
+        for (int i = segments.length - 1; i >= 0; i--) {
+            String segment = segments[i];
+            if (!segment.isBlank() && !isPathVariable(segment)) {
+                return segment;
+            }
+        }
+        return normalized;
+    }
+
+    private boolean isPathVariable(String segment) {
+        return segment.startsWith("{") && segment.endsWith("}");
     }
 
     private String resolveBaseName(Class<?> clazz, ApiDto apiDto) {

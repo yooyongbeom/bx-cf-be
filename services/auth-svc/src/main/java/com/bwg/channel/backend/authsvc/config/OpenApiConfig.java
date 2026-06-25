@@ -11,12 +11,18 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * auth-svc의 Swagger 문서 기본 정보와 공통 스키마 후처리를 설정한다.
+ */
 @Configuration
 public class OpenApiConfig {
 
     // API Gateway를 통해 호출되는 베이스 경로. (gateway StripPrefix=4 -> /auth/** 로 전달)
     private static final String GATEWAY_BASE_PATH = "/channel/backend/api/v1/auth";
 
+    /**
+     * 인증 API 문서의 제목, 서버 경로, 태그 정보를 구성한다.
+     */
     @Bean
     public OpenAPI authOpenAPI() {
         // 로그인/토큰 발급 API는 게이트웨이에서 permitAll 이므로 global 보안 requirement는 걸지 않는다.
@@ -28,6 +34,9 @@ public class OpenApiConfig {
     }
 
     // 공통 응답 래퍼(ApiResponse*/CommonResponse*)를 Schemas 목록에서 제거 (응답엔 봉투 구조를 인라인 유지)
+    /**
+     * 공통 응답 래퍼 스키마를 문서 컴포넌트 목록에서 정리한다.
+     */
     @Bean
     public OpenApiCustomizer responseWrapperSchemaCustomizer() {
         return new ResponseWrapperSchemaCustomizer();

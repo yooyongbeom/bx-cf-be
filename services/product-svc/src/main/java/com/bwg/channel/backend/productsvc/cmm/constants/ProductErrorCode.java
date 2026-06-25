@@ -2,6 +2,9 @@ package com.bwg.channel.backend.productsvc.cmm.constants;
 
 import com.bwg.channel.backend.common.constants.enums.BwgErrorCode;
 
+/**
+ * product-svc 비즈니스 오류 코드
+ */
 public enum ProductErrorCode implements BwgErrorCode {
 
     // 입력값 검증 (-5001 ~ -5099)
@@ -37,6 +40,9 @@ public enum ProductErrorCode implements BwgErrorCode {
     @Override public String getCode() { return code; }
     @Override public String getMsg()  { return msg;  }
 
+    /**
+     * 문자열 코드 기준 ProductErrorCode 변환
+     */
     public static ProductErrorCode fromCode(String code) {
         for (ProductErrorCode e : values()) {
             if (e.code.equals(code)) return e;

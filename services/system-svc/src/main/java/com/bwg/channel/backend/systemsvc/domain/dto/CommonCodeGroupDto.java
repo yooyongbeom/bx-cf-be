@@ -1,0 +1,39 @@
+package com.bwg.channel.backend.systemsvc.domain.dto;
+
+import com.bwg.channel.backend.typebridge.annotation.ApiDto;
+import com.bwg.channel.backend.typebridge.annotation.ApiField;
+import lombok.Data;
+
+/**
+ * 공통코드 그룹의 기본 정보와 사용 여부를 담는 DTO.
+ */
+@Data
+@ApiDto(name = "CommonCodeGroup", endpoints = {"create", "update"})
+public class CommonCodeGroupDto {
+    @ApiField(description = "공통코드 그룹 ID")
+    private Long groupId;
+
+    @ApiField(description = "공통코드 그룹 코드", example = "USE_YN", required = {"create"})
+    private String groupCd;
+
+    @ApiField(description = "공통코드 그룹명", example = "사용 여부", required = {"create", "update"})
+    private String groupNm;
+
+    @ApiField(description = "공통코드 그룹 설명", optional = {"create", "update"})
+    private String groupDesc;
+
+    @ApiField(description = "시스템 코드 여부", example = "N", allowableValues = {"Y", "N"}, optional = {"create", "update"})
+    private String systemYn;
+
+    @ApiField(description = "사용 여부", example = "Y", allowableValues = {"Y", "N"}, optional = {"create", "update"})
+    private String useYn;
+
+    @ApiField(description = "정렬 순서", example = "1", optional = {"create", "update"})
+    private Integer sortSeq;
+
+    @ApiField(description = "생성자 ID", example = "admin", optional = {"create"})
+    private String createdBy;
+
+    @ApiField(description = "수정자 ID", example = "admin", optional = {"update"})
+    private String updatedBy;
+}

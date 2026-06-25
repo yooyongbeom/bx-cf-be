@@ -3,6 +3,9 @@ package com.bwg.channel.backend.productsvc.domain.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+/**
+ * 상품 테이블(products) JPA Entity
+ */
 @Data
 @Entity
 @Table(name = "products")

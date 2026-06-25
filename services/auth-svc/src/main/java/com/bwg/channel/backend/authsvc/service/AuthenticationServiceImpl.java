@@ -19,6 +19,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
+/**
+ * 로그인 저장소 전략을 선택해 인증을 수행하고 JWT 발급/갱신을 담당한다.
+ */
 @Slf4j
 @Service("authenticationService")
 public class AuthenticationServiceImpl implements AuthenticationService, CustomUserDetailsService {
@@ -36,6 +39,9 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
         this.jwtUtil = jwtUtil;
     }
 
+    /**
+     * 사용자 인증 후 access token과 refresh token을 생성하고 refresh token을 저장한다.
+     */
     @Override
     @Transactional
     public ApiResponse<LoginDto> login(LoginDto paramDto, String type) {
@@ -71,6 +77,9 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
         return ApiResponse.success(userDetails);
     }
 
+    /**
+     * 기존 refresh token을 검증한 뒤 DB에 저장된 토큰을 새 refresh token으로 교체한다.
+     */
     @Override
     @Transactional
     public ApiResponse<LoginDto> refreshToken(RefreshTknReqDto paramDto, String type) {
@@ -115,6 +124,9 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
         return ApiResponse.success(userDetails);
     }
 
+    /**
+     * Spring Security UserDetailsService 연동 지점이며 현재 인증 흐름에서는 별도 조회를 수행하지 않는다.
+     */
     @Override
     public CustomUserDetails loadUserByUsername(String username) throws UserNotFoundException {
         // 이 메서드는 Spring Security의 UserDetailsService에서 사용됨
@@ -133,6 +145,9 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
         return null;
     }
 
+    /**
+     * 요청된 로그인 타입에 해당하는 저장소 전략을 선택한다.
+     */
     private LoginRepository getRepo(String type) {
         LoginRepository repo = (type == null || type.isEmpty())
                 ? defaultLoginRepository

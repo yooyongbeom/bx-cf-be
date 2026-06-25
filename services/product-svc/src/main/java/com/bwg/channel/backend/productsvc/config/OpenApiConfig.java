@@ -12,15 +12,21 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * product-svc Swagger 문서 기본 정보와 응답 스키마 후처리 설정
+ */
 @Configuration
 public class OpenApiConfig {
 
-    // API Gateway를 통해 호출되는 베이스 경로. (gateway StripPrefix=4 -> /product/** 로 전달)
+    // API Gateway 호출 베이스 경로
     private static final String GATEWAY_BASE_PATH = "/channel/backend/api/v1/product";
 
+    /**
+     * 상품 API 문서 제목, 게이트웨이 서버 경로, 보안 요구사항, 태그 구성
+     */
     @Bean
     public OpenAPI productOpenAPI() {
-        // 상품 API는 게이트웨이에서 JWT 인증이 필요하므로 global 보안 requirement를 건다.
+        // 게이트웨이 JWT 인증 요구사항 적용
         return OpenApiSupport.base("Product Service API", "상품 조회 API")
                 .addServersItem(new Server().url(GATEWAY_BASE_PATH).description("API Gateway"))
                 .addSecurityItem(new SecurityRequirement().addList(OpenApiSupport.BEARER_SCHEME))
@@ -29,7 +35,9 @@ public class OpenApiConfig {
                 ));
     }
 
-    // 공통 응답 래퍼(ApiResponse*/CommonResponse*)를 Schemas 목록에서 제거 (응답엔 봉투 구조를 인라인 유지)
+    /**
+     * 공통 응답 래퍼 스키마 컴포넌트 정리
+     */
     @Bean
     public OpenApiCustomizer responseWrapperSchemaCustomizer() {
         return new ResponseWrapperSchemaCustomizer();

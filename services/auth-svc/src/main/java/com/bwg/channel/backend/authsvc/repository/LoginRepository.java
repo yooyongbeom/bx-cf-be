@@ -3,6 +3,9 @@ package com.bwg.channel.backend.authsvc.repository;
 import com.bwg.channel.backend.authsvc.domain.dto.LoginDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 
+/**
+ * 로그인 사용자 조회와 refresh token 저장을 추상화한 저장소 계약.
+ */
 public interface LoginRepository {
     /**
      * 사용자 ID와 비밀번호로 사용자 정보를 조회 (토큰 정보 제외)

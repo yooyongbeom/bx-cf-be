@@ -18,6 +18,9 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * API Gateway의 CORS, 인증 예외 경로, JWT WebFlux 보안 필터 체인을 설정한다.
+ */
 @RequiredArgsConstructor
 @Configuration
 @EnableWebFluxSecurity
@@ -40,6 +43,7 @@ public class SecurityConfig {
             /*swagger 집계: 서비스별 api-docs 프록시 경로*/
             "/auth-svc/v3/api-docs",
             "/product-svc/v3/api-docs",
+            "/system-svc/v3/api-docs",
             "/swagger-theme.css",
             "/favicon.ico",
             "/actuator/info",
@@ -47,6 +51,9 @@ public class SecurityConfig {
             "/channel/backend/api/v1/auth/**"            // 일단 auth 하위로 허용
     };
 
+    /**
+     * 브라우저 클라이언트 요청에 적용할 CORS 정책을 구성한다.
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -60,11 +67,17 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * JWT 인증을 수행하는 WebFlux 필터 Bean을 생성한다.
+     */
     @Bean
     public WebFluxJwtAuthFilter WebFlux() {
         return new WebFluxJwtAuthFilter(jwtUtil);
     }
 
+    /**
+     * permitAll 경로와 JWT 인증 필터를 포함한 Gateway 보안 체인을 구성한다.
+     */
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) throws Exception {
         return http

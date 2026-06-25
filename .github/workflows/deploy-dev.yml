@@ -11,6 +11,7 @@ jobs:
     outputs:
       auth:      ${{ steps.filter.outputs.auth }}
       product:   ${{ steps.filter.outputs.product }}
+      system:    ${{ steps.filter.outputs.system }}
       all:       ${{ steps.filter.outputs.all }}
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +23,9 @@ jobs:
               - 'services/auth-svc/**'
             product:
               - 'services/product-svc/**'
+            system:
+              - 'services/system-svc/**'
+              - 'src/main/resources/config/system-svc/**'
             all:
               - 'libs/**'
               - 'infra/**'
@@ -136,6 +140,60 @@ jobs:
               ]
             }"
 
+  deploy-system:
+    needs: detect
+    if: needs.detect.outputs.all != 'true' && needs.detect.outputs.system == 'true'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build system-svc
+        run: ./gradlew :services:system-svc:bootJar -Pprofile=dev --no-daemon
+
+      - name: Deploy system-svc
+        run: |
+          mkdir -p ~/apps/bx-cf-be/system-svc
+          cp build/dist/bx-cf-be/system-svc-*.jar ~/apps/bx-cf-be/system-svc/system-svc-0.0.1-SNAPSHOT.jar
+
+      - name: Restart system-svc
+        run: |
+          PID_FILE=~/apps/bx-cf-be/system-svc/system-svc.pid
+          if [ -f "$PID_FILE" ]; then
+            kill $(cat $PID_FILE) 2>/dev/null || true
+            rm -f $PID_FILE
+          fi
+          mkdir -p ~/apps/bx-cf-be/logs
+          env -u RUNNER_TRACKING_ID nohup java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
+            -Dspring.profiles.active=dev \
+            -jar ~/apps/bx-cf-be/system-svc/system-svc-0.0.1-SNAPSHOT.jar \
+            < /dev/null > ~/apps/bx-cf-be/logs/system-svc-bootstrap.log 2>&1 &
+          echo $! > $PID_FILE
+
+      - name: Notify Jandi
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR="#00C73C"
+            TITLE="Deploy success - system-svc"
+          else
+            COLOR="#F84B4B"
+            TITLE="Deploy failed - system-svc"
+          fi
+          curl -s -X POST "${{ secrets.JANDI_HOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"body\": \"$TITLE\",
+              \"connectColor\": \"$COLOR\",
+              \"connectInfo\": [
+                {\"title\": \"Branch\", \"description\": \"${{ github.ref_name }}\"},
+                {\"title\": \"Commit\", \"description\": \"${{ github.event.head_commit.message }}\"},
+                {\"title\": \"Actor\", \"description\": \"${{ github.actor }}\"}
+              ]
+            }"
+
   deploy-all:
     needs: detect
     if: needs.detect.outputs.all == 'true'
@@ -147,7 +205,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build all services
-        run: ./gradlew :infra:discovery-svc:bootJar :infra:api-gateway:bootJar :services:auth-svc:bootJar :services:product-svc:bootJar -Pprofile=dev --no-daemon
+        run: ./gradlew :infra:discovery-svc:bootJar :infra:api-gateway:bootJar :services:auth-svc:bootJar :services:product-svc:bootJar :services:system-svc:bootJar -Pprofile=dev --no-daemon
 
       - name: Deploy all JARs
         run: |
@@ -155,10 +213,12 @@ jobs:
           mkdir -p ~/apps/bx-cf-be/discovery-svc
           mkdir -p ~/apps/bx-cf-be/auth-svc
           mkdir -p ~/apps/bx-cf-be/product-svc
+          mkdir -p ~/apps/bx-cf-be/system-svc
           mkdir -p ~/apps/bx-cf-be/api-gateway
           cp build/dist/bx-cf-be/discovery-svc-*.jar ~/apps/bx-cf-be/discovery-svc/discovery-svc-0.0.1-SNAPSHOT.jar
           cp build/dist/bx-cf-be/auth-svc-*.jar      ~/apps/bx-cf-be/auth-svc/auth-svc-0.0.1-SNAPSHOT.jar
           cp build/dist/bx-cf-be/product-svc-*.jar   ~/apps/bx-cf-be/product-svc/product-svc-0.0.1-SNAPSHOT.jar
+          cp build/dist/bx-cf-be/system-svc-*.jar    ~/apps/bx-cf-be/system-svc/system-svc-0.0.1-SNAPSHOT.jar
           cp build/dist/bx-cf-be/api-gateway-*.jar   ~/apps/bx-cf-be/api-gateway/api-gateway-0.0.1-SNAPSHOT.jar
 
       - name: Stop all services

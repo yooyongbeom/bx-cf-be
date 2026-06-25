@@ -34,6 +34,9 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
 
     private static final String BASE_PACKAGE = "com.bwg.channel.backend";
 
+    /**
+     * @ApiDto로 표시된 DTO의 엔드포인트별 요청/응답 스키마를 OpenAPI 컴포넌트에 등록한다.
+     */
     @Override
     public void customise(OpenAPI openApi) {
         Components components = openApi.getComponents() != null

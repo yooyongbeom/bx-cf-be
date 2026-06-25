@@ -4,6 +4,9 @@ import com.bwg.channel.backend.common.configuration.MyBatisMainConfigBase;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * product-svc MyBatis Mapper 스캔과 공통 MyBatis 설정 연결
+ */
 @Configuration
 @MapperScan(
     basePackages = "com.bwg.channel.backend.productsvc.repository.mybatis.mapper",

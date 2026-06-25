@@ -7,10 +7,19 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 상품 SQL 매핑을 담당하는 MyBatis Mapper
+ */
 @Mapper
 public interface ProductMapper {
 
+    /**
+     * 상품 목록 조회
+     */
     List<ProductDto> findAll(ProductDto paramDto);
 
+    /**
+     * 상품 ID 기준 단건 조회
+     */
     Optional<ProductDto> findById(@Param("productId") Long productId);
 }

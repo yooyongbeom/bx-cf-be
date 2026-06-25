@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bwg.channel.backend.systemsvc.repository.mybatis.mapper.SystemMapper">
+
+    <!-- 공통코드 그룹 DTO 매핑 정보 -->
+    <resultMap id="commonCodeGroupResult" type="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto">
+        <!-- groupId: 공통코드 그룹 ID -->
+        <id     property="groupId"   column="group_id"/>
+        <!-- groupCd: 공통코드 그룹 코드 -->
+        <result property="groupCd"   column="group_cd"/>
+        <!-- groupNm: 공통코드 그룹명 -->
+        <result property="groupNm"   column="group_nm"/>
+        <!-- groupDesc: 공통코드 그룹 설명 -->
+        <result property="groupDesc" column="group_desc"/>
+        <!-- systemYn: 시스템 코드 여부 -->
+        <result property="systemYn"  column="system_yn"/>
+        <!-- useYn: 사용 여부 -->
+        <result property="useYn"     column="use_yn"/>
+        <!-- sortSeq: 정렬 순서 -->
+        <result property="sortSeq"   column="sort_seq"/>
+        <!-- createdBy: 생성자 ID -->
+        <result property="createdBy" column="created_by"/>
+        <!-- updatedBy: 수정자 ID -->
+        <result property="updatedBy" column="updated_by"/>
+    </resultMap>
+
+    <!-- 공통코드 DTO 매핑 정보 -->
+    <resultMap id="commonCodeResult" type="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto">
+        <!-- codeId: 공통코드 ID -->
+        <id     property="codeId"       column="code_id"/>
+        <!-- groupId: 공통코드 그룹 ID -->
+        <result property="groupId"      column="group_id"/>
+        <!-- groupCd: 공통코드 그룹 코드 -->
+        <result property="groupCd"      column="group_cd"/>
+        <!-- code: 공통코드 -->
+        <result property="code"         column="code"/>
+        <!-- codeNm: 공통코드명 -->
+        <result property="codeNm"       column="code_nm"/>
+        <!-- codeDesc: 공통코드 설명 -->
+        <result property="codeDesc"     column="code_desc"/>
+        <!-- parentCodeId: 상위 공통코드 ID -->
+        <result property="parentCodeId" column="parent_code_id"/>
+        <!-- sortSeq: 정렬 순서 -->
+        <result property="sortSeq"      column="sort_seq"/>
+        <!-- useYn: 사용 여부 -->
+        <result property="useYn"        column="use_yn"/>
+        <!-- validFrom: 유효 시작일 -->
+        <result property="validFrom"    column="valid_from"/>
+        <!-- validTo: 유효 종료일 -->
+        <result property="validTo"      column="valid_to"/>
+        <!-- extraData: 추가 데이터 JSON 문자열 -->
+        <result property="extraData"    column="extra_data"/>
+        <!-- createdBy: 생성자 ID -->
+        <result property="createdBy"    column="created_by"/>
+        <!-- updatedBy: 수정자 ID -->
+        <result property="updatedBy"    column="updated_by"/>
+    </resultMap>
+
+    <!-- 메뉴 DTO 매핑 정보 -->
+    <resultMap id="menuResult" type="com.bwg.channel.backend.systemsvc.domain.dto.MenuDto">
+        <!-- menuId: 메뉴 ID -->
+        <id     property="menuId"       column="menu_id"/>
+        <!-- parentMenuId: 상위 메뉴 ID -->
+        <result property="parentMenuId" column="parent_menu_id"/>
+        <!-- menuCd: 메뉴 코드 -->
+        <result property="menuCd"       column="menu_cd"/>
+        <!-- menuNm: 메뉴명 -->
+        <result property="menuNm"       column="menu_nm"/>
+        <!-- menuType: 메뉴 유형 -->
+        <result property="menuType"     column="menu_type"/>
+        <!-- path: 화면 경로 -->
+        <result property="path"         column="path"/>
+        <!-- component: 프론트엔드 컴포넌트 경로 -->
+        <result property="component"    column="component"/>
+        <!-- icon: 아이콘명 -->
+        <result property="icon"         column="icon"/>
+        <!-- depth: 메뉴 깊이 -->
+        <result property="depth"        column="depth"/>
+        <!-- sortSeq: 정렬 순서 -->
+        <result property="sortSeq"      column="sort_seq"/>
+        <!-- visibleYn: 노출 여부 -->
+        <result property="visibleYn"    column="visible_yn"/>
+        <!-- useYn: 사용 여부 -->
+        <result property="useYn"        column="use_yn"/>
+        <!-- remark: 비고 -->
+        <result property="remark"       column="remark"/>
+        <!-- createdBy: 생성자 ID -->
+        <result property="createdBy"    column="created_by"/>
+        <!-- updatedBy: 수정자 ID -->
+        <result property="updatedBy"    column="updated_by"/>
+    </resultMap>
+
+    <!-- 메뉴 기능 DTO 매핑 정보 -->
+    <resultMap id="menuActionResult" type="com.bwg.channel.backend.systemsvc.domain.dto.MenuActionDto">
+        <!-- actionId: 메뉴 기능 ID -->
+        <id     property="actionId"   column="action_id"/>
+        <!-- menuId: 메뉴 ID -->
+        <result property="menuId"     column="menu_id"/>
+        <!-- actionCd: 기능 코드 -->
+        <result property="actionCd"   column="action_cd"/>
+        <!-- actionNm: 기능명 -->
+        <result property="actionNm"   column="action_nm"/>
+        <!-- httpMethod: HTTP 메서드 -->
+        <result property="httpMethod" column="http_method"/>
+        <!-- apiPattern: API 패턴 -->
+        <result property="apiPattern" column="api_pattern"/>
+        <!-- sortSeq: 정렬 순서 -->
+        <result property="sortSeq"    column="sort_seq"/>
+        <!-- useYn: 사용 여부 -->
+        <result property="useYn"      column="use_yn"/>
+        <!-- createdBy: 생성자 ID -->
+        <result property="createdBy"  column="created_by"/>
+        <!-- updatedBy: 수정자 ID -->
+        <result property="updatedBy"  column="updated_by"/>
+    </resultMap>
+
+    <!-- 공통코드 그룹 목록 조회 -->
+    <select id="findCommonCodeGroups" resultMap="commonCodeGroupResult">
+        <![CDATA[
+        /* systemsvc.SystemMapper.findCommonCodeGroups(공통코드 그룹 목록 조회) */
+        SELECT
+            group_id       /* 공통코드 그룹 ID */
+            ,group_cd      /* 공통코드 그룹 코드 */
+            ,group_nm      /* 공통코드 그룹명 */
+            ,group_desc    /* 공통코드 그룹 설명 */
+            ,system_yn     /* 시스템 코드 여부 */
+            ,use_yn        /* 사용 여부 */
+            ,sort_seq      /* 정렬 순서 */
+            ,created_by    /* 생성자 ID */
+            ,updated_by    /* 수정자 ID */
+        FROM common_code_groups
+        ORDER BY sort_seq, group_cd
+        ]]>
+    </select>
+
+    <!-- 공통코드 그룹 등록 -->
+    <insert id="insertCommonCodeGroup" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto">
+        <![CDATA[
+        /* systemsvc.SystemMapper.insertCommonCodeGroup(공통코드 그룹 등록) */
+        INSERT INTO common_code_groups (
+            group_cd       /* 공통코드 그룹 코드 */
+            ,group_nm      /* 공통코드 그룹명 */
+            ,group_desc    /* 공통코드 그룹 설명 */
+            ,system_yn     /* 시스템 코드 여부 */
+            ,use_yn        /* 사용 여부 */
+            ,sort_seq      /* 정렬 순서 */
+            ,created_by    /* 생성자 ID */
+        )
+        VALUES (
+            #{groupCd}                         /* 공통코드 그룹 코드 */
+            ,#{groupNm}                        /* 공통코드 그룹명 */
+            ,#{groupDesc}                      /* 공통코드 그룹 설명 */
+            ,COALESCE(#{systemYn}, 'N')        /* 시스템 코드 여부 */
+            ,COALESCE(#{useYn}, 'Y')           /* 사용 여부 */
+            ,COALESCE(#{sortSeq}, 0)           /* 정렬 순서 */
+            ,#{createdBy}                      /* 생성자 ID */
+        )
+        ]]>
+    </insert>
+
+    <!-- 공통코드 그룹 수정 -->
+    <update id="updateCommonCodeGroup" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto">
+        <![CDATA[
+        /* systemsvc.SystemMapper.updateCommonCodeGroup(공통코드 그룹 수정) */
+        UPDATE common_code_groups
+        SET group_nm = #{groupNm}                         /* 공통코드 그룹명 */
+            ,group_desc = #{groupDesc}                    /* 공통코드 그룹 설명 */
+            ,system_yn = COALESCE(#{systemYn}, system_yn) /* 시스템 코드 여부 */
+            ,use_yn = COALESCE(#{useYn}, use_yn)          /* 사용 여부 */
+            ,sort_seq = COALESCE(#{sortSeq}, sort_seq)    /* 정렬 순서 */
+            ,updated_by = #{updatedBy}                    /* 수정자 ID */
+            ,updated_at = current_timestamp               /* 수정 일시 */
+        WHERE group_cd = #{groupCd}                       /* 공통코드 그룹 코드 */
+        ]]>
+    </update>
+
+    <!-- 그룹별 공통코드 목록 조회 -->
+    <select id="findCommonCodes" resultMap="commonCodeResult">
+        <![CDATA[
+        /* systemsvc.SystemMapper.findCommonCodes(공통코드 목록 조회) */
+        SELECT
+            c.code_id             /* 공통코드 ID */
+            ,c.group_id           /* 공통코드 그룹 ID */
+            ,g.group_cd           /* 공통코드 그룹 코드 */
+            ,c.code               /* 공통코드 */
+            ,c.code_nm            /* 공통코드명 */
+            ,c.code_desc          /* 공통코드 설명 */
+            ,c.parent_code_id     /* 상위 공통코드 ID */
+            ,c.sort_seq           /* 정렬 순서 */
+            ,c.use_yn             /* 사용 여부 */
+            ,c.valid_from         /* 유효 시작일 */
+            ,c.valid_to           /* 유효 종료일 */
+            ,c.extra_data::text AS extra_data /* 추가 데이터 JSON 문자열 */
+            ,c.created_by         /* 생성자 ID */
+            ,c.updated_by         /* 수정자 ID */
+        FROM common_codes c
+        INNER JOIN common_code_groups g
+           ON c.group_id = g.group_id
+        WHERE g.group_cd = #{groupCd}
+        ORDER BY c.sort_seq, c.code
+        ]]>
+    </select>
+
+    <!-- 그룹별 공통코드 등록 -->
+    <insert id="insertCommonCode" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto">
+        <![CDATA[
+        /* systemsvc.SystemMapper.insertCommonCode(공통코드 등록) */
+        INSERT INTO common_codes (
+            group_id          /* 공통코드 그룹 ID */
+            ,code             /* 공통코드 */
+            ,code_nm          /* 공통코드명 */
+            ,code_desc        /* 공통코드 설명 */
+            ,parent_code_id   /* 상위 공통코드 ID */
+            ,sort_seq         /* 정렬 순서 */
+            ,use_yn           /* 사용 여부 */
+            ,valid_from       /* 유효 시작일 */
+            ,valid_to         /* 유효 종료일 */
+            ,extra_data       /* 추가 데이터 JSON */
+            ,created_by       /* 생성자 ID */
+        )
+        SELECT
+            g.group_id                                  /* 공통코드 그룹 ID */
+            ,#{code}                                    /* 공통코드 */
+            ,#{codeNm}                                  /* 공통코드명 */
+            ,#{codeDesc}                                /* 공통코드 설명 */
+            ,#{parentCodeId}                            /* 상위 공통코드 ID */
+            ,COALESCE(#{sortSeq}, 0)                    /* 정렬 순서 */
+            ,COALESCE(#{useYn}, 'Y')                    /* 사용 여부 */
+            ,#{validFrom}                               /* 유효 시작일 */
+            ,#{validTo}                                 /* 유효 종료일 */
+            ,CAST(COALESCE(#{extraData}, '{}') AS jsonb) /* 추가 데이터 JSON */
+            ,#{createdBy}                               /* 생성자 ID */
+        FROM common_code_groups g
+        WHERE g.group_cd = #{groupCd}
+        ]]>
+    </insert>
+
+    <!-- 그룹별 공통코드 수정 -->
+    <update id="updateCommonCode" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto">
+        <![CDATA[
+        /* systemsvc.SystemMapper.updateCommonCode(공통코드 수정) */
+        UPDATE common_codes c
+        SET code_nm = #{codeNm}                                      /* 공통코드명 */
+            ,code_desc = #{codeDesc}                                 /* 공통코드 설명 */
+            ,parent_code_id = #{parentCodeId}                        /* 상위 공통코드 ID */
+            ,sort_seq = COALESCE(#{sortSeq}, c.sort_seq)             /* 정렬 순서 */
+            ,use_yn = COALESCE(#{useYn}, c.use_yn)                   /* 사용 여부 */
+            ,valid_from = #{validFrom}                               /* 유효 시작일 */
+            ,valid_to = #{validTo}                                   /* 유효 종료일 */
+            ,extra_data = CAST(COALESCE(#{extraData}, c.extra_data::text) AS jsonb) /* 추가 데이터 JSON */
+            ,updated_by = #{updatedBy}                               /* 수정자 ID */
+            ,updated_at = current_timestamp                          /* 수정 일시 */
+        FROM common_code_groups g
+        WHERE c.group_id = g.group_id
+          AND g.group_cd = #{groupCd}
+          AND c.code = #{code}
+        ]]>
+    </update>
+
+    <!-- 전체 메뉴 목록 조회 -->
+    <select id="findMenus" resultMap="menuResult">
+        <![CDATA[
+        /* systemsvc.SystemMapper.findMenus(메뉴 목록 조회) */
+        SELECT
+            menu_id          /* 메뉴 ID */
+            ,parent_menu_id  /* 상위 메뉴 ID */
+            ,menu_cd         /* 메뉴 코드 */
+            ,menu_nm         /* 메뉴명 */
+            ,menu_type       /* 메뉴 유형 */
+            ,path            /* 화면 경로 */
+            ,component       /* 프론트엔드 컴포넌트 경로 */
+            ,icon            /* 아이콘명 */
+            ,depth           /* 메뉴 깊이 */
+            ,sort_seq        /* 정렬 순서 */
+            ,visible_yn      /* 노출 여부 */
+            ,use_yn          /* 사용 여부 */
+            ,remark          /* 비고 */
+            ,created_by      /* 생성자 ID */
+            ,updated_by      /* 수정자 ID */
+        FROM menus
+        ORDER BY depth, parent_menu_id NULLS FIRST, sort_seq, menu_id
+        ]]>
+    </select>
+
+    <!-- 메뉴 등록 -->
+    <insert id="insertMenu" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.MenuDto">
+        <![CDATA[
+        /* systemsvc.SystemMapper.insertMenu(메뉴 등록) */
+        INSERT INTO menus (
+            parent_menu_id   /* 상위 메뉴 ID */
+            ,menu_cd         /* 메뉴 코드 */
+            ,menu_nm         /* 메뉴명 */
+            ,menu_type       /* 메뉴 유형 */
+            ,path            /* 화면 경로 */
+            ,component       /* 프론트엔드 컴포넌트 경로 */
+            ,icon            /* 아이콘명 */
+            ,depth           /* 메뉴 깊이 */
+            ,sort_seq        /* 정렬 순서 */
+            ,visible_yn      /* 노출 여부 */
+            ,use_yn          /* 사용 여부 */
+            ,remark          /* 비고 */
+            ,created_by      /* 생성자 ID */
+        )
+        VALUES (
+            #{parentMenuId}                    /* 상위 메뉴 ID */
+            ,#{menuCd}                         /* 메뉴 코드 */
+            ,#{menuNm}                         /* 메뉴명 */
+            ,COALESCE(#{menuType}, 'MENU')     /* 메뉴 유형 */
+            ,#{path}                           /* 화면 경로 */
+            ,#{component}                      /* 프론트엔드 컴포넌트 경로 */
+            ,#{icon}                           /* 아이콘명 */
+            ,COALESCE(#{depth}, 1)             /* 메뉴 깊이 */
+            ,COALESCE(#{sortSeq}, 0)           /* 정렬 순서 */
+            ,COALESCE(#{visibleYn}, 'Y')       /* 노출 여부 */
+            ,COALESCE(#{useYn}, 'Y')           /* 사용 여부 */
+            ,#{remark}                         /* 비고 */
+            ,#{createdBy}                      /* 생성자 ID */
+        )
+        ]]>
+    </insert>
+
+    <!-- 메뉴 정보 수정 -->
+    <update id="updateMenu" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.MenuDto">
+        <![CDATA[
+        /* systemsvc.SystemMapper.updateMenu(메뉴 수정) */
+        UPDATE menus
+        SET parent_menu_id = #{parentMenuId}                 /* 상위 메뉴 ID */
+            ,menu_nm = #{menuNm}                             /* 메뉴명 */
+            ,menu_type = COALESCE(#{menuType}, menu_type)    /* 메뉴 유형 */
+            ,path = #{path}                                  /* 화면 경로 */
+            ,component = #{component}                        /* 프론트엔드 컴포넌트 경로 */
+            ,icon = #{icon}                                  /* 아이콘명 */
+            ,depth = COALESCE(#{depth}, depth)               /* 메뉴 깊이 */
+            ,sort_seq = COALESCE(#{sortSeq}, sort_seq)       /* 정렬 순서 */
+            ,visible_yn = COALESCE(#{visibleYn}, visible_yn) /* 노출 여부 */
+            ,use_yn = COALESCE(#{useYn}, use_yn)             /* 사용 여부 */
+            ,remark = #{remark}                              /* 비고 */
+            ,updated_by = #{updatedBy}                       /* 수정자 ID */
+            ,updated_at = current_timestamp                  /* 수정 일시 */
+        WHERE menu_id = #{menuId}
+        ]]>
+    </update>
+
+    <!-- 메뉴 기능 목록 조회 -->
+    <select id="findMenuActions" resultMap="menuActionResult">
+        <![CDATA[
+        /* systemsvc.SystemMapper.findMenuActions(메뉴 기능 목록 조회) */
+        SELECT
+            action_id      /* 메뉴 기능 ID */
+            ,menu_id       /* 메뉴 ID */
+            ,action_cd     /* 기능 코드 */
+            ,action_nm     /* 기능명 */
+            ,http_method   /* HTTP 메서드 */
+            ,api_pattern   /* API 패턴 */
+            ,sort_seq      /* 정렬 순서 */
+            ,use_yn        /* 사용 여부 */
+            ,created_by    /* 생성자 ID */
+            ,updated_by    /* 수정자 ID */
+        FROM menu_actions
+        WHERE menu_id = #{menuId}
+        ORDER BY sort_seq, action_cd
+        ]]>
+    </select>
+
+    <!-- 역할별 메뉴 목록 조회 -->
+    <select id="findMenusByRoleId" resultMap="menuResult">
+        <![CDATA[
+        /* systemsvc.SystemMapper.findMenusByRoleId(역할별 메뉴 목록 조회) */
+        SELECT
+            m.menu_id          /* 메뉴 ID */
+            ,m.parent_menu_id  /* 상위 메뉴 ID */
+            ,m.menu_cd         /* 메뉴 코드 */
+            ,m.menu_nm         /* 메뉴명 */
+            ,m.menu_type       /* 메뉴 유형 */
+            ,m.path            /* 화면 경로 */
+            ,m.component       /* 프론트엔드 컴포넌트 경로 */
+            ,m.icon            /* 아이콘명 */
+            ,m.depth           /* 메뉴 깊이 */
+            ,m.sort_seq        /* 정렬 순서 */
+            ,m.visible_yn      /* 노출 여부 */
+            ,m.use_yn          /* 사용 여부 */
+            ,m.remark          /* 비고 */
+            ,m.created_by      /* 생성자 ID */
+            ,m.updated_by      /* 수정자 ID */
+        FROM role_menus rm
+        INNER JOIN menus m
+           ON rm.menu_id = m.menu_id
+        WHERE rm.role_id = #{roleId}
+          AND m.use_yn = 'Y'
+        ORDER BY m.depth, m.parent_menu_id NULLS FIRST, m.sort_seq, m.menu_id
+        ]]>
+    </select>
+
+    <!-- 역할별 메뉴 권한 전체 삭제 -->
+    <delete id="deleteRoleMenus">
+        <![CDATA[
+        /* systemsvc.SystemMapper.deleteRoleMenus(역할별 메뉴 권한 삭제) */
+        DELETE FROM role_menus
+        WHERE role_id = #{roleId}
+        ]]>
+    </delete>
+
+    <!-- 역할별 메뉴 권한 등록 -->
+    <insert id="insertRoleMenu">
+        <![CDATA[
+        /* systemsvc.SystemMapper.insertRoleMenu(역할별 메뉴 권한 등록) */
+        INSERT INTO role_menus (
+            role_id       /* 역할 ID */
+            ,menu_id      /* 메뉴 ID */
+            ,created_by   /* 생성자 ID */
+        )
+        VALUES (
+            #{roleId}     /* 역할 ID */
+            ,#{menuId}    /* 메뉴 ID */
+            ,#{createdBy} /* 생성자 ID */
+        )
+        ]]>
+    </insert>
+</mapper>

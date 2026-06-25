@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    mybatis-main:
+      jdbc-url: jdbc:postgresql://192.168.110.217:5432/bxcfdb
+      driver-class-name: org.postgresql.Driver
+      username: bxcf
+      password: "1111"
+      hikari:
+        pool-name: mybatis-main-hikari-pool
+
+  config:
+    import: "classpath:/application-authcore-dev.yml"
+  lifecycle:
+    timeout-per-shutdown-phase: 35s
+
+server:
+  port: 18084
+  shutdown: graceful
+
+eureka:
+  instance:
+    prefer-ip-address: false
+    hostname: localhost
+    ip-address: localhost
+  client:
+    service-url:
+      defaultZone: "http://192.168.110.217:18761/eureka"
+    register-with-eureka: true
+    fetch-registry: true
+
+app:
+  log-path: /Users/channelunit/apps/bx-cf-be/logs
+
+logging:
+  level:
+    p6spy: INFO
+
+p6spy:
+  engine:
+    spy:
+      log-message-format: com.p6spy.engine.spy.appender.MultiLineFormat

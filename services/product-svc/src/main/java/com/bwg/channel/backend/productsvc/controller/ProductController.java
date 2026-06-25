@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * 상품 목록/단건 조회 API 컨트롤러
+ */
 @Tag(name = "상품")
 @RestController
 @RequiredArgsConstructor
@@ -17,12 +20,18 @@ public class ProductController {
 
     private final ProductService productService;
 
+    /**
+     * 상품 목록 조회
+     */
     @Operation(summary = "상품 목록 조회", description = "조건에 맞는 상품 목록을 조회한다.")
     @GetMapping("/list")
     public ApiResponse<List<ProductDto>> getProductList(ProductDto paramDto) {
         return productService.getProductList(paramDto, "mybatisProduct");
     }
 
+    /**
+     * 상품 단건 조회
+     */
     @Operation(summary = "상품 단건 조회", description = "상품 ID로 단건 상품을 조회한다.")
     @GetMapping("/{productId}")
     public ApiResponse<ProductDto> getProduct(@PathVariable Long productId) {

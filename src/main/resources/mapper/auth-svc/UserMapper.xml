@@ -2,49 +2,56 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bwg.channel.backend.authsvc.repository.mybatis.mapper.UserMapper">
 
-    <!-- <resultMap> 정의에 따라 후처리(그룹핑) -->
+    <!-- 로그인 사용자와 역할 목록 매핑 -->
     <resultMap id="loginDtoWithRoles" type="com.bwg.channel.backend.authsvc.domain.dto.LoginDto">
-        <id property="usrId" column="USER_ID"/>         <!-- 그룹핑의 기준점 -->
+        <!-- usrId: 사용자 ID, 역할 collection 그룹핑 기준 -->
+        <id property="usrId" column="USER_ID"/>
+        <!-- usrNm: 사용자명 -->
         <result property="usrNm" column="USER_NM"/>
+        <!-- positDivName: 직위명 -->
         <result property="positDivName" column="POSIT_DIV_NAME"/>
+        <!-- deptName: 부서명 -->
         <result property="deptName" column="DEPT_NAME"/>
+        <!-- usrPwd: 비밀번호 -->
         <result property="usrPwd" column="USER_PWD"/>
-        <!-- 특정컬럼 모아서 colection에 채움 -->
+        <!-- roles: 사용자 역할명 목록 -->
         <collection property="roles" ofType="java.lang.String">
             <result column="ROLE_NAME"/>
         </collection>
     </resultMap>
 
+    <!-- 사용자 ID/비밀번호 로그인 조회 -->
     <select id="findByUsrIdAndUsrPwd" resultMap="loginDtoWithRoles">
         <![CDATA[
-            /* authsvc.repository.mybatis.mapper.UserMapper.findByUsrIdAndUsrPwd(로그인 조회 with Roles) */
-            SELECT
-                    A.USER_ID
-                    ,A.USER_NM
-                    ,A.POSIT_DIV_NAME
-                    ,A.DEPT_NAME
-                    ,A.USER_PWD
-                    ,C.ROLE_NAME
-            FROM USERS A
-            INNER JOIN USER_ROLES B
-               ON A.USER_ID = B.USER_ID
-            INNER JOIN ROLES C
-               ON B.ROLE_ID = C.ROLE_ID
-            WHERE A.USER_ID = #{usrId}
-              AND A.USER_PWD = #{usrPwd}
+        /* authsvc.UserMapper.findByUsrIdAndUsrPwd(로그인 조회 with Roles) */
+        SELECT
+            A.USER_ID          /* 사용자 ID */
+            ,A.USER_NM         /* 사용자명 */
+            ,A.POSIT_DIV_NAME  /* 직위명 */
+            ,A.DEPT_NAME       /* 부서명 */
+            ,A.USER_PWD        /* 비밀번호 */
+            ,C.ROLE_NAME       /* 역할명 */
+        FROM USERS A
+        INNER JOIN USER_ROLES B
+           ON A.USER_ID = B.USER_ID
+        INNER JOIN ROLES C
+           ON B.ROLE_ID = C.ROLE_ID
+        WHERE A.USER_ID = #{usrId}
+          AND A.USER_PWD = #{usrPwd}
         ]]>
     </select>
 
+    <!-- refresh token 로그인 조회 -->
     <select id="findByRefreshToken" resultMap="loginDtoWithRoles">
         <![CDATA[
-        /* authsvc.repository.mybatis.mapper.UserMapper.findByUsrIdAndUsrPwd(리프레시 토큰으로 조회 with Roles) */
+        /* authsvc.UserMapper.findByRefreshToken(refresh token 조회 with Roles) */
         SELECT
-            A.USER_ID
-             ,A.USER_NM
-             ,A.POSIT_DIV_NAME
-             ,A.DEPT_NAME
-             ,A.USER_PWD
-             ,C.ROLE_NAME
+            A.USER_ID          /* 사용자 ID */
+            ,A.USER_NM         /* 사용자명 */
+            ,A.POSIT_DIV_NAME  /* 직위명 */
+            ,A.DEPT_NAME       /* 부서명 */
+            ,A.USER_PWD        /* 비밀번호 */
+            ,C.ROLE_NAME       /* 역할명 */
         FROM USERS A
         INNER JOIN USER_ROLES B
            ON A.USER_ID = B.USER_ID
@@ -54,11 +61,14 @@
         ]]>
     </select>
 
+    <!-- 로그인/토큰 재발급 refresh token 갱신 -->
     <update id="updateRefreshToken" parameterType="com.bwg.channel.backend.authsvc.domain.dto.LoginDto">
-        /* authsvc.repository.mybatis.mapper.UserMapper.updateRefreshToken(Refresh Token 업데이트) */
+        <![CDATA[
+        /* authsvc.UserMapper.updateRefreshToken(Refresh Token 갱신) */
         UPDATE USERS
-        SET REFRESH_TOKEN = #{refreshToken}
-            ,REFRESH_TOKEN_EXPIRES_AT = #{refreshTokenExpiresAt}
-         WHERE USER_ID = #{usrId}
+        SET REFRESH_TOKEN = #{refreshToken}                    /* 리프레시 토큰 */
+            ,REFRESH_TOKEN_EXPIRES_AT = #{refreshTokenExpiresAt} /* 리프레시 토큰 만료 일시 */
+        WHERE USER_ID = #{usrId}                               /* 사용자 ID */
+        ]]>
     </update>
 </mapper>

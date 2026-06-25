@@ -1,7 +1,7 @@
 #!/bin/bash
 BASE=~/apps/bx-cf-be
 
-SERVICES=("api-gateway" "product-svc" "auth-svc" "discovery-svc")
+SERVICES=("api-gateway" "system-svc" "product-svc" "auth-svc" "discovery-svc")
 
 for svc in "${SERVICES[@]}"; do
     PID_FILE=$BASE/$svc/$svc.pid

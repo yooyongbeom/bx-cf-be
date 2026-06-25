@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * ProductRepository 계약을 MyBatis Mapper 호출로 연결하는 어댑터
+ */
 @Component("mybatisProduct")
 @Primary
 @RequiredArgsConstructor
@@ -18,11 +21,17 @@ public class MybatisProductRepositoryAdapter implements ProductRepository {
 
     private final ProductMapper productMapper;
 
+    /**
+     * MyBatis 기반 상품 목록 조회
+     */
     @Override
     public List<ProductDto> findAll(ProductDto paramDto) {
         return productMapper.findAll(paramDto);
     }
 
+    /**
+     * MyBatis 기반 상품 단건 조회
+     */
     @Override
     public ProductDto findById(Long productId) {
         return productMapper.findById(productId)

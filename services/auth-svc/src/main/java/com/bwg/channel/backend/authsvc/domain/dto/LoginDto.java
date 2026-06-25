@@ -2,11 +2,15 @@ package com.bwg.channel.backend.authsvc.domain.dto;
 
 import com.bwg.channel.backend.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.typebridge.annotation.ApiField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * 로그인 요청값과 인증 성공 후 응답 토큰/사용자 정보를 담는 DTO.
+ */
 @Getter
 @Setter
 @ApiDto(
@@ -39,10 +43,12 @@ public class LoginDto {
     @ApiField(description = "액세스 토큰 만료 일시", responseOnly = true)
     private String accessTokenExpiresAt;
 
-    @ApiField(description = "리프레시 토큰", responseOnly = true)
+    @JsonIgnore
+    @ApiField(description = "리프레시 토큰", hidden = true)
     private String refreshToken;
 
-    @ApiField(description = "리프레시 토큰 만료 일시", responseOnly = true)
+    @JsonIgnore
+    @ApiField(description = "리프레시 토큰 만료 일시", hidden = true)
     private String refreshTokenExpiresAt;
 
     @ApiField(description = "권한 목록", responseOnly = true)
