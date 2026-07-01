@@ -1,8 +1,10 @@
 package com.bwg.channel.backend.systemsvc.service;
 
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeResDto;
 
 import java.util.List;
 
@@ -11,33 +13,15 @@ import java.util.List;
  */
 public interface CommonCodeService {
 
-    /**
-     * 공통코드 그룹 목록을 조회한다.
-     */
-    ApiResponse<List<CommonCodeGroupDto>> getCommonCodeGroups();
+    ApiResponse<List<CommonCodeGroupResDto>> getCommonCodeGroups();
 
-    /**
-     * 공통코드 그룹을 등록한다.
-     */
-    ApiResponse<Void> createCommonCodeGroup(CommonCodeGroupDto paramDto);
+    ApiResponse<Void> createCommonCodeGroup(CommonCodeGroupReqDto paramDto);
 
-    /**
-     * 공통코드 그룹을 수정한다.
-     */
-    ApiResponse<Void> updateCommonCodeGroup(String groupCd, CommonCodeGroupDto paramDto);
+    ApiResponse<Void> updateCommonCodeGroup(String groupCd, CommonCodeGroupReqDto paramDto);
 
-    /**
-     * 특정 그룹의 공통코드 목록을 조회한다.
-     */
-    ApiResponse<List<CommonCodeDto>> getCommonCodes(String groupCd);
+    ApiResponse<List<CommonCodeResDto>> getCommonCodes(String groupCd);
 
-    /**
-     * 특정 그룹에 공통코드를 등록한다.
-     */
-    ApiResponse<Void> createCommonCode(String groupCd, CommonCodeDto paramDto);
+    ApiResponse<Void> createCommonCode(String groupCd, CommonCodeReqDto paramDto);
 
-    /**
-     * 특정 그룹의 공통코드를 수정한다.
-     */
-    ApiResponse<Void> updateCommonCode(String groupCd, String code, CommonCodeDto paramDto);
+    ApiResponse<Void> updateCommonCode(String groupCd, String code, CommonCodeReqDto paramDto);
 }

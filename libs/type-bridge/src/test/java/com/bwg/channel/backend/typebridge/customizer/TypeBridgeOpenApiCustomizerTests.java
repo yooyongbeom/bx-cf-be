@@ -213,6 +213,59 @@ class TypeBridgeOpenApiCustomizerTests {
                 .getContent().get("application/json").getSchema();
     }
 
+    // ── 신규: 요청/응답 DTO 분리 + @ApiDto(type=...) ──────────────────────────
+
+    /** RESPONSE 타입 DTO는 엔드포인트별 {Name}{Endpoint}Response 스키마를 필드/필수 다르게 생성한다. */
+    @Test
+    void responseTypeGeneratesPerEndpointResponseSchemas() {
+        OpenAPI openApi = new OpenAPI();
+        new TypeBridgeOpenApiCustomizer().customise(openApi);
+        var schemas = openApi.getComponents().getSchemas();
+
+        Schema<?> listRes = schemas.get("SampleListResponse");
+        assertThat(listRes.getProperties().keySet()).containsExactlyInAnyOrder("id", "value");
+        assertThat(listRes.getRequired()).containsExactly("id");                 // value는 list에서 선택
+
+        Schema<?> detailRes = schemas.get("SampleDetailResponse");
+        assertThat(detailRes.getProperties().keySet()).containsExactlyInAnyOrder("id", "detailDesc", "value");
+        assertThat(detailRes.getRequired()).containsExactlyInAnyOrder("id", "detailDesc", "value");
+    }
+
+    /** REQUEST 타입 DTO는 엔드포인트별 {Name}{Endpoint}Request 스키마를 생성한다. */
+    @Test
+    void requestTypeGeneratesEndpointRequestSchema() {
+        OpenAPI openApi = new OpenAPI();
+        new TypeBridgeOpenApiCustomizer().customise(openApi);
+
+        Schema<?> listReq = openApi.getComponents().getSchemas().get("SampleListRequest");
+        assertThat(listReq.getProperties().keySet()).containsExactly("name");
+    }
+
+    /** OperationCustomizer는 RESPONSE 타입 반환에 대해 엔드포인트별 응답 스키마를 참조하도록 교체한다. */
+    @Test
+    void operationCustomizerPicksPerEndpointResponseSchema() throws NoSuchMethodException {
+        Operation operation = new Operation()
+                .responses(new ApiResponses().addApiResponse("200", new ApiResponse()
+                        .content(new Content().addMediaType("application/json", new MediaType()
+                                .schema(new Schema<>().$ref("#/components/schemas/ApiResponseSampleResDto"))))));
+        HandlerMethod handlerMethod = new HandlerMethod(
+                new SampleResController(),
+                SampleResController.class.getDeclaredMethod("detail"));
+
+        new TypeBridgeOperationCustomizer().customize(operation, handlerMethod);
+
+        Schema<?> schema = operation.getResponses().get("200")
+                .getContent().get("application/json").getSchema();
+        assertThat(schema.get$ref()).isEqualTo("#/components/schemas/ApiResponseSampleDetailResponse");
+    }
+
+    static class SampleResController {
+        @PostMapping("/detail/{id}")
+        com.bwg.channel.backend.common.domain.dto.ApiResponse<SampleResDto> detail() {
+            return null;
+        }
+    }
+
     static class NestedController {
         @PostMapping("/groups/{groupCd}/codes/create")
         void create() {

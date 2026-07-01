@@ -10,12 +10,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SystemDtoOpenApiMetadataTests {
 
+    // API 경계 DTO(요청/응답)만 @ApiDto/@ApiField 메타데이터를 갖는다. (내부 도메인 DTO는 제외)
     private static final List<Class<?>> DTO_TYPES = List.of(
-            CommonCodeDto.class,
-            CommonCodeGroupDto.class,
-            MenuActionDto.class,
-            MenuDto.class,
-            RoleMenuSaveDto.class
+            CommonCodeGroupReqDto.class,
+            CommonCodeGroupResDto.class,
+            CommonCodeReqDto.class,
+            CommonCodeResDto.class,
+            MenuReqDto.class,
+            MenuResDto.class,
+            MenuActionResDto.class,
+            RoleMenuSaveReqDto.class
     );
 
     @Test

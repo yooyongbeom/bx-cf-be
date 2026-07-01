@@ -1,9 +1,10 @@
 package com.bwg.channel.backend.systemsvc.service;
 
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
-import com.bwg.channel.backend.systemsvc.domain.dto.MenuActionDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.MenuDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.RoleMenuSaveDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuActionResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.RoleMenuSaveReqDto;
 
 import java.util.List;
 
@@ -12,33 +13,15 @@ import java.util.List;
  */
 public interface MenuService {
 
-    /**
-     * 전체 메뉴 목록을 조회한다.
-     */
-    ApiResponse<List<MenuDto>> getMenus();
+    ApiResponse<List<MenuResDto>> getMenus();
 
-    /**
-     * 메뉴를 등록한다.
-     */
-    ApiResponse<Void> createMenu(MenuDto paramDto);
+    ApiResponse<Void> createMenu(MenuReqDto paramDto);
 
-    /**
-     * 메뉴 정보를 수정한다.
-     */
-    ApiResponse<Void> updateMenu(Long menuId, MenuDto paramDto);
+    ApiResponse<Void> updateMenu(Long menuId, MenuReqDto paramDto);
 
-    /**
-     * 메뉴에 연결된 기능 목록을 조회한다.
-     */
-    ApiResponse<List<MenuActionDto>> getMenuActions(Long menuId);
+    ApiResponse<List<MenuActionResDto>> getMenuActions(Long menuId);
 
-    /**
-     * 역할에 부여된 메뉴 목록을 조회한다.
-     */
-    ApiResponse<List<MenuDto>> getMenusByRoleId(Long roleId);
+    ApiResponse<List<MenuResDto>> getMenusByRoleId(Long roleId);
 
-    /**
-     * 역할별 메뉴 권한을 저장한다.
-     */
-    ApiResponse<Void> saveRoleMenus(Long roleId, RoleMenuSaveDto paramDto);
+    ApiResponse<Void> saveRoleMenus(Long roleId, RoleMenuSaveReqDto paramDto);
 }

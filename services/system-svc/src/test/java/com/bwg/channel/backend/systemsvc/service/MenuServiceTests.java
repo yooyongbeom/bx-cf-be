@@ -1,8 +1,8 @@
 package com.bwg.channel.backend.systemsvc.service;
 
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
-import com.bwg.channel.backend.systemsvc.domain.dto.MenuDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.RoleMenuSaveDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.RoleMenuSaveReqDto;
 import com.bwg.channel.backend.systemsvc.repository.SystemRepository;
 import org.junit.jupiter.api.Test;
 
@@ -23,23 +23,23 @@ class MenuServiceTests {
 
     @Test
     void returnsMenusByRoleId() {
-        MenuDto menu = new MenuDto();
+        MenuResDto menu = new MenuResDto();
         menu.setMenuId(1L);
         menu.setMenuCd("DASHBOARD");
         menu.setMenuNm("대시보드");
 
         when(systemRepository.findMenusByRoleId(1L)).thenReturn(List.of(menu));
 
-        ApiResponse<List<MenuDto>> response = menuService.getMenusByRoleId(1L);
+        ApiResponse<List<MenuResDto>> response = menuService.getMenusByRoleId(1L);
 
         assertThat(response.isSuccess()).isTrue();
-        assertThat(response.getPayload()).extracting(MenuDto::getMenuCd)
+        assertThat(response.getPayload()).extracting(MenuResDto::getMenuCd)
                 .containsExactly("DASHBOARD");
     }
 
     @Test
     void replacesRoleMenus() {
-        RoleMenuSaveDto paramDto = new RoleMenuSaveDto();
+        RoleMenuSaveReqDto paramDto = new RoleMenuSaveReqDto();
         paramDto.setMenuIds(List.of(1L, 2L));
         paramDto.setCreatedBy("admin");
 

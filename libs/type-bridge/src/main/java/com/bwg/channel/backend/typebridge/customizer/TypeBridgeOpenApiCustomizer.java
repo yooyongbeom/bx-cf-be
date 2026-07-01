@@ -2,6 +2,7 @@ package com.bwg.channel.backend.typebridge.customizer;
 
 import com.bwg.channel.backend.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.typebridge.annotation.ApiField;
+import com.bwg.channel.backend.typebridge.annotation.ApiType;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.ArraySchema;
@@ -60,20 +61,35 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
             ApiDto apiDto = clazz.getAnnotation(ApiDto.class);
             String baseName = resolveBaseName(clazz, apiDto);
 
-            // 엔드포인트별 Request 스키마 등록
-            for (String endpoint : apiDto.endpoints()) {
-                String schemaName = baseName + toPascalCase(endpoint) + "Request";
-                components.getSchemas().put(schemaName, buildRequestSchema(clazz, endpoint));
-            }
-
-            // Response 스키마 등록
-            if (apiDto.generateResponse()) {
-                components.getSchemas().put(baseName + "Response", buildResponseSchema(clazz));
+            switch (apiDto.type()) {
+                // 신규: 요청 전용 DTO → 엔드포인트별 Request 스키마
+                case REQUEST -> {
+                    for (String endpoint : apiDto.endpoints()) {
+                        components.getSchemas().put(baseName + toPascalCase(endpoint) + "Request",
+                                buildEndpointSchema(clazz, endpoint));
+                    }
+                }
+                // 신규: 응답 전용 DTO → 엔드포인트별 Response 스키마 (필수/노출 엔드포인트별 제어)
+                case RESPONSE -> {
+                    for (String endpoint : apiDto.endpoints()) {
+                        components.getSchemas().put(baseName + toPascalCase(endpoint) + "Response",
+                                buildEndpointSchema(clazz, endpoint));
+                    }
+                }
+                // 하위호환: 하나의 DTO가 요청/응답 겸용
+                case LEGACY -> {
+                    for (String endpoint : apiDto.endpoints()) {
+                        components.getSchemas().put(baseName + toPascalCase(endpoint) + "Request",
+                                buildRequestSchema(clazz, endpoint));
+                    }
+                    if (apiDto.generateResponse()) {
+                        components.getSchemas().put(baseName + "Response", buildResponseSchema(clazz));
+                    }
+                }
             }
         }
 
-        // ApiResponse«LoginDto» → ApiResponse«LoginResponse» 변형 스키마 생성
-        // (OperationCustomizer가 response $ref를 교체할 때 참조하는 스키마)
+        // (LEGACY 전용) ApiResponse«LoginDto» → ApiResponse«LoginResponse» 변형 스키마 생성
         createApiResponseVariants(components, dtoClasses);
     }
 
@@ -90,6 +106,36 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
             ApiField af = field.getAnnotation(ApiField.class);
             if (af == null || af.hidden()) continue;
             if (af.responseOnly()) continue;
+            if (Arrays.asList(af.exclude()).contains(endpoint)) continue;
+
+            boolean isRequired = Arrays.asList(af.required()).contains(endpoint);
+            boolean isOptional = Arrays.asList(af.optional()).contains(endpoint);
+            if (!isRequired && !isOptional) continue;
+
+            properties.put(field.getName(), toFieldSchema(field, af));
+            if (isRequired) requiredList.add(field.getName());
+        }
+
+        schema.setProperties(properties);
+        if (!requiredList.isEmpty()) schema.setRequired(requiredList);
+        return schema;
+    }
+
+    /**
+     * (REQUEST/RESPONSE 공통) 엔드포인트별 스키마를 만든다.
+     * 필드는 해당 엔드포인트의 {@code required} 또는 {@code optional}에 있어야 노출되고,
+     * {@code required}면 필수, {@code exclude}면 제외된다. (요청·응답 동일 규칙)
+     */
+    private Schema<?> buildEndpointSchema(Class<?> clazz, String endpoint) {
+        Schema<Object> schema = new Schema<>();
+        schema.setType("object");
+
+        Map<String, Schema> properties = new LinkedHashMap<>();
+        List<String> requiredList = new ArrayList<>();
+
+        for (Field field : getAllFields(clazz)) {
+            ApiField af = field.getAnnotation(ApiField.class);
+            if (af == null || af.hidden()) continue;
             if (Arrays.asList(af.exclude()).contains(endpoint)) continue;
 
             boolean isRequired = Arrays.asList(af.required()).contains(endpoint);
@@ -133,6 +179,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
 
         for (Class<?> clazz : dtoClasses) {
             ApiDto apiDto = clazz.getAnnotation(ApiDto.class);
+            if (apiDto.type() != ApiType.LEGACY) continue;   // 신규 REQUEST/RESPONSE는 변형 스키마 불필요
             if (!apiDto.generateResponse()) continue;
 
             String dtoName      = clazz.getSimpleName();
@@ -266,7 +313,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
 
     private String resolveBaseName(Class<?> clazz, ApiDto apiDto) {
         return apiDto.name().isEmpty()
-                ? clazz.getSimpleName().replaceAll("Dto$", "")
+                ? clazz.getSimpleName().replaceAll("(Req|Res|Request|Response)?Dto$", "")
                 : apiDto.name();
     }
 

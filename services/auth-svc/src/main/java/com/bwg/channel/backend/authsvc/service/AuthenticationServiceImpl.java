@@ -4,7 +4,8 @@ import com.bwg.channel.backend.authcore.domain.dto.CustomUserDetails;
 import com.bwg.channel.backend.authcore.exception.UserNotFoundException;
 import com.bwg.channel.backend.authcore.service.CustomUserDetailsService;
 import com.bwg.channel.backend.authcore.util.JwtUtil;
-import com.bwg.channel.backend.authsvc.domain.dto.LoginDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginReqDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.repository.LoginRepository;
 import com.bwg.channel.backend.authsvc.repository.jpa.JpaLoginRepository;
@@ -44,13 +45,13 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
      */
     @Override
     @Transactional
-    public ApiResponse<LoginDto> login(LoginDto paramDto, String type) {
+    public ApiResponse<LoginResDto> login(LoginReqDto paramDto, String type) {
         log.info("current login type =====================> {}", type);
 
         LoginRepository repo = getRepo(type);
 
         // 1. 사용자 정보 조회 (전략에 따라 API, JPA, MyBatis 호출)
-        LoginDto userDetails = repo.findByUsrIdAndUsrPwd(paramDto);
+        LoginResDto userDetails = repo.findByUsrIdAndUsrPwd(paramDto);
 
         // 2. Access Token 및 Refresh Token 생성
         final String accessToken = jwtUtil.createAccessToken(userDetails.getUsrId(), userDetails.getRoles());
@@ -69,10 +70,8 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
 
         repo.updateRefreshToken(userDetails);
 
-        // 4. DTO에 Access Token 추가하여 반환
+        // 4. DTO에 Access Token 추가하여 반환 (비밀번호는 LoginResDto에 아예 없음)
         userDetails.setAccessToken(accessToken);
-        // 비밀번호는 응답에서 제외
-        userDetails.setUsrPwd(null);
 
         return ApiResponse.success(userDetails);
     }
@@ -82,7 +81,7 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
      */
     @Override
     @Transactional
-    public ApiResponse<LoginDto> refreshToken(RefreshTknReqDto paramDto, String type) {
+    public ApiResponse<LoginResDto> refreshToken(RefreshTknReqDto paramDto, String type) {
         // 1. Refresh Token 검증
         String refreshToken = paramDto.getRefreshToken();
         try {
@@ -97,7 +96,7 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
         LoginRepository repo = getRepo(type);
 
         // 1. Refresh Token으로 사용자 정보 조회
-        LoginDto userDetails = repo.findByRefreshToken(paramDto);
+        LoginResDto userDetails = repo.findByRefreshToken(paramDto);
 
         // 3. 새로운 토큰 생성
         String newAccessToken = jwtUtil.createAccessToken(userDetails.getUsrId(), userDetails.getRoles());
@@ -116,8 +115,7 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
 
         repo.updateRefreshToken(userDetails);
 
-        // 5. 새로운 토큰 정보 DTO에 담아 반환
-        userDetails.setUsrPwd(null);
+        // 5. 새로운 토큰 정보 DTO에 담아 반환 (비밀번호는 LoginResDto에 아예 없음)
         userDetails.setAccessToken(newAccessToken);
         userDetails.setRefreshToken(newRefreshToken);
 

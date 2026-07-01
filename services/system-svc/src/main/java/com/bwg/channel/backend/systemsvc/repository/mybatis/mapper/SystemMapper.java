@@ -1,9 +1,12 @@
 package com.bwg.channel.backend.systemsvc.repository.mybatis.mapper;
 
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.MenuActionDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.MenuDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuActionResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuResDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -14,20 +17,20 @@ import java.util.List;
  */
 @Mapper
 public interface SystemMapper {
-    List<CommonCodeGroupDto> findCommonCodeGroups();
-    int insertCommonCodeGroup(CommonCodeGroupDto paramDto);
-    int updateCommonCodeGroup(CommonCodeGroupDto paramDto);
+    List<CommonCodeGroupResDto> findCommonCodeGroups();
+    int insertCommonCodeGroup(CommonCodeGroupReqDto paramDto);
+    int updateCommonCodeGroup(CommonCodeGroupReqDto paramDto);
 
-    List<CommonCodeDto> findCommonCodes(@Param("groupCd") String groupCd);
-    int insertCommonCode(CommonCodeDto paramDto);
-    int updateCommonCode(CommonCodeDto paramDto);
+    List<CommonCodeResDto> findCommonCodes(@Param("groupCd") String groupCd);
+    int insertCommonCode(CommonCodeReqDto paramDto);
+    int updateCommonCode(CommonCodeReqDto paramDto);
 
-    List<MenuDto> findMenus();
-    int insertMenu(MenuDto paramDto);
-    int updateMenu(MenuDto paramDto);
-    List<MenuActionDto> findMenuActions(@Param("menuId") Long menuId);
+    List<MenuResDto> findMenus();
+    int insertMenu(MenuReqDto paramDto);
+    int updateMenu(MenuReqDto paramDto);
+    List<MenuActionResDto> findMenuActions(@Param("menuId") Long menuId);
 
-    List<MenuDto> findMenusByRoleId(@Param("roleId") Long roleId);
+    List<MenuResDto> findMenusByRoleId(@Param("roleId") Long roleId);
     int deleteRoleMenus(@Param("roleId") Long roleId);
     int insertRoleMenu(@Param("roleId") Long roleId, @Param("menuId") Long menuId, @Param("createdBy") String createdBy);
 }

@@ -1,7 +1,8 @@
 package com.bwg.channel.backend.authsvc.repository.api;
 
 import com.bwg.channel.backend.authsvc.domain.dto.ErpLoginDto;
-import com.bwg.channel.backend.authsvc.domain.dto.LoginDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginReqDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.repository.LoginRepository;
 import com.bwg.channel.backend.authcore.constants.AuthErrorCode;
@@ -38,7 +39,7 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
     private String erpLoginUrl;
 
     @Override
-    public LoginDto findByUsrIdAndUsrPwd(LoginDto paramDto) {
+    public LoginResDto findByUsrIdAndUsrPwd(LoginReqDto paramDto) {
         ErpLoginDto dto = makeErpDto(paramDto);
 
         final String userAgent = "Mozila/5.0";
@@ -77,18 +78,18 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
 
     // API return null
     @Override
-    public LoginDto findByRefreshToken(RefreshTknReqDto refreshTknReqDto) {
+    public LoginResDto findByRefreshToken(RefreshTknReqDto refreshTknReqDto) {
         return null;
     }
 
     @Override
-    public int updateRefreshToken(LoginDto loginDto) {
+    public int updateRefreshToken(LoginResDto loginResDto) {
         log.warn("updateRefreshToken is not implemented for API login strategy.");
         return 0;
     }
 
     @SuppressWarnings("unchecked")
-    private LoginDto makeResult(String usrId, Map<String, Object> rsltMap) {
+    private LoginResDto makeResult(String usrId, Map<String, Object> rsltMap) {
         Object outObj = rsltMap.get("SSMAUTH00101Out");
         if (outObj instanceof Map) {
             Map<String, Object> outMap = (Map<String, Object>) outObj;
@@ -102,16 +103,16 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
                             .build();
                 }
                 else {
-                    LoginDto loginDto = new LoginDto();
+                    LoginResDto loginResDto = new LoginResDto();
                     // role은 추후에 정의
                     //List<String> roles = Arrays.asList("ROLE_USER", "ROLE_ADMIN");
-                    loginDto.setUsrId(usrId);
-                    loginDto.setUsrNm(loginRet.get("empName").toString());
-                    loginDto.setPositDivName(loginRet.get("positDivName").toString());
-                    loginDto.setDeptName(loginRet.get("deptName").toString());
-                    //loginDto.setRoles(roles);
-                    loginDto.setRoles(null);
-                    return loginDto;
+                    loginResDto.setUsrId(usrId);
+                    loginResDto.setUsrNm(loginRet.get("empName").toString());
+                    loginResDto.setPositDivName(loginRet.get("positDivName").toString());
+                    loginResDto.setDeptName(loginRet.get("deptName").toString());
+                    //loginResDto.setRoles(roles);
+                    loginResDto.setRoles(null);
+                    return loginResDto;
                 }
             }
         }
@@ -121,7 +122,7 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
                 .build();
     }
 
-    private ErpLoginDto makeErpDto(LoginDto paramDto) {
+    private ErpLoginDto makeErpDto(LoginReqDto paramDto) {
         final String grwUUID = UUID.randomUUID().toString().replace("-", "");
 
         ErpLoginDto dto = new ErpLoginDto();

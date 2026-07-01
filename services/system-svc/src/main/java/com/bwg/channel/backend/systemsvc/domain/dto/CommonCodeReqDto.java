@@ -2,23 +2,18 @@ package com.bwg.channel.backend.systemsvc.domain.dto;
 
 import com.bwg.channel.backend.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.typebridge.annotation.ApiField;
+import com.bwg.channel.backend.typebridge.annotation.ApiType;
 import lombok.Data;
 
 import java.time.LocalDate;
 
-/**
- * 공통코드 그룹에 속한 개별 코드 정보를 담는 DTO.
- */
+/** 공통코드 등록/수정 요청 모델 */
 @Data
-@ApiDto(name = "CommonCode", endpoints = {"create", "update"})
-public class CommonCodeDto {
-    @ApiField(description = "공통코드 ID")
-    private Long codeId;
+@ApiDto(type = ApiType.REQUEST, name = "CommonCode", endpoints = {"create", "update"})
+public class CommonCodeReqDto {
 
-    @ApiField(description = "공통코드 그룹 ID")
-    private Long groupId;
-
-    @ApiField(description = "공통코드 그룹 코드")
+    // 경로변수(groupCd)로 주입되는 값. 요청 스키마에는 노출하지 않는다(hidden).
+    @ApiField(description = "공통코드 그룹 코드", hidden = true)
     private String groupCd;
 
     @ApiField(description = "공통코드", example = "Y", required = {"create"})

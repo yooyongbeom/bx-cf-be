@@ -1,6 +1,7 @@
 package com.bwg.channel.backend.authsvc.controller;
 
-import com.bwg.channel.backend.authsvc.domain.dto.LoginDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginReqDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.config.RefreshTokenCookieProperties;
 import com.bwg.channel.backend.authsvc.config.RefreshTokenCookieSupport;
@@ -43,8 +44,8 @@ class AuthenticationCookieControllerTest {
 
     @Test
     void loginSetsRefreshTokenCookieAndRemovesRefreshTokenFromBody() throws Exception {
-        LoginDto loginResponse = loginResponse();
-        when(authenticationService.login(org.mockito.ArgumentMatchers.any(LoginDto.class), eq("mybatisLogin")))
+        LoginResDto loginResponse = loginResponse();
+        when(authenticationService.login(org.mockito.ArgumentMatchers.any(LoginReqDto.class), eq("mybatisLogin")))
                 .thenReturn(com.bwg.channel.backend.common.domain.dto.ApiResponse.success(loginResponse));
 
         mockMvc.perform(post("/login")
@@ -64,7 +65,7 @@ class AuthenticationCookieControllerTest {
 
     @Test
     void refreshTokenReadsRefreshTokenFromCookieOnlyAndRotatesCookie() throws Exception {
-        LoginDto refreshResponse = loginResponse();
+        LoginResDto refreshResponse = loginResponse();
         refreshResponse.setAccessToken("new.access.jwt.token");
         refreshResponse.setRefreshToken("new.refresh.jwt.token");
         when(authenticationService.refreshToken(org.mockito.ArgumentMatchers.any(RefreshTknReqDto.class), eq("mybatisLogin")))
@@ -102,15 +103,15 @@ class AuthenticationCookieControllerTest {
         verify(authenticationService, never()).refreshToken(org.mockito.ArgumentMatchers.any(), eq("mybatisLogin"));
     }
 
-    private LoginDto loginRequest() {
-        LoginDto request = new LoginDto();
+    private LoginReqDto loginRequest() {
+        LoginReqDto request = new LoginReqDto();
         request.setUsrId("hong.gildong");
         request.setUsrPwd("password");
         return request;
     }
 
-    private LoginDto loginResponse() {
-        LoginDto response = new LoginDto();
+    private LoginResDto loginResponse() {
+        LoginResDto response = new LoginResDto();
         response.setUsrId("hong.gildong");
         response.setAccessToken("access.jwt.token");
         response.setAccessTokenExpiresAt("20260625150000");

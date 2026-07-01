@@ -2,15 +2,16 @@ package com.bwg.channel.backend.systemsvc.domain.dto;
 
 import com.bwg.channel.backend.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.typebridge.annotation.ApiField;
+import com.bwg.channel.backend.typebridge.annotation.ApiType;
 import lombok.Data;
 
-/**
- * 메뉴의 계층, 화면 경로, 노출 속성을 담는 DTO.
- */
+/** 메뉴 등록/수정 요청 모델 */
 @Data
-@ApiDto(name = "Menu", endpoints = {"create", "update"})
-public class MenuDto {
-    @ApiField(description = "메뉴 ID")
+@ApiDto(type = ApiType.REQUEST, name = "Menu", endpoints = {"create", "update"})
+public class MenuReqDto {
+
+    // 경로변수(menuId)로 주입되는 값. 요청 스키마에는 노출하지 않는다(hidden).
+    @ApiField(description = "메뉴 ID", hidden = true)
     private Long menuId;
 
     @ApiField(description = "상위 메뉴 ID", optional = {"create", "update"})

@@ -1,9 +1,12 @@
 package com.bwg.channel.backend.systemsvc.repository.mybatis;
 
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.MenuActionDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.MenuDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuActionResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuResDto;
 import com.bwg.channel.backend.systemsvc.repository.SystemRepository;
 import com.bwg.channel.backend.systemsvc.repository.mybatis.mapper.SystemMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,57 +24,57 @@ public class MybatisSystemRepositoryAdapter implements SystemRepository {
     private final SystemMapper systemMapper;
 
     @Override
-    public List<CommonCodeGroupDto> findCommonCodeGroups() {
+    public List<CommonCodeGroupResDto> findCommonCodeGroups() {
         return systemMapper.findCommonCodeGroups();
     }
 
     @Override
-    public int insertCommonCodeGroup(CommonCodeGroupDto paramDto) {
+    public int insertCommonCodeGroup(CommonCodeGroupReqDto paramDto) {
         return systemMapper.insertCommonCodeGroup(paramDto);
     }
 
     @Override
-    public int updateCommonCodeGroup(CommonCodeGroupDto paramDto) {
+    public int updateCommonCodeGroup(CommonCodeGroupReqDto paramDto) {
         return systemMapper.updateCommonCodeGroup(paramDto);
     }
 
     @Override
-    public List<CommonCodeDto> findCommonCodes(String groupCd) {
+    public List<CommonCodeResDto> findCommonCodes(String groupCd) {
         return systemMapper.findCommonCodes(groupCd);
     }
 
     @Override
-    public int insertCommonCode(CommonCodeDto paramDto) {
+    public int insertCommonCode(CommonCodeReqDto paramDto) {
         return systemMapper.insertCommonCode(paramDto);
     }
 
     @Override
-    public int updateCommonCode(CommonCodeDto paramDto) {
+    public int updateCommonCode(CommonCodeReqDto paramDto) {
         return systemMapper.updateCommonCode(paramDto);
     }
 
     @Override
-    public List<MenuDto> findMenus() {
+    public List<MenuResDto> findMenus() {
         return systemMapper.findMenus();
     }
 
     @Override
-    public int insertMenu(MenuDto paramDto) {
+    public int insertMenu(MenuReqDto paramDto) {
         return systemMapper.insertMenu(paramDto);
     }
 
     @Override
-    public int updateMenu(MenuDto paramDto) {
+    public int updateMenu(MenuReqDto paramDto) {
         return systemMapper.updateMenu(paramDto);
     }
 
     @Override
-    public List<MenuActionDto> findMenuActions(Long menuId) {
+    public List<MenuActionResDto> findMenuActions(Long menuId) {
         return systemMapper.findMenuActions(menuId);
     }
 
     @Override
-    public List<MenuDto> findMenusByRoleId(Long roleId) {
+    public List<MenuResDto> findMenusByRoleId(Long roleId) {
         return systemMapper.findMenusByRoleId(roleId);
     }
 

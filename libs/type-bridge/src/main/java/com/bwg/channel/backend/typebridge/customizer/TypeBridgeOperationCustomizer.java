@@ -1,6 +1,7 @@
 package com.bwg.channel.backend.typebridge.customizer;
 
 import com.bwg.channel.backend.typebridge.annotation.ApiDto;
+import com.bwg.channel.backend.typebridge.annotation.ApiType;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
@@ -40,6 +41,7 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
             Class<?> paramType = param.getParameterType();
             ApiDto apiDto = paramType.getAnnotation(ApiDto.class);
             if (apiDto == null) continue;
+            if (apiDto.type() == ApiType.RESPONSE) continue;   // 응답 전용 DTO는 요청 바디로 쓰지 않음
             if (!Arrays.asList(apiDto.endpoints()).contains(endpointId)) continue;
 
             String baseName = resolveBaseName(paramType, apiDto);
@@ -50,12 +52,12 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
         }
 
         // ── 200 response 교체 ────────────────────────────────────────────
-        replaceResponseSchema(operation, handlerMethod);
+        replaceResponseSchema(operation, handlerMethod, endpointId);
 
         return operation;
     }
 
-    private void replaceResponseSchema(Operation operation, HandlerMethod handlerMethod) {
+    private void replaceResponseSchema(Operation operation, HandlerMethod handlerMethod, String endpointId) {
         if (operation.getResponses() == null) return;
         ApiResponse response200 = operation.getResponses().get("200");
         if (response200 == null || response200.getContent() == null) return;
@@ -70,10 +72,20 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
         Class<?> typeArg = resolveApiDtoType(typeArgs[0]);
         if (typeArg == null) return;
         ApiDto apiDto = typeArg.getAnnotation(ApiDto.class);
-        if (apiDto == null || !apiDto.generateResponse()) return;
+        if (apiDto == null) return;
 
-        String dtoName      = typeArg.getSimpleName();
-        String responseName = resolveBaseName(typeArg, apiDto) + "Response";
+        String dtoName = typeArg.getSimpleName();
+        String responseName;
+        if (apiDto.type() == ApiType.RESPONSE) {
+            // 신규: 엔드포인트별 응답 스키마 (해당 엔드포인트가 등록돼 있어야 교체)
+            if (!Arrays.asList(apiDto.endpoints()).contains(endpointId)) return;
+            responseName = resolveBaseName(typeArg, apiDto) + toPascalCase(endpointId) + "Response";
+        } else if (apiDto.type() == ApiType.LEGACY) {
+            if (!apiDto.generateResponse()) return;
+            responseName = resolveBaseName(typeArg, apiDto) + "Response";
+        } else {
+            return;   // REQUEST 타입이 반환 타입인 경우는 무시
+        }
 
         // 현재 $ref에서 dtoName → responseName 으로 교체
         response200.getContent().forEach((mediaType, content) -> {
@@ -158,7 +170,7 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
 
     private String resolveBaseName(Class<?> clazz, ApiDto apiDto) {
         return apiDto.name().isEmpty()
-                ? clazz.getSimpleName().replaceAll("Dto$", "")
+                ? clazz.getSimpleName().replaceAll("(Req|Res|Request|Response)?Dto$", "")
                 : apiDto.name();
     }
 

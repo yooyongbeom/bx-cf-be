@@ -1,6 +1,7 @@
 package com.bwg.channel.backend.authsvc.repository;
 
-import com.bwg.channel.backend.authsvc.domain.dto.LoginDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginReqDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 
 /**
@@ -9,22 +10,22 @@ import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 public interface LoginRepository {
     /**
      * 사용자 ID와 비밀번호로 사용자 정보를 조회 (토큰 정보 제외)
-     * @param loginDto 로그인 파라미터 (usrId, usrPwd)
-     * @return 토큰 정보가 제외된 사용자 정보 DTO
+     * @param loginReqDto 로그인 파라미터 (usrId, usrPwd)
+     * @return 사용자 정보 (토큰은 서비스에서 채움)
     */
-    LoginDto findByUsrIdAndUsrPwd(LoginDto loginDto);
+    LoginResDto findByUsrIdAndUsrPwd(LoginReqDto loginReqDto);
 
     /**
      * Refresh Token 정보를 업데이트
-     * @param loginDto 업데이트할 사용자 정보 (usrId, refreshToken, refreshTokenExpiresAt)
+     * @param loginResDto 업데이트할 사용자 정보 (usrId, refreshToken, refreshTokenExpiresAt)
      * @return 업데이트된 행의 수
     */
-    int updateRefreshToken(LoginDto loginDto);
+    int updateRefreshToken(LoginResDto loginResDto);
 
     /**
      * Refresh token으로 사용자 정보를 조회
      * @param refreshTknReqDto Refresh Token 정보
-     * @return 토큰 정보가 제외된 사용자 정보 DTO
+     * @return 사용자 정보
      */
-    LoginDto findByRefreshToken(RefreshTknReqDto refreshTknReqDto);
+    LoginResDto findByRefreshToken(RefreshTknReqDto refreshTknReqDto);
 }

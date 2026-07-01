@@ -3,7 +3,8 @@ package com.bwg.channel.backend.productsvc.service;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.productsvc.cmm.constants.ProductErrorCode;
 import com.bwg.channel.backend.productsvc.cmm.exception.BwgProductException;
-import com.bwg.channel.backend.productsvc.domain.dto.ProductDto;
+import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
+import com.bwg.channel.backend.productsvc.domain.dto.ProductResDto;
 import com.bwg.channel.backend.productsvc.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,11 +26,11 @@ public class ProductServiceImpl implements ProductService {
      * 상품 목록 조회
      */
     @Override
-    public ApiResponse<List<ProductDto>> getProductList(ProductDto paramDto, String type) {
+    public ApiResponse<List<ProductResDto>> getProductList(ProductReqDto paramDto, String type) {
         // 저장소 전략 선택
         ProductRepository repository = getRepository(type);
         // 선택된 저장소 기준 상품 목록 조회
-        List<ProductDto> result = repository.findAll(paramDto);
+        List<ProductResDto> result = repository.findAll(paramDto);
         return ApiResponse.success(result);
     }
 
@@ -37,11 +38,11 @@ public class ProductServiceImpl implements ProductService {
      * 상품 단건 조회
      */
     @Override
-    public ApiResponse<ProductDto> getProduct(Long productId, String type) {
+    public ApiResponse<ProductResDto> getProduct(Long productId, String type) {
         // 저장소 전략 선택
         ProductRepository repository = getRepository(type);
         // 선택된 저장소 기준 상품 단건 조회
-        ProductDto result = repository.findById(productId);
+        ProductResDto result = repository.findById(productId);
         return ApiResponse.success(result);
     }
 

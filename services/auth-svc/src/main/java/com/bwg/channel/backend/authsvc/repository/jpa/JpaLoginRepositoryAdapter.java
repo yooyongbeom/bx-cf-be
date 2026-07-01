@@ -1,6 +1,7 @@
 package com.bwg.channel.backend.authsvc.repository.jpa;
 
-import com.bwg.channel.backend.authsvc.domain.dto.LoginDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginReqDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.domain.entity.Role;
 import com.bwg.channel.backend.authsvc.domain.entity.User;
@@ -20,7 +21,7 @@ public class JpaLoginRepositoryAdapter implements LoginRepository {
     private final JpaLoginRepository jpaLoginRepository;
 
     @Override
-    public LoginDto findByUsrIdAndUsrPwd(LoginDto paramDto) {
+    public LoginResDto findByUsrIdAndUsrPwd(LoginReqDto paramDto) {
         User user = jpaLoginRepository.findByUsrIdAndUsrPwd(paramDto.getUsrId(), paramDto.getUsrPwd())
                 .orElseThrow(() ->
                         new BwgAuthException.Builder()
@@ -29,11 +30,11 @@ public class JpaLoginRepositoryAdapter implements LoginRepository {
                                 .details(null)
                                 .build());
 
-        return makeLoginDto(user);
+        return makeLoginResDto(user);
     }
 
     @Override
-    public LoginDto findByRefreshToken(RefreshTknReqDto refreshTknReqDto) {
+    public LoginResDto findByRefreshToken(RefreshTknReqDto refreshTknReqDto) {
         User user = jpaLoginRepository.findByRefreshToken(refreshTknReqDto.getRefreshToken())
                 .orElseThrow(() ->
                         new BwgAuthException.Builder()
@@ -42,28 +43,28 @@ public class JpaLoginRepositoryAdapter implements LoginRepository {
                                 .details(null)
                                 .build());
 
-        return makeLoginDto(user);
+        return makeLoginResDto(user);
     }
 
-    private LoginDto makeLoginDto(User user) {
+    private LoginResDto makeLoginResDto(User user) {
         List<String> roles = user.getRoles().stream()
                 .map(Role::getRoleNm)
                 .collect(Collectors.toList());
 
-        LoginDto loginDto = new LoginDto();
-        loginDto.setUsrId(user.getUsrId());
-        loginDto.setUsrNm(user.getUsrNm());
-        loginDto.setPositDivName(user.getPositDivName());
-        loginDto.setDeptName(user.getDeptName());
-        loginDto.setRoles(roles);
+        LoginResDto loginResDto = new LoginResDto();
+        loginResDto.setUsrId(user.getUsrId());
+        loginResDto.setUsrNm(user.getUsrNm());
+        loginResDto.setPositDivName(user.getPositDivName());
+        loginResDto.setDeptName(user.getDeptName());
+        loginResDto.setRoles(roles);
 
-        return loginDto;
+        return loginResDto;
     }
 
     @Override
     @Transactional
-    public int updateRefreshToken(LoginDto loginDto) {
-        User user = jpaLoginRepository.findByUsrId(loginDto.getUsrId())
+    public int updateRefreshToken(LoginResDto loginResDto) {
+        User user = jpaLoginRepository.findByUsrId(loginResDto.getUsrId())
                 .orElseThrow(() ->
                         new BwgAuthException.Builder()
                                 .code(AuthErrorCode.DB_SAVE_DATA_ERROR)
@@ -71,8 +72,8 @@ public class JpaLoginRepositoryAdapter implements LoginRepository {
                                 .details(null)
                                 .build());
 
-        user.setRefreshToken(loginDto.getRefreshToken());
-        user.setRefreshTokenExpiresAt(loginDto.getRefreshTokenExpiresAt());
+        user.setRefreshToken(loginResDto.getRefreshToken());
+        user.setRefreshTokenExpiresAt(loginResDto.getRefreshTokenExpiresAt());
         jpaLoginRepository.save(user);
         return 1; // Assuming success
     }

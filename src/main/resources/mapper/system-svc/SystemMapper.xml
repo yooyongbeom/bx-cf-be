@@ -3,7 +3,7 @@
 <mapper namespace="com.bwg.channel.backend.systemsvc.repository.mybatis.mapper.SystemMapper">
 
     <!-- 공통코드 그룹 DTO 매핑 정보 -->
-    <resultMap id="commonCodeGroupResult" type="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto">
+    <resultMap id="commonCodeGroupResult" type="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupResDto">
         <!-- groupId: 공통코드 그룹 ID -->
         <id     property="groupId"   column="group_id"/>
         <!-- groupCd: 공통코드 그룹 코드 -->
@@ -25,7 +25,7 @@
     </resultMap>
 
     <!-- 공통코드 DTO 매핑 정보 -->
-    <resultMap id="commonCodeResult" type="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto">
+    <resultMap id="commonCodeResult" type="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeResDto">
         <!-- codeId: 공통코드 ID -->
         <id     property="codeId"       column="code_id"/>
         <!-- groupId: 공통코드 그룹 ID -->
@@ -57,7 +57,7 @@
     </resultMap>
 
     <!-- 메뉴 DTO 매핑 정보 -->
-    <resultMap id="menuResult" type="com.bwg.channel.backend.systemsvc.domain.dto.MenuDto">
+    <resultMap id="menuResult" type="com.bwg.channel.backend.systemsvc.domain.dto.MenuResDto">
         <!-- menuId: 메뉴 ID -->
         <id     property="menuId"       column="menu_id"/>
         <!-- parentMenuId: 상위 메뉴 ID -->
@@ -91,7 +91,7 @@
     </resultMap>
 
     <!-- 메뉴 기능 DTO 매핑 정보 -->
-    <resultMap id="menuActionResult" type="com.bwg.channel.backend.systemsvc.domain.dto.MenuActionDto">
+    <resultMap id="menuActionResult" type="com.bwg.channel.backend.systemsvc.domain.dto.MenuActionResDto">
         <!-- actionId: 메뉴 기능 ID -->
         <id     property="actionId"   column="action_id"/>
         <!-- menuId: 메뉴 ID -->
@@ -134,7 +134,7 @@
     </select>
 
     <!-- 공통코드 그룹 등록 -->
-    <insert id="insertCommonCodeGroup" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto">
+    <insert id="insertCommonCodeGroup" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupReqDto">
         <![CDATA[
         /* systemsvc.SystemMapper.insertCommonCodeGroup(공통코드 그룹 등록) */
         INSERT INTO common_code_groups (
@@ -159,7 +159,7 @@
     </insert>
 
     <!-- 공통코드 그룹 수정 -->
-    <update id="updateCommonCodeGroup" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto">
+    <update id="updateCommonCodeGroup" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupReqDto">
         <![CDATA[
         /* systemsvc.SystemMapper.updateCommonCodeGroup(공통코드 그룹 수정) */
         UPDATE common_code_groups
@@ -202,7 +202,7 @@
     </select>
 
     <!-- 그룹별 공통코드 등록 -->
-    <insert id="insertCommonCode" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto">
+    <insert id="insertCommonCode" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeReqDto">
         <![CDATA[
         /* systemsvc.SystemMapper.insertCommonCode(공통코드 등록) */
         INSERT INTO common_codes (
@@ -236,7 +236,7 @@
     </insert>
 
     <!-- 그룹별 공통코드 수정 -->
-    <update id="updateCommonCode" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto">
+    <update id="updateCommonCode" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeReqDto">
         <![CDATA[
         /* systemsvc.SystemMapper.updateCommonCode(공통코드 수정) */
         UPDATE common_codes c
@@ -283,7 +283,7 @@
     </select>
 
     <!-- 메뉴 등록 -->
-    <insert id="insertMenu" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.MenuDto">
+    <insert id="insertMenu" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.MenuReqDto">
         <![CDATA[
         /* systemsvc.SystemMapper.insertMenu(메뉴 등록) */
         INSERT INTO menus (
@@ -320,7 +320,7 @@
     </insert>
 
     <!-- 메뉴 정보 수정 -->
-    <update id="updateMenu" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.MenuDto">
+    <update id="updateMenu" parameterType="com.bwg.channel.backend.systemsvc.domain.dto.MenuReqDto">
         <![CDATA[
         /* systemsvc.SystemMapper.updateMenu(메뉴 수정) */
         UPDATE menus

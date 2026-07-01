@@ -1,6 +1,7 @@
 package com.bwg.channel.backend.productsvc.repository;
 
-import com.bwg.channel.backend.productsvc.domain.dto.ProductDto;
+import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
+import com.bwg.channel.backend.productsvc.domain.dto.ProductResDto;
 
 import java.util.List;
 
@@ -12,10 +13,10 @@ public interface ProductRepository {
     /**
      * 상품 목록 조회
      */
-    List<ProductDto> findAll(ProductDto paramDto);
+    List<ProductResDto> findAll(ProductReqDto paramDto);
 
     /**
      * 상품 단건 조회
      */
-    ProductDto findById(Long productId);
+    ProductResDto findById(Long productId);
 }

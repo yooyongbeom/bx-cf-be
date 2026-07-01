@@ -3,7 +3,7 @@
 <mapper namespace="com.bwg.channel.backend.productsvc.repository.mybatis.mapper.ProductMapper">
 
     <!-- 상품 DTO 매핑 정보 -->
-    <resultMap id="productDtoResult" type="com.bwg.channel.backend.productsvc.domain.dto.ProductDto">
+    <resultMap id="productDtoResult" type="com.bwg.channel.backend.productsvc.domain.dto.ProductResDto">
         <!-- productId: 상품 ID -->
         <id     property="productId"   column="product_id"/>
         <!-- productNm: 상품명 -->
@@ -19,7 +19,7 @@
     </resultMap>
 
     <!-- 상품 목록 조건 조회 -->
-    <select id="findAll" parameterType="com.bwg.channel.backend.productsvc.domain.dto.ProductDto"
+    <select id="findAll" parameterType="com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto"
             resultMap="productDtoResult">
         <![CDATA[
         /* productsvc.ProductMapper.findAll(상품 목록 조회) */

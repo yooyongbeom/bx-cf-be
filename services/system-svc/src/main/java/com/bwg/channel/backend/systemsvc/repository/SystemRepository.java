@@ -1,9 +1,12 @@
 package com.bwg.channel.backend.systemsvc.repository;
 
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.MenuActionDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.MenuDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuActionResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuReqDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.MenuResDto;
 
 import java.util.List;
 
@@ -12,68 +15,29 @@ import java.util.List;
  */
 public interface SystemRepository {
 
-    /**
-     * 공통코드 그룹 목록을 조회한다.
-     */
-    List<CommonCodeGroupDto> findCommonCodeGroups();
+    List<CommonCodeGroupResDto> findCommonCodeGroups();
 
-    /**
-     * 공통코드 그룹을 등록한다.
-     */
-    int insertCommonCodeGroup(CommonCodeGroupDto paramDto);
+    int insertCommonCodeGroup(CommonCodeGroupReqDto paramDto);
 
-    /**
-     * 공통코드 그룹을 수정한다.
-     */
-    int updateCommonCodeGroup(CommonCodeGroupDto paramDto);
+    int updateCommonCodeGroup(CommonCodeGroupReqDto paramDto);
 
-    /**
-     * 특정 그룹의 공통코드 목록을 조회한다.
-     */
-    List<CommonCodeDto> findCommonCodes(String groupCd);
+    List<CommonCodeResDto> findCommonCodes(String groupCd);
 
-    /**
-     * 공통코드를 등록한다.
-     */
-    int insertCommonCode(CommonCodeDto paramDto);
+    int insertCommonCode(CommonCodeReqDto paramDto);
 
-    /**
-     * 공통코드를 수정한다.
-     */
-    int updateCommonCode(CommonCodeDto paramDto);
+    int updateCommonCode(CommonCodeReqDto paramDto);
 
-    /**
-     * 전체 메뉴 목록을 조회한다.
-     */
-    List<MenuDto> findMenus();
+    List<MenuResDto> findMenus();
 
-    /**
-     * 메뉴를 등록한다.
-     */
-    int insertMenu(MenuDto paramDto);
+    int insertMenu(MenuReqDto paramDto);
 
-    /**
-     * 메뉴 정보를 수정한다.
-     */
-    int updateMenu(MenuDto paramDto);
+    int updateMenu(MenuReqDto paramDto);
 
-    /**
-     * 메뉴에 연결된 기능 목록을 조회한다.
-     */
-    List<MenuActionDto> findMenuActions(Long menuId);
+    List<MenuActionResDto> findMenuActions(Long menuId);
 
-    /**
-     * 역할에 부여된 메뉴 목록을 조회한다.
-     */
-    List<MenuDto> findMenusByRoleId(Long roleId);
+    List<MenuResDto> findMenusByRoleId(Long roleId);
 
-    /**
-     * 역할에 매핑된 메뉴 권한을 모두 삭제한다.
-     */
     int deleteRoleMenus(Long roleId);
 
-    /**
-     * 역할과 메뉴의 권한 매핑을 등록한다.
-     */
     int insertRoleMenu(Long roleId, Long menuId, String createdBy);
 }

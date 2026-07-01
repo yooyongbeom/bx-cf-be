@@ -1,6 +1,6 @@
 package com.bwg.channel.backend.productsvc.controller;
 
-import com.bwg.channel.backend.productsvc.domain.dto.ProductDto;
+import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +14,7 @@ class ProductControllerMappingTests {
 
     @Test
     void productListUsesPostBodyRequest() throws NoSuchMethodException {
-        Method method = ProductController.class.getDeclaredMethod("getProductList", ProductDto.class);
+        Method method = ProductController.class.getDeclaredMethod("getProductList", ProductReqDto.class);
 
         assertThat(method.getAnnotation(GetMapping.class)).isNull();
         assertThat(method.getAnnotation(PostMapping.class).value()).containsExactly("/list");
@@ -22,10 +22,11 @@ class ProductControllerMappingTests {
     }
 
     @Test
-    void productDetailUsesPostMapping() throws NoSuchMethodException {
+    void productDetailUsesStaticDetailSegment() throws NoSuchMethodException {
         Method method = ProductController.class.getDeclaredMethod("getProduct", Long.class);
 
         assertThat(method.getAnnotation(GetMapping.class)).isNull();
-        assertThat(method.getAnnotation(PostMapping.class).value()).containsExactly("/{productId}");
+        // 엔드포인트 ID가 "detail"로 잡히도록 정적 세그먼트를 둔다
+        assertThat(method.getAnnotation(PostMapping.class).value()).containsExactly("/detail/{productId}");
     }
 }

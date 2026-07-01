@@ -1,8 +1,8 @@
 package com.bwg.channel.backend.systemsvc.service;
 
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.repository.SystemRepository;
 import org.junit.jupiter.api.Test;
 
@@ -22,32 +22,32 @@ class CommonCodeServiceTests {
 
     @Test
     void returnsCommonCodeGroups() {
-        CommonCodeGroupDto group = new CommonCodeGroupDto();
+        CommonCodeGroupResDto group = new CommonCodeGroupResDto();
         group.setGroupCd("USE_YN");
         group.setGroupNm("사용 여부");
 
         when(systemRepository.findCommonCodeGroups()).thenReturn(List.of(group));
 
-        ApiResponse<List<CommonCodeGroupDto>> response = commonCodeService.getCommonCodeGroups();
+        ApiResponse<List<CommonCodeGroupResDto>> response = commonCodeService.getCommonCodeGroups();
 
         assertThat(response.isSuccess()).isTrue();
-        assertThat(response.getPayload()).extracting(CommonCodeGroupDto::getGroupCd)
+        assertThat(response.getPayload()).extracting(CommonCodeGroupResDto::getGroupCd)
                 .containsExactly("USE_YN");
     }
 
     @Test
     void returnsCommonCodesByGroupCode() {
-        CommonCodeDto code = new CommonCodeDto();
+        CommonCodeResDto code = new CommonCodeResDto();
         code.setGroupCd("USE_YN");
         code.setCode("Y");
         code.setCodeNm("사용");
 
         when(systemRepository.findCommonCodes("USE_YN")).thenReturn(List.of(code));
 
-        ApiResponse<List<CommonCodeDto>> response = commonCodeService.getCommonCodes("USE_YN");
+        ApiResponse<List<CommonCodeResDto>> response = commonCodeService.getCommonCodes("USE_YN");
 
         assertThat(response.isSuccess()).isTrue();
-        assertThat(response.getPayload()).extracting(CommonCodeDto::getCode)
+        assertThat(response.getPayload()).extracting(CommonCodeResDto::getCode)
                 .containsExactly("Y");
     }
 }

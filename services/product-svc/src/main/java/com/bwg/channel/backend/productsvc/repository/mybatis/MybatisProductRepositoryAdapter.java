@@ -2,7 +2,8 @@ package com.bwg.channel.backend.productsvc.repository.mybatis;
 
 import com.bwg.channel.backend.productsvc.cmm.constants.ProductErrorCode;
 import com.bwg.channel.backend.productsvc.cmm.exception.BwgProductException;
-import com.bwg.channel.backend.productsvc.domain.dto.ProductDto;
+import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
+import com.bwg.channel.backend.productsvc.domain.dto.ProductResDto;
 import com.bwg.channel.backend.productsvc.repository.ProductRepository;
 import com.bwg.channel.backend.productsvc.repository.mybatis.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class MybatisProductRepositoryAdapter implements ProductRepository {
      * MyBatis 기반 상품 목록 조회
      */
     @Override
-    public List<ProductDto> findAll(ProductDto paramDto) {
+    public List<ProductResDto> findAll(ProductReqDto paramDto) {
         return productMapper.findAll(paramDto);
     }
 
@@ -33,7 +34,7 @@ public class MybatisProductRepositoryAdapter implements ProductRepository {
      * MyBatis 기반 상품 단건 조회
      */
     @Override
-    public ProductDto findById(Long productId) {
+    public ProductResDto findById(Long productId) {
         return productMapper.findById(productId)
                 .orElseThrow(() -> new BwgProductException.Builder()
                         .code(ProductErrorCode.PRODUCT_NOT_FOUND)
