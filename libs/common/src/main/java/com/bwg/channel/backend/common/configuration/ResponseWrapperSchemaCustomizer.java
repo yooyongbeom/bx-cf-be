@@ -4,6 +4,7 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BooleanSchema;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
@@ -36,6 +37,10 @@ import java.util.Map;
 public class ResponseWrapperSchemaCustomizer implements OpenApiCustomizer {
 
     private static final String REF_PREFIX = "#/components/schemas/";
+
+    // springdoc/swagger-core가 컬렉션 제네릭을 명명할 때 쓰는 접두사
+    // (예: ApiResponse<List<ProductDto>> → "ApiResponseListProductDto")
+    private static final String[] COLLECTION_PREFIXES = {"List", "Set", "Collection", "Iterable"};
 
     @Override
     public void customise(OpenAPI openApi) {
@@ -117,6 +122,14 @@ public class ResponseWrapperSchemaCustomizer implements OpenApiCustomizer {
         return ref.startsWith(REF_PREFIX) ? ref.substring(REF_PREFIX.length()) : null;
     }
 
+    /**
+     * 래퍼 이름에서 payload 스키마를 추론한다.
+     * <p>
+     * springdoc의 {@code removeBrokenReferenceDefinitions}가 커스터마이저 실행 전에 원본 래퍼 스키마
+     * ({@code ApiResponseXxxDto})를 제거해버리므로, 실제로는 이 이름 기반 추론이 payload를 복원하는 핵심 경로다.
+     * 단건({@code ApiResponseProductResponse})뿐 아니라 컬렉션({@code ApiResponseListProductResponse})도
+     * 배열 스키마로 올바르게 복원한다.
+     */
     private Schema<?> inferPayloadSchema(String wrapperName, Map<String, Schema> componentSchemas) {
         String payloadName = null;
         if (wrapperName.startsWith("ApiResponse")) {
@@ -125,10 +138,26 @@ public class ResponseWrapperSchemaCustomizer implements OpenApiCustomizer {
             payloadName = wrapperName.substring("CommonResponse".length());
         }
 
-        if (payloadName == null || payloadName.isBlank() || !componentSchemas.containsKey(payloadName)) {
+        if (payloadName == null || payloadName.isBlank()) {
             return null;
         }
 
-        return new Schema<>().$ref(REF_PREFIX + payloadName);
+        // 단일 payload: {Name}Response 스키마가 그대로 존재하면 참조
+        if (componentSchemas.containsKey(payloadName)) {
+            return new Schema<>().$ref(REF_PREFIX + payloadName);
+        }
+
+        // 컬렉션 payload: "List{Element}" 형태면 접두사를 벗겨 요소를 배열로 감싼다.
+        for (String prefix : COLLECTION_PREFIXES) {
+            if (payloadName.startsWith(prefix)) {
+                String elementName = payloadName.substring(prefix.length());
+                if (!elementName.isBlank() && componentSchemas.containsKey(elementName)) {
+                    ArraySchema array = new ArraySchema();
+                    array.setItems(new Schema<>().$ref(REF_PREFIX + elementName));
+                    return array;
+                }
+            }
+        }
+        return null;
     }
 }

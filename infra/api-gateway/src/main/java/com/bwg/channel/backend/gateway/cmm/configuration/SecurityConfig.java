@@ -48,7 +48,13 @@ public class SecurityConfig {
             "/favicon.ico",
             "/actuator/info",
             "/actuator/health",
-            "/channel/backend/api/v1/auth/**"            // 일단 auth 하위로 허용
+            "/channel/backend/api/v1/auth/login",
+            "/channel/backend/api/v1/auth/erp-login",
+            "/channel/backend/api/v1/auth/refresh-token",
+            "/channel/backend/api/v1/auth/signup",
+            "/channel/backend/api/v1/auth/password/find",
+            "/channel/backend/api/v1/auth/password/reset-request",
+            "/channel/backend/api/v1/auth/password/reset"
     };
 
     /**

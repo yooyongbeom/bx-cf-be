@@ -142,6 +142,44 @@ class TypeBridgeOpenApiCustomizerTests {
         assertThat(customizers.get(1)).isInstanceOf(ResponseWrapperSchemaCustomizer.class);
     }
 
+    /**
+     * 회귀 테스트: springdoc의 removeBrokenReferenceDefinitions가 원본 래퍼/DTO 스키마를 모두 제거한 뒤
+     * (components에는 생성된 {Name}Response 스키마만 남고, 응답은 ApiResponse{Name}Response / ApiResponseList{Name}Response
+     * 를 참조) ResponseWrapperSchemaCustomizer가 payload를 이름 기반으로 복원해야 한다.
+     * 단건은 객체 참조, 목록은 배열로 복원되어야 한다.
+     */
+    @Test
+    void inferPayloadRestoresListAsArrayAfterBrokenRefRemoval() {
+        OpenAPI openApi = new OpenAPI();
+        // removeBroken 이후 상태: 래퍼/DTO는 사라지고 Response 스키마만 남음
+        openApi.schema("TypeBridgeTestResponse", new Schema<>().type("object"));
+
+        openApi.setPaths(new Paths()
+                .addPathItem("/list", new PathItem().post(operationRef("ApiResponseListTypeBridgeTestResponse")))
+                .addPathItem("/get", new PathItem().post(operationRef("ApiResponseTypeBridgeTestResponse"))));
+
+        new ResponseWrapperSchemaCustomizer().customise(openApi);
+
+        Schema<?> listPayload = (Schema<?>) responseSchemaOfPath(openApi, "/list").getProperties().get("payload");
+        assertThat(listPayload).isInstanceOf(ArraySchema.class);
+        assertThat(((ArraySchema) listPayload).getItems().get$ref())
+                .isEqualTo("#/components/schemas/TypeBridgeTestResponse");
+
+        Schema<?> getPayload = (Schema<?>) responseSchemaOfPath(openApi, "/get").getProperties().get("payload");
+        assertThat(getPayload.get$ref()).isEqualTo("#/components/schemas/TypeBridgeTestResponse");
+    }
+
+    private Operation operationRef(String wrapperName) {
+        return new Operation().responses(new ApiResponses().addApiResponse("200", new ApiResponse()
+                .content(new Content().addMediaType("*/*", new MediaType()
+                        .schema(new Schema<>().$ref("#/components/schemas/" + wrapperName))))));
+    }
+
+    private Schema<?> responseSchemaOfPath(OpenAPI openApi, String path) {
+        return openApi.getPaths().get(path).getPost()
+                .getResponses().get("200").getContent().get("*/*").getSchema();
+    }
+
     /** springdoc이 ApiResponse«List«TypeBridgeTestDto»» 를 만든 직후 상태를 흉내낸 OpenAPI */
     private OpenAPI springdocLikeListOpenApi() {
         Schema<Object> wrapper = new Schema<>();
