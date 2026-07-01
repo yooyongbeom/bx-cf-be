@@ -8,6 +8,8 @@ import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.springdoc.core.customizers.GlobalOpenApiCustomizer;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +30,13 @@ import java.util.stream.Collectors;
  * 3. 기존 ApiResponse«{Dto}» 스키마의 payload 참조를 {Name}Response로 교체한 변형 스키마 생성
  *
  * openapi-typescript는 /v3/api-docs를 읽어 각 엔드포인트별 올바른 TypeScript 타입을 자동 생성한다.
+ *
+ * <p>실행 순서 주의: springdoc은 GlobalOpenApiCustomizer와 OpenApiCustomizer를 하나의 리스트로 합쳐
+ * 실행하므로, payload/변형 래퍼 스키마를 만드는 이 커스터마이저는 이를 인라인으로 펼치는
+ * {@code ResponseWrapperSchemaCustomizer}보다 <b>반드시 먼저</b> 실행되어야 한다.
+ * (먼저 실행되지 않으면 응답 스키마에서 payload가 통째로 누락된다.) 그래서 더 높은 우선순위를 부여한다.
  */
+@Order(Ordered.LOWEST_PRECEDENCE - 100)
 @Component
 public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
 

@@ -13,6 +13,8 @@ import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -25,7 +27,12 @@ import java.util.Map;
  * <p>
  * 결과: Schemas 목록에는 도메인 DTO만 남고(래퍼 이름은 어디에도 노출되지 않음),
  * 각 API 응답 문서에는 공통 응답 구조 + 타입별 payload 가 그대로 표시된다.
+ * <p>
+ * 이 커스터마이저는 TypeBridge가 생성한 payload/변형 래퍼 스키마를 참조하므로,
+ * {@code TypeBridgeOpenApiCustomizer} 이후에 실행되어야 한다(가장 낮은 우선순위로 마지막에 실행).
+ * springdoc은 두 커스터마이저를 하나의 리스트로 합쳐 실행하는데 순서를 보장하지 않으므로 {@code @Order}로 고정한다.
  */
+@Order(Ordered.LOWEST_PRECEDENCE)
 public class ResponseWrapperSchemaCustomizer implements OpenApiCustomizer {
 
     private static final String REF_PREFIX = "#/components/schemas/";
