@@ -1,6 +1,6 @@
-﻿spring:
+spring:
   config:
-    import: "classpath:/application-authcore-dev.yml"   # auth-core 설정 import
+    import: "classpath:/application-securitycommon-dev.yml"   # security-common 설정 import
   lifecycle:
     timeout-per-shutdown-phase: 35s
 server:

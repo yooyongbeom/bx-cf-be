@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication(scanBasePackages = {
         "com.bwg.channel.backend.gateway.*"
-        ,"com.bwg.channel.backend.authcore.*"
+        ,"com.bwg.channel.backend.securitycommon.*"
 })
 public class ApiGatewayApplication {
 

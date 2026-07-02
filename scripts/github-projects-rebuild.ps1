@@ -1,4 +1,4 @@
-﻿# ================================================================
+# ================================================================
 # BX-CF-BE GitHub Issues 전면 재구성
 # - 기존 이슈 전체 삭제
 # - 전체 WBS (완료 포함) 이슈 재생성
@@ -106,7 +106,7 @@ $t += New-Issue "[W1] monorepo 구성 (libs/infra/services)" "infra,done,P1" "1�
 
 $t += New-Issue "[W1] libs/common 모듈" "infra,done,P1" "1단계" "## 개요`n전체 서비스에서 공통으로 사용하는 예외 처리, AOP, JPA/MyBatis 기반 설정을 제공하는 라이브러리 모듈이다.`n`n## 주요 작업`n- `ApiResponse<T>` 공통 응답 래퍼 정의`n- `BwgException` / `BwgErrorCode` 기반 예외 체계 구성`n- `JpaMainConfigBase`, `MyBatisMainConfigBase` 이중 데이터소스 기반 클래스 제공`n- `GlobalExceptionHandler` AOP 기반 공통 예외 처리`n`n## 완료 기준`n- [ ] 각 서비스가 common을 상속하여 별도 설정 없이 동작한다"
 
-$t += New-Issue "[W1] libs/auth-core 모듈" "security,done,P1" "1단계" "## 개요`nJWT 인증 필터와 인증 관련 에러 코드를 제공하는 라이브러리 모듈이다. Gateway와 각 서비스가 공통으로 참조한다.`n`n## 주요 작업`n- `JwtAuthFilter` (OncePerRequestFilter) 구현`n- `AuthErrorCode` 열거형 정의 (-1001 ~ -1005)`n- `BwgAuthException` 커스텀 예외 구현`n- 토큰 파싱 / 검증 유틸 제공`n`n## 완료 기준`n- [ ] 유효하지 않은 토큰 요청 시 `-1002` 응답이 반환된다`n- [ ] 만료된 토큰 요청 시 `-1004` 응답이 반환된다"
+$t += New-Issue "[W1] libs/security-common 모듈" "security,done,P1" "1단계" "## 개요`nJWT 인증 필터와 인증 관련 에러 코드를 제공하는 라이브러리 모듈이다. Gateway와 각 서비스가 공통으로 참조한다.`n`n## 주요 작업`n- `JwtAuthFilter` (OncePerRequestFilter) 구현`n- `AuthErrorCode` 열거형 정의 (-1001 ~ -1005)`n- `BwgAuthException` 커스텀 예외 구현`n- 토큰 파싱 / 검증 유틸 제공`n`n## 완료 기준`n- [ ] 유효하지 않은 토큰 요청 시 `-1002` 응답이 반환된다`n- [ ] 만료된 토큰 요청 시 `-1004` 응답이 반환된다"
 
 $t += New-Issue "[W1] libs/type-bridge 모듈" "api,done,P1" "1단계" "## 개요`nSpringDoc OpenAPI Customizer를 통해 DTO 어노테이션(`@ApiDto`, `@ApiField`)을 OpenAPI 스키마로 변환하여 프론트엔드 TypeScript 타입 자동 생성을 지원한다.`n`n## 주요 작업`n- `@ApiDto(name, endpoints)` 어노테이션 정의`n- `@ApiField(description, example, required, exclude, responseOnly, format, ...)` 어노테이션 정의`n- `TypeBridgeOpenApiCustomizer` 구현 (스키마 등록)`n- `TypeBridgeOperationCustomizer` 구현 (requestBody / response 교체)`n`n## 완료 기준`n- [ ] `/v3/api-docs`에 `AuthLoginRequest`, `AuthResponse` 등 엔드포인트별 스키마가 등록된다`n- [ ] `npx openapi-typescript` 실행 시 TypeScript 타입이 정상 생성된다"
 
@@ -133,13 +133,13 @@ $w2 = New-Issue "[W2] 보안 완성 (7/7 ~ 7/13)" "security,P1" "1단계" "## �
 $t2 = @()
 $t2 += New-Issue "[W2] Spring Security 구성" "security,done,P1" "1단계" "## 개요`nSpring Security를 설정하여 인증/인가 흐름을 구성한다. JWT 기반 Stateless 방식으로 세션을 사용하지 않는다.`n`n## 주요 작업`n- `SecurityConfig` 구성 (`HttpSecurity`, `SessionCreationPolicy.STATELESS`)`n- `JwtAuthFilter`를 Security 필터 체인에 등록`n- 인증 불필요 경로 허용 설정`n- CSRF 비활성화`n`n## 완료 기준`n- [ ] 인증 없이 보호된 API 접근 시 401 반환`n- [ ] 인증 후 보호된 API 접근 시 정상 응답"
 
-$t2 += New-Issue "[W2] JWT 발급 / 검증 로직" "security,done,P1" "1단계" "## 개요`nHS256 알고리즘으로 JWT를 발급하고 검증한다. `auth-core` 모듈의 유틸을 통해 토큰 파싱 및 클레임 추출을 처리한다.`n`n## 주요 작업`n- `JwtTokenProvider` 구현 (발급, 검증, 클레임 추출)`n- AccessToken / RefreshToken 분리 발급`n- 시크릿 키 환경별 분리 관리`n- 토큰 만료 시간 설정 (AccessToken: 30분, RefreshToken: 7일)`n`n## 완료 기준`n- [ ] 로그인 시 AccessToken, RefreshToken이 응답에 포함된다`n- [ ] 만료된 토큰 검증 시 `ExpiredJwtException`이 발생한다"
+$t2 += New-Issue "[W2] JWT 발급 / 검증 로직" "security,done,P1" "1단계" "## 개요`nHS256 알고리즘으로 JWT를 발급하고 검증한다. `security-common` 모듈의 유틸을 통해 토큰 파싱 및 클레임 추출을 처리한다.`n`n## 주요 작업`n- `JwtTokenProvider` 구현 (발급, 검증, 클레임 추출)`n- AccessToken / RefreshToken 분리 발급`n- 시크릿 키 환경별 분리 관리`n- 토큰 만료 시간 설정 (AccessToken: 30분, RefreshToken: 7일)`n`n## 완료 기준`n- [ ] 로그인 시 AccessToken, RefreshToken이 응답에 포함된다`n- [ ] 만료된 토큰 검증 시 `ExpiredJwtException`이 발생한다"
 
 $t2 += New-Issue "[W2] Refresh Token 관리" "security,done,P1" "1단계" "## 개요`nRefreshToken을 DB에 저장하고 재발급 요청 시 유효성을 검증하여 새 AccessToken을 발급한다.`n`n## 주요 작업`n- RefreshToken 엔티티 및 Repository 구현`n- `/auth/refresh-token` API 구현`n- RefreshToken 탈취 방지 (1회 사용 후 교체, Rotation)`n- 로그아웃 시 RefreshToken 무효화`n`n## 완료 기준`n- [ ] 만료된 AccessToken을 RefreshToken으로 재발급할 수 있다`n- [ ] 이미 사용된 RefreshToken 재사용 시 오류가 반환된다"
 
 $t2 += New-Issue "[W2] 인증 API (/login, /refresh-token)" "api,done,P1" "1단계" "## 개요`n사용자 로그인과 토큰 재발급 REST API를 구현한다.`n`n## API 명세`n`n    POST /channel/backend/api/v1/auth/login`n      Request:  { usrId, usrPwd(SHA-256) }`n      Response: { accessToken, refreshToken, usrNm, roles, ... }`n`n    POST /channel/backend/api/v1/auth/refresh-token`n      Request:  { refreshToken }`n      Response: { accessToken, refreshToken }"
 
-$t2 += New-Issue "[W2] 에러 코드 체계 표준화" "api,P1" "1단계" "## 개요`n전사 에러 코드를 모듈별로 분리하여 표준화한다. 에러 코드 충돌 없이 서비스별 독립적인 에러 관리가 가능하도록 한다.`n`n## 에러 코드 대역 정의`n| 대역 | 모듈 |`n|------|------|`n| -1000 ~ -1999 | libs/auth-core (인증/인가) |`n| -5000 ~ -5999 | product-svc |`n| -9000 ~ -9999 | Gateway / 공통 |`n`n## 주요 작업`n- `BwgErrorCode` 인터페이스 정의`n- 각 모듈별 `XxxErrorCode` enum 구현`n- `GlobalExceptionHandler`에서 에러 코드별 응답 포맷 통일`n`n## 완료 기준`n- [ ] 모든 에러 응답이 `{ success: false, code: -XXXX, msg: ... }` 형식으로 반환된다"
+$t2 += New-Issue "[W2] 에러 코드 체계 표준화" "api,P1" "1단계" "## 개요`n전사 에러 코드를 모듈별로 분리하여 표준화한다. 에러 코드 충돌 없이 서비스별 독립적인 에러 관리가 가능하도록 한다.`n`n## 에러 코드 대역 정의`n| 대역 | 모듈 |`n|------|------|`n| -1000 ~ -1999 | libs/security-common (인증/인가) |`n| -5000 ~ -5999 | product-svc |`n| -9000 ~ -9999 | Gateway / 공통 |`n`n## 주요 작업`n- `BwgErrorCode` 인터페이스 정의`n- 각 모듈별 `XxxErrorCode` enum 구현`n- `GlobalExceptionHandler`에서 에러 코드별 응답 포맷 통일`n`n## 완료 기준`n- [ ] 모든 에러 응답이 `{ success: false, code: -XXXX, msg: ... }` 형식으로 반환된다"
 
 $t2 += New-Issue "[W2] 권한 도메인 설계" "security,P1" "1단계" "## 개요`n역할(Role) 기반 접근 제어(RBAC)를 위한 도메인 모델을 설계한다.`n`n## 주요 작업`n- `Role` 엔티티 설계 (ROLE_ADMIN, ROLE_USER, ROLE_MANAGER 등)`n- `UserRole` 매핑 테이블 설계`n- Spring Security `GrantedAuthority`와 연동`n- JWT 클레임에 roles 포함`n`n## 완료 기준`n- [ ] 로그인 응답에 `roles` 목록이 포함된다`n- [ ] DB에 사용자-역할 매핑이 저장된다"
 

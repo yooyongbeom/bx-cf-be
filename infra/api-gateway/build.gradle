@@ -30,7 +30,8 @@ dependencyManagement {
 
 dependencies {
     implementation project(":libs:common")
-    implementation project(":libs:auth-core")
+    implementation project(":libs:security-common")
+    implementation project(":libs:session-context-common")
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
@@ -83,11 +84,11 @@ processResources {
         from(profileDir) { into "." }
     }
 
-    // auth-core 설정
-    def authCoreDir = rootProject.file("src/main/resources/config/auth-core/${activeProfile}")
-    if (authCoreDir.exists()) {
-        from(authCoreDir) {
-            rename { fileName -> "application-authcore-${activeProfile}.yml" }
+    // security-common 설정
+    def securityCommonDir = rootProject.file("src/main/resources/config/security-common/${activeProfile}")
+    if (securityCommonDir.exists()) {
+        from(securityCommonDir) {
+            rename { fileName -> "application-securitycommon-${activeProfile}.yml" }
         }
     }
 }

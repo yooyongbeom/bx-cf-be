@@ -15,7 +15,7 @@ public class BwgExceptionAspect {
         " execution(* com.bwg.channel.backend..service..*(..))    || " +
         " execution(* com.bwg.channel.backend..repository..*(..))" +
         ") && !within(com.bwg.channel.backend.common..*)" +
-        "&& !within(com.bwg.channel.backend.authcore..*)"
+        "&& !within(com.bwg.channel.backend.securitycommon..*)"
     )
     public Object wrapException(ProceedingJoinPoint joinPoint) throws Throwable {
         try {

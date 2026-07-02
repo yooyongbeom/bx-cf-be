@@ -1,0 +1,30 @@
+package com.bwg.channel.backend.securitycommon.exception;
+
+import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
+import com.bwg.channel.backend.common.exception.BwgException;
+
+public class BwgAuthException extends BwgException {
+    private static final long serialVersionUID = 1L;
+
+    private BwgAuthException(Builder builder) {
+        super(builder);
+    }
+
+    @Override
+    public AuthErrorCode getCode() {
+        return (AuthErrorCode) super.getCode();
+    }
+
+    public static class Builder extends BwgException.Builder<Builder> {
+
+        public Builder code(AuthErrorCode code) {
+            super.code(code);
+            return this;
+        }
+
+        @Override
+        public BwgAuthException build() {
+            return new BwgAuthException(this);
+        }
+    }
+}

@@ -1,7 +1,7 @@
 package com.bwg.channel.backend.productsvc.config;
 
-import com.bwg.channel.backend.common.configuration.OpenApiSupport;
-import com.bwg.channel.backend.common.configuration.ResponseWrapperSchemaCustomizer;
+import com.bwg.channel.backend.common.config.OpenApiSupport;
+import com.bwg.channel.backend.common.config.ResponseWrapperSchemaCustomizer;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.servers.Server;

@@ -1,7 +1,7 @@
 package com.bwg.channel.backend.systemsvc.domain.dto;
 
-import com.bwg.channel.backend.typebridge.annotation.ApiDto;
-import com.bwg.channel.backend.typebridge.annotation.ApiField;
+import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
+import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

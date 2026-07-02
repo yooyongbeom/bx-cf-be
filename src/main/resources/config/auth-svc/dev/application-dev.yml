@@ -1,4 +1,4 @@
-﻿spring:
+spring:
   datasource:
     # 'jpa-main' DataSource (JPA용)
     jpa-main:
@@ -28,9 +28,16 @@
         use_sql_comments: true
 
   config:
-    import: "classpath:/application-authcore-dev.yml"
+    import: "classpath:/application-securitycommon-dev.yml"
   lifecycle:
     timeout-per-shutdown-phase: 35s
+
+  # valkey
+  data:
+    redis:
+      host: 192.168.110.217
+      port: 6379
+      timeout: 2s
 
 server:
   tomcat:

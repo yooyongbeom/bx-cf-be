@@ -21,8 +21,7 @@ dependencyManagement {
 dependencies {
     implementation project(':libs:common')
     implementation project(':libs:business-common')
-    implementation project(':libs:auth-core')
-    implementation project(':libs:type-bridge')
+    implementation project(':libs:session-context-common')
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
@@ -76,10 +75,4 @@ processResources {
         from(profileDir) { into "." }
     }
 
-    def authCoreDir = rootProject.file("src/main/resources/config/auth-core/${activeProfile}")
-    if (authCoreDir.exists()) {
-        from(authCoreDir) {
-            rename { fileName -> "application-authcore-${activeProfile}.yml" }
-        }
-    }
 }

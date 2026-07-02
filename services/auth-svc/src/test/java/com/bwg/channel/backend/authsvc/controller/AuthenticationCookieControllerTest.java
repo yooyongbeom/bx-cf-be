@@ -3,10 +3,12 @@ package com.bwg.channel.backend.authsvc.controller;
 import com.bwg.channel.backend.authsvc.domain.dto.LoginReqDto;
 import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
-import com.bwg.channel.backend.authsvc.config.RefreshTokenCookieProperties;
-import com.bwg.channel.backend.authsvc.config.RefreshTokenCookieSupport;
 import com.bwg.channel.backend.authsvc.service.AuthenticationService;
+import com.bwg.channel.backend.authsvc.token.cookie.RefreshTokenCookieProperties;
+import com.bwg.channel.backend.authsvc.token.cookie.RefreshTokenCookieSupport;
 import com.bwg.channel.backend.common.aop.BwgAuthExceptionAdvice;
+import com.bwg.channel.backend.common.domain.dto.ApiResponse;
+import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
@@ -101,6 +103,28 @@ class AuthenticationCookieControllerTest {
                 .andExpect(jsonPath("$.code").value("-1002"));
 
         verify(authenticationService, never()).refreshToken(org.mockito.ArgumentMatchers.any(), eq("mybatisLogin"));
+    }
+
+    @Test
+    void logoutUsesInternalAuthHeadersAndClearsRefreshTokenCookie() throws Exception {
+        when(authenticationService.logout("hong.gildong", "session-123", "mybatisLogin"))
+                .thenReturn(ApiResponse.success(null));
+
+        mockMvc.perform(post("/logout")
+                        .header(InternalAuthHeaders.USER, "hong.gildong")
+                        .header(InternalAuthHeaders.SESSION_ID, "session-123")
+                        .cookie(new Cookie("refreshToken", "refresh.jwt.token")))
+                .andExpect(status().isOk())
+                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.allOf(
+                        org.hamcrest.Matchers.containsString("refreshToken="),
+                        org.hamcrest.Matchers.containsString("Max-Age=0"),
+                        org.hamcrest.Matchers.containsString("HttpOnly"),
+                        org.hamcrest.Matchers.containsString("Path=/channel/backend/api/v1/auth"),
+                        org.hamcrest.Matchers.containsString("SameSite=Lax")
+                ))))
+                .andExpect(jsonPath("$.success").value(true));
+
+        verify(authenticationService).logout("hong.gildong", "session-123", "mybatisLogin");
     }
 
     private LoginReqDto loginRequest() {

@@ -1,7 +1,7 @@
 package com.bwg.channel.backend.productsvc.repository.mybatis;
 
-import com.bwg.channel.backend.productsvc.cmm.constants.ProductErrorCode;
-import com.bwg.channel.backend.productsvc.cmm.exception.BwgProductException;
+import com.bwg.channel.backend.productsvc.constants.ProductErrorCode;
+import com.bwg.channel.backend.productsvc.exception.BwgProductException;
 import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
 import com.bwg.channel.backend.productsvc.domain.dto.ProductResDto;
 import com.bwg.channel.backend.productsvc.repository.ProductRepository;

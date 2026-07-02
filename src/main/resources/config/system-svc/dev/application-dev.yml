@@ -8,8 +8,6 @@ spring:
       hikari:
         pool-name: mybatis-main-hikari-pool
 
-  config:
-    import: "classpath:/application-authcore-dev.yml"
   lifecycle:
     timeout-per-shutdown-phase: 35s
 

@@ -1,8 +1,8 @@
 package com.bwg.channel.backend.systemsvc.domain.dto;
 
-import com.bwg.channel.backend.typebridge.annotation.ApiDto;
-import com.bwg.channel.backend.typebridge.annotation.ApiField;
-import com.bwg.channel.backend.typebridge.annotation.ApiType;
+import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
+import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
+import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
 
 /** 메뉴 등록/수정 요청 모델 */

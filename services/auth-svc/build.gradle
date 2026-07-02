@@ -31,8 +31,8 @@ dependencyManagement {
 dependencies {
     implementation project(':libs:common')
     implementation project(':libs:business-common')
-    implementation project(':libs:auth-core')
-    implementation project(':libs:type-bridge')    // Customizer 빈이 런타임에 등록되어야 함
+    implementation project(':libs:security-common')
+    implementation project(':libs:session-context-common')
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
@@ -55,6 +55,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
     runtimeOnly 'org.postgresql:postgresql'
+
+    // valkey
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 tasks.named('test') {
@@ -95,11 +98,11 @@ processResources {
         from(profileDir) { into "." }
     }
 
-    // auth-core 설정
-    def authCoreDir = rootProject.file("src/main/resources/config/auth-core/${activeProfile}")
-    if (authCoreDir.exists()) {
-        from(authCoreDir) {
-            rename { fileName -> "application-authcore-${activeProfile}.yml" }
+    // security-common 설정
+    def securityCommonDir = rootProject.file("src/main/resources/config/security-common/${activeProfile}")
+    if (securityCommonDir.exists()) {
+        from(securityCommonDir) {
+            rename { fileName -> "application-securitycommon-${activeProfile}.yml" }
         }
     }
 }

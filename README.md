@@ -1,295 +1,232 @@
-﻿# BX-CF-BE
+# BX-CF-BE
 
-BWG 채널 백엔드 프레임워크. Spring Boot 3.3 / Java 21 / MSA 구조.
+BWG 채널 백엔드 프레임워크 프로젝트. Java 21, Spring Boot 3.3.4, Spring Cloud Gateway, Eureka Discovery, Gradle 멀티모듈 기반. 인증, 상품, 기준정보 서비스를 관심사별로 분리.
 
-## 프로젝트 구조
+## 현재 구조
 
-```
+```text
 bx-cf-be/
-├── libs/
-│   ├── common/           공통 응답/예외/AOP/JPA·MyBatis 기반 설정
-│   ├── auth-core/        JWT 인증 필터 (AuthErrorCode, BwgAuthException)
-│   ├── business-common/  업무 공통 예외/검증/VO
-│   └── type-bridge/      OpenAPI DTO → TypeScript 타입 보조
-├── infra/
-│   ├── discovery-svc/  Eureka Server (18761)
-│   └── api-gateway/    Spring Cloud Gateway (18081)
-└── services/
-    ├── auth-svc/     인증/토큰 발급 (18082)
-    ├── product-svc/  상품 관리 (18083)
-    └── system-svc/   기준정보 관리: 메뉴/공통코드 (18084)
+├─ libs/
+│  ├─ common/                  공통 응답, 예외, AOP, OpenAPI TypeBridge, JPA/MyBatis 기반 설정
+│  ├─ business-common/         업무 공통 검증, 업무 예외, 업무 값 객체
+│  ├─ security-common/         JWT 발급/검증, 인증 필터, 인증 에러 코드, 내부 인증 헤더
+│  └─ session-context-common/  Redis/Valkey 기반 세션 컨텍스트 모델과 저장소
+├─ infra/
+│  ├─ discovery-svc/           Eureka Server
+│  └─ api-gateway/             Spring Cloud Gateway, JWT 검증, 서비스 라우팅
+├─ services/
+│  ├─ auth-svc/                로그인, 토큰 발급/재발급, 로그아웃, Redis 세션 저장
+│  ├─ product-svc/             상품 조회
+│  └─ system-svc/              메뉴, 역할별 메뉴, 공통코드 관리
+└─ src/main/resources/config/  모듈별 공통 설정과 profile별 설정
 ```
 
-서비스별 예외/에러코드는 각 모듈에 위치. common에는 Bwg 프레임워크 기반 코드만.
+`settings.gradle` 기준 포함 모듈.
+
+```gradle
+libs:common
+libs:business-common
+libs:security-common
+libs:session-context-common
+infra:api-gateway
+infra:discovery-svc
+services:auth-svc
+services:product-svc
+services:system-svc
+```
+
+## 모듈 의존성
+
+| 모듈 | 주요 의존성 | 역할 |
+| --- | --- | --- |
+| `infra:api-gateway` | `common`, `security-common`, `session-context-common` | 외부 요청 진입점, JWT 검증, 내부 인증 헤더 생성, Eureka 기반 라우팅 |
+| `infra:discovery-svc` | - | 서비스 인스턴스 등록/탐색용 Eureka 서버 |
+| `services:auth-svc` | `common`, `business-common`, `security-common`, `session-context-common` | 사용자 인증, access/refresh token 발급, Redis 세션 컨텍스트 저장/삭제 |
+| `services:product-svc` | `common`, `business-common`, `session-context-common` | 상품 API, 필요 시 내부 인증 헤더/sessionId 기반 세션 문맥 조회 |
+| `services:system-svc` | `common`, `business-common`, `session-context-common` | 메뉴/공통코드 API, 필요 시 내부 인증 헤더/sessionId 기반 세션 문맥 조회 |
+| `libs:security-common` | `common`, Spring Security, JJWT | JWT와 인증 실패 응답 공통화 |
+| `libs:session-context-common` | `common`, Spring Data Redis | `session:{sessionId}` 규칙의 Redis 세션 문맥 공통화 |
 
 ## 실행 순서
 
-discovery-svc → auth-svc + product-svc + system-svc → api-gateway
+로컬에서 여러 서비스를 직접 실행할 때 권장 순서.
 
-## 접속 정보
+1. `infra:discovery-svc`
+2. `services:auth-svc`
+3. `services:product-svc`
+4. `services:system-svc`
+5. `infra:api-gateway`
 
-| 환경 | Eureka | DB |
-| --- | --- | --- |
-| local | http://localhost:18761 | jdbc:postgresql://192.168.110.217:5432/bxcfdb |
-| dev | http://192.168.110.217:18761 | jdbc:postgresql://192.168.110.217:5432/bxcfdb |
+Gateway는 Eureka에 등록된 서비스 이름으로 `lb://...` 라우팅. Gateway보다 하위 서비스와 Discovery를 먼저 기동하는 흐름이 이해하기 쉬움.
 
-Postman: `reffile/BX-CF-BE-LCL.postman_collection.json`
+## 포트와 경로
 
-### 서비스 포트 / 라우트
-
-| 서비스 | 포트 | context-path | 게이트웨이 경로 |
-| --- | --- | --- | --- |
+| 모듈 | 포트 | 내부 context-path | Gateway 외부 경로 |
+| --- | ---: | --- | --- |
 | discovery-svc | 18761 | - | - |
 | api-gateway | 18081 | - | - |
 | auth-svc | 18082 | `/auth` | `/channel/backend/api/v1/auth/**` |
 | product-svc | 18083 | `/product` | `/channel/backend/api/v1/product/**` |
 | system-svc | 18084 | `/system` | `/channel/backend/api/v1/system/**` |
 
-## Swagger (API 문서)
+환경별 주요 접속 정보.
 
-게이트웨이에서 서비스별 문서를 한 화면에 모아 제공한다. (게이트웨이 기동 후 접속)
+| 환경 | Eureka | Swagger UI | DB |
+| --- | --- | --- | --- |
+| local | `http://localhost:18761` | `http://localhost:18081/swagger-ui.html` | `jdbc:postgresql://192.168.110.217:5432/bxcfdb` |
+| dev | `http://192.168.110.217:18761` | `http://192.168.110.217:18081/swagger-ui.html` | `jdbc:postgresql://192.168.110.217:5432/bxcfdb` |
 
-| 환경 | Swagger UI |
-| --- | --- |
-| local | http://localhost:18081/swagger-ui.html |
-| dev | http://192.168.110.217:18081/swagger-ui.html |
+## Gateway 라우팅
 
-- 우측 상단 **Select a definition** 드롭다운에서 auth-svc / product-svc / system-svc 전환.
-- Schemas 목록에는 DTO만 표시(공통 응답 래퍼 제외). 응답 모델에는 공통 응답 구조(success/code/msg/payload)가 인라인으로 표시된다.
-- 서비스별 api-docs는 게이트웨이가 아래 경로로 프록시한다.
+Gateway 라우팅 설정 위치: `src/main/resources/config/api-gateway/application.yml`
 
-| 서비스 | api-docs |
-| --- | --- |
-| auth-svc | `/auth-svc/v3/api-docs` |
-| product-svc | `/product-svc/v3/api-docs` |
-| system-svc | `/system-svc/v3/api-docs` |
+| route id | 대상 서비스 | 조건 | 처리 |
+| --- | --- | --- | --- |
+| `auth-svc` | `lb://BWG-CHANNEL-BACKEND-AUTH-SVC` | `/channel/backend/api/v1/auth/**` | `StripPrefix=4` 후 auth-svc로 전달 |
+| `product-svc` | `lb://BWG-CHANNEL-BACKEND-PRODUCT-SVC` | `/channel/backend/api/v1/product/**` | `StripPrefix=4` 후 product-svc로 전달 |
+| `system-svc` | `lb://BWG-CHANNEL-BACKEND-SYSTEM-SVC` | `/channel/backend/api/v1/system/**` | `StripPrefix=4` 후 system-svc로 전달 |
+| `*-api-docs` | 각 서비스 | `/{service}/v3/api-docs` | 각 서비스 context-path 기준 `/v3/api-docs`로 변환 |
 
-### Authorize (JWT) 사용법
+`lb://` 라우팅은 Eureka에 등록된 인스턴스 목록 기준으로 Spring Cloud LoadBalancer가 대상 인스턴스를 선택. 같은 서비스가 여러 포트나 여러 서버에 떠 있어도 Eureka 등록과 네트워크 접근이 가능하면 Gateway에서 분산 호출 가능.
 
-product-svc, system-svc API는 JWT가 필요하다(auth-svc 로그인/토큰 발급은 불필요). 로그인 응답의 access token을 Authorize에 등록하면 이후 요청에 자동으로 `Authorization: Bearer ...` 가 붙는다.
+## 인증과 세션 흐름
 
-1. **Select a definition → auth-svc** 선택.
-2. `POST /channel/backend/api/v1/auth/login` → **Try it out** → 입력 후 **Execute**.
+현재 인증 흐름 핵심.
 
-   ```json
-   // 응답 payload 에서 accessToken 복사
-   // refreshToken은 HttpOnly cookie로 내려가므로 body에 포함되지 않는다.
-   {
-     "success": true, "code": "0", "msg": "success",
-     "payload": { "accessToken": "eyJhbGciOi...", "accessTokenExpiresAt": "20260625150000" }
-   }
-   ```
+1. 클라이언트가 `auth-svc` 로그인 API 호출
+2. `auth-svc`에서 사용자 정보 조회
+3. `auth-svc`에서 `sessionId` 생성
+4. access token에 `subject`, `roles`, `sessionId` claim 포함
+5. refresh token은 DB 저장, 응답 본문 대신 HttpOnly 쿠키 전달
+6. `auth-svc`에서 Redis/Valkey에 `session:{sessionId}` key로 `SessionContext` 저장
+7. Gateway에서 이후 요청 access token 검증 후 내부 서비스로 인증 헤더 전달
 
-3. 우측 상단 **Authorize 🔒** 클릭 → `bearerAuth` 입력란에 **accessToken 값만** 붙여넣기(앞에 `Bearer ` 안 붙여도 됨) → **Authorize**.
-4. **Select a definition → product-svc** 또는 **system-svc** 로 바꿔 API 호출 → 자물쇠가 잠긴 상태로 토큰이 자동 전송된다.
+```text
+X-Auth-User
+X-Auth-Roles
+X-Auth-Session-Id
+```
 
-> 한 번 Authorize한 토큰은 새로고침/재접속에도 유지된다(`springdoc.swagger-ui.persist-authorization`). 단 토큰 만료 시간이 지나면 `-1004`(401)가 나므로 재로그인 후 다시 Authorize 한다.
-> local 기본 만료는 테스트용으로 짧게 설정돼 있으니 필요 시 `config/auth-core/local/application-local.yml` 의 `access-token-validity-ms` 로 조정한다.
+내부 서비스는 이 헤더로 JWT 재파싱 없이 사용자 ID, 권한, 세션 ID 확인 가능. 외부 사용자의 헤더 변조 방지는 product-svc/system-svc 같은 내부 서비스를 Gateway 뒤에 두고 직접 외부 접근을 차단하는 구성이 전제.
 
 ### Refresh Token Cookie
 
-refresh token은 브라우저 JavaScript에서 읽을 수 없도록 `HttpOnly` cookie로만 전달한다. 클라이언트는 refresh token을 body에 싣지 않고, 쿠키가 자동 전송되도록 credentials 옵션만 포함해 재발급 API를 호출한다.
+refresh token은 JavaScript에서 읽을 수 없도록 HttpOnly 쿠키로만 전달.
 
 ```js
-await fetch('/channel/backend/api/v1/auth/refresh-token', {
-  method: 'POST',
-  credentials: 'include'
+await fetch("/channel/backend/api/v1/auth/refresh-token", {
+  method: "POST",
+  credentials: "include"
 });
 ```
 
-쿠키 기본 설정은 `config/auth-svc/{profile}/application-{profile}.yml` 의 `app.auth.refresh-cookie`에서 관리한다.
+쿠키 설정 위치: `src/main/resources/config/auth-svc/{profile}/application-{profile}.yml`의 `app.auth.refresh-cookie`
 
-| 옵션 | 기본값 | 설명 |
+| 옵션 | 현재 기본값 | 설명 |
 | --- | --- | --- |
-| name | `refreshToken` | refresh token cookie 이름 |
-| path | `/channel/backend/api/v1/auth` | 게이트웨이 기준 auth API cookie path |
-| same-site | `Lax` | SameSite 정책 |
-| secure | local/dev `false` | HTTPS 환경에서는 `true` 권장 |
-| max-age-seconds | `604800` | 7일 |
+| `name` | `refreshToken` | refresh token 쿠키 이름 |
+| `path` | `/channel/backend/api/v1/auth` | Gateway 기준 auth API 쿠키 path |
+| `same-site` | `Lax` | SameSite 정책 |
+| `secure` | `false` | local/dev 기준 false, HTTPS 운영환경에서는 true 권장 |
+| `max-age-seconds` | `604800` | 7일 |
 
-## 개발 환경 요구사항
+### Redis/Valkey 세션 컨텍스트
 
-| 항목 | 버전 |
+`session-context-common` 공통 세션 문맥.
+
+| 필드 | 설명 |
 | --- | --- |
-| Java | 21 |
-| Gradle | 8.8 |
-| PostgreSQL | 16 |
-| Spring Boot | 3.3.4 |
+| `sessionId` | access token의 `sessionId` claim과 같은 값 |
+| `userId` | JWT subject와 내부 사용자 식별 기준 |
+| `roles` | 권한 판단에 사용할 권한 목록 |
+| `authLevel` | MFA 등 추가 인증 수준 확장용 값 |
+| `loginTime` | 세션 생성 시각 |
+| `lastAccessTime` | 마지막 접근/갱신 시각 |
 
-## type-bridge
+현재 Redis 연결 설정 위치: auth-svc profile 설정
 
-`libs/type-bridge` 모듈이 SpringDoc OpenAPI Customizer를 통해 DTO → OpenAPI 스키마 → TypeScript 타입 생성을 보조한다.
+```yaml
+spring:
+  data:
+    redis:
+      host: 192.168.110.217
+      port: 6379
+      timeout: 2s
+```
 
-### DTO 어노테이션
+Redis 서버는 개발 서버 podman으로 구축되어 있음
 
-```java
-@ApiDto(name = "Auth", endpoints = {"login", "erp-login"})
-public class LoginDto {
+## 인증 제외 경로
 
-    @ApiField(description = "사용자 ID", example = "hong.gildong", required = {"login", "erp-login"})
-    private String usrId;
+Gateway `SecurityConfig`의 `PERMIT_URL_ARRAY` 기준. JWT 없이 접근 가능한 경로만 명시.
 
-    @ApiField(description = "비밀번호", format = "password", required = {"login"}, exclude = {"erp-login"})
-    private String usrPwd;
+대표 경로.
 
-    @ApiField(description = "사용자명", responseOnly = true)
-    private String usrNm;
+```text
+/channel/backend/api/v1/auth/login
+/channel/backend/api/v1/auth/erp-login
+/channel/backend/api/v1/auth/refresh-token
+/channel/backend/api/v1/auth/signup
+/channel/backend/api/v1/auth/password/find
+/channel/backend/api/v1/auth/password/reset-request
+/channel/backend/api/v1/auth/password/reset
+/swagger-ui/**
+/v3/api-docs/**
+/actuator/health
+/actuator/info
+```
+
+`/logout`은 인증된 access token 필요. Gateway가 검증한 내부 헤더의 `userId`, `sessionId` 기준으로 DB refresh token과 Redis 세션 삭제.
+
+## API 목록
+
+Gateway 기준 대표 API.
+
+### Auth
+
+```text
+POST /channel/backend/api/v1/auth/login
+POST /channel/backend/api/v1/auth/erp-login
+POST /channel/backend/api/v1/auth/refresh-token
+POST /channel/backend/api/v1/auth/logout
+```
+
+로그인 요청 예.
+
+```json
+{
+  "usrId": "hong.gildong",
+  "usrPwd": "password"
 }
 ```
 
-- `@ApiDto(name, endpoints)` — OpenAPI 스키마 이름과 엔드포인트 목록 지정
-- `@ApiField(description, example, format, allowableValues)` — Swagger DTO 필드 설명/예시/형식/enum 메타데이터 지정
-- `@ApiField(required, optional, exclude, responseOnly)` — 엔드포인트별 필드 포함/제외 제어
-- `generateResponse = false` — 응답 스키마 생성 불필요한 경우 (ex. RoleMenuSaveDto)
-- Request 스키마는 `{Name}{Endpoint}Request`, Response 스키마는 `{Name}Response` 이름으로 생성된다.
-- 컨트롤러 경로가 `/groups/{groupCd}/codes/create`처럼 중첩되어 있어도 마지막 동작 세그먼트(`create`, `update`, `save`)를 endpoint id로 사용한다.
-- Swagger description 누락을 막기 위해 DTO 필드는 `@ApiField(description = "...")`를 기본으로 작성한다.
+로그인 응답의 `payload.accessToken`은 클라이언트가 이후 요청에 사용. refresh token은 HttpOnly 쿠키로 전달되고 JSON 응답에서는 제외.
 
-### 프론트엔드 TypeScript 타입 생성
-
-```bash
-npx openapi-typescript http://192.168.110.217:18081/auth-svc/v3/api-docs -o src/types/auth-api.d.ts
-npx openapi-typescript http://192.168.110.217:18081/product-svc/v3/api-docs -o src/types/product-api.d.ts
-npx openapi-typescript http://192.168.110.217:18081/system-svc/v3/api-docs -o src/types/system-api.d.ts
-```
-
-생성 결과: `AuthLoginRequest`, `AuthErpLoginRequest`, `AuthResponse`, `MenuCreateRequest`, `CommonCodeCreateRequest`, `RoleMenuSaveSaveRequest` 등
-
-## WBS / GitHub Projects
-
-- **이슈 목록**: https://github.com/yooyongbeom/bx-cf-be/issues
-- **Projects 보드**: https://github.com/users/yooyongbeom/projects/2
-
-3단계 / 3개월 일정 (2026-07-01 ~ 2026-09-28):
-
-| 단계 | 기간 | 주제 |
-| --- | --- | --- |
-| 1단계 | 7/1 ~ 7/27 | 기초 구조 완성 (인프라, 보안, API, 비즈니스 로직) |
-| 2단계 | 7/28 ~ 8/30 | MSA 안정화 및 운영 기반 (CI/CD, 테스트, 모니터링) |
-| 3단계 | 9/1 ~ 9/28 | 고급 MSA 패턴 및 배포 고도화 (Kafka, SAGA, Rolling Update) |
-
-## scripts/
-
-| 파일 | 설명 |
-| --- | --- |
-| `start-all.sh` | discovery/auth/product/system/gateway 순서로 서버 jar 기동 |
-| `stop-all.sh` | gateway/system/product/auth/discovery 순서로 서버 프로세스 종료 |
-| `github-projects-rebuild.ps1` | 기존 이슈 전체 삭제 후 WBS 재구성 (이슈 생성 → 서브이슈 연결 → 로드맵 날짜 설정) |
-
-`github-projects-rebuild.ps1` 실행 전 `gh auth login` 및 `gh auth refresh -s read:project` 필요.
-
-## 빌드
-
-```bash
-# IntelliJ Gradle Run Configuration
-# Tasks: :infra:discovery-svc:bootJar :infra:api-gateway:bootJar :services:auth-svc:bootJar :services:product-svc:bootJar :services:system-svc:bootJar
-# Arguments: -Pprofile=dev
-
-# 결과물: build/dist/bx-cf-be/*.jar
-```
-
-## 테스트
-
-```bash
-# Swagger DTO description / endpoint 매핑 회귀 테스트
-./gradlew :libs:type-bridge:test --tests "com.bwg.channel.backend.typebridge.customizer.TypeBridgeOpenApiCustomizerTests"
-
-# system-svc DTO 메타데이터 누락 검사
-./gradlew :services:system-svc:test --tests "com.bwg.channel.backend.systemsvc.domain.dto.SystemDtoOpenApiMetadataTests"
-
-# 게이트웨이 api-docs 프록시 허용 경로 검사
-./gradlew :infra:api-gateway:test --tests "com.bwg.channel.backend.gateway.cmm.configuration.SecurityConfigTest"
-
-# refresh token HttpOnly cookie 흐름 검사
-./gradlew :services:auth-svc:test --tests "com.bwg.channel.backend.authsvc.controller.AuthenticationCookieControllerTest"
-```
-
-## 실행 (서버)
-
-```bash
-java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -Xms512m -Xmx1024m \
-     -Dspring.profiles.active=dev \
-     -jar 서비스명.jar
-```
-
-## 설정 (프로파일)
-
-설정 파일은 각 모듈이 아니라 루트의 `src/main/resources/config/` 아래에 모여 있고, 빌드 시 `processResources`가 **선택된 프로파일 파일만** 각 jar로 복사한다.
-
-```
-src/main/resources/config/
-├── {module}/application.yml              모듈 공통 (항상 포함)
-├── {module}/{profile}/application-{profile}.yml   프로파일별 (선택 포함)
-└── auth-core/{profile}/...               auth-core 공통 설정 (application-authcore-{profile}.yml 로 포함)
-```
-
-- 프로파일은 빌드 인자 `-Pprofile=dev` 로 결정 (미지정 시 `local`).
-- 예: `-Pprofile=dev` 로 빌드하면 `config/{module}/dev/` 의 파일만 패키징된다.
-- 모듈 자체(`각 모듈/src/main/resources`)에 같은 이름의 파일을 두면 `duplicatesStrategy=EXCLUDE` 로 그쪽이 우선되어 위 공통 설정이 무시되니 주의.
-
-```bash
-# 빌드 시 프로파일 지정
-./gradlew :services:auth-svc:bootJar -Pprofile=dev
-```
-
-## 배포 (develop)
-
-`.github/workflows/deploy-dev.yml`은 `develop` push 시 self-hosted runner에서 변경 경로를 감지해 필요한 서비스만 빌드/재기동한다.
-
-| 변경 경로 | 배포 job |
-| --- | --- |
-| `services/auth-svc/**` | deploy-auth |
-| `services/product-svc/**` | deploy-product |
-| `services/system-svc/**`, `src/main/resources/config/system-svc/**` | deploy-system |
-| `libs/**`, `infra/**`, `scripts/**`, `.github/workflows/**` | deploy-all |
-
-개별 배포는 대상 서비스 jar만 교체하고 pid 파일 기준으로 재기동한다. 전체 배포는 discovery/auth/product/system/gateway jar를 모두 배치한 뒤 `scripts/stop-all.sh`, `scripts/start-all.sh` 순서로 재기동한다.
-
-## 공통 응답 규격
-
-```json
-{ "success": true, "code": "0", "msg": "success", "payload": { } }
-```
-
-## API
-
-### 인증
-
-```
-POST /channel/backend/api/v1/auth/login
-     body: { "usrId": "ID", "usrPwd": "SHA-256-PWD" }
-
-POST /channel/backend/api/v1/auth/refresh-token
-     body 없음. HttpOnly refreshToken cookie 필요.
-```
-
-access token 만료 시 `-1004` 반환 → refresh-token API를 credentials 포함 호출로 재발급 후 재시도. refresh token cookie가 없거나 유효하지 않으면 `-1002` 반환.
-
-### 상품
-
-```
-POST /channel/backend/api/v1/product/list
-POST /channel/backend/api/v1/product/{productId}
-```
-
-상품 API는 게이트웨이에서 JWT 인증이 필요하다. 요청 헤더에 로그인으로 발급받은 토큰을 넣는다.
-
-```
+```text
 Authorization: Bearer <accessToken>
 ```
 
-토큰이 없거나 유효하지 않으면 `-1003`, 만료 시 `-1004` 반환. (auth-svc 로그인/토큰 발급은 인증 불필요)
+### Product
 
-### 기준정보
-
+```text
+POST /channel/backend/api/v1/product/list
+POST /channel/backend/api/v1/product/detail/{productId}
 ```
+
+### System - Menu
+
+```text
 POST /channel/backend/api/v1/system/menus/list
 POST /channel/backend/api/v1/system/menus/create
 POST /channel/backend/api/v1/system/menus/{menuId}/update
 POST /channel/backend/api/v1/system/menus/{menuId}/actions/list
 POST /channel/backend/api/v1/system/menus/roles/{roleId}/list
 POST /channel/backend/api/v1/system/menus/roles/{roleId}/save
+```
 
+### System - Common Code
+
+```text
 POST /channel/backend/api/v1/system/common-codes/groups/list
 POST /channel/backend/api/v1/system/common-codes/groups/create
 POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/update
@@ -298,54 +235,195 @@ POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/codes/create
 POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/codes/{code}/update
 ```
 
-기준정보 API도 게이트웨이에서 JWT 인증이 필요하다. 메뉴/공통코드 등록·수정 시 필수값 검증 실패는 business-common의 `-3001` 계열 응답을 사용한다.
+## Swagger
 
-## 에러 코드
+Gateway에서 각 서비스 OpenAPI 문서를 모아서 제공.
 
-### AuthErrorCode (libs/auth-core)
+```text
+http://localhost:18081/swagger-ui.html
+```
 
-| 코드 | 설명 |
+Swagger UI definition 목록.
+
+| 이름 | api-docs |
 | --- | --- |
-| -1001 | 필수 입력값 누락 |
-| -1002 | 유효하지 않은 토큰 |
-| -1003 | 인증되지 않은 클라이언트 |
-| -1004 | 토큰 만료 |
-| -1005 | 접근 권한 없음 |
-| -2003 | JSON 파싱 오류 |
-| -4001 | DB 조회 실패 |
-| -4002 | DB 저장 오류 |
-| -9999 | 서버 내부 오류 |
+| auth-svc | `/auth-svc/v3/api-docs` |
+| product-svc | `/product-svc/v3/api-docs` |
+| system-svc | `/system-svc/v3/api-docs` |
 
-### ProductErrorCode (services/product-svc)
+Swagger에서 인증 API 호출 순서.
 
-| 코드 | 설명 |
+1. `auth-svc` definition에서 로그인 API 호출
+2. 응답의 `payload.accessToken` 복사
+3. Swagger UI 상단 `Authorize`에 access token 입력
+4. `product-svc` 또는 `system-svc` API 호출
+
+## 공통 응답
+
+기본 응답 구조: `ApiResponse<T>`
+
+```json
+{
+  "success": true,
+  "code": "0",
+  "msg": "success",
+  "payload": {}
+}
+```
+
+## 에러 코드 범위
+
+| 영역 | 코드 범위 | 예 |
+| --- | --- | --- |
+| Auth | `-1001` ~ `-1005`, `-2003`, `-2004`, `-4001`, `-4002`, `-9999` | 필수값 누락, 토큰 오류, 인증 실패, DB 오류 |
+| Business Common | `-3001` ~ `-3999` | 업무 검증 오류, 업무 데이터 없음 |
+| Product | `-5001` ~ `-5999` | 상품 입력값 오류, 상품 없음, 상품 저장 오류 |
+| Gateway | `-9999` | Gateway 내부 오류 |
+
+## OpenAPI TypeBridge
+
+TypeBridge 관련 코드 위치: `libs/common/src/main/java/com/bwg/channel/backend/common/openapi/typebridge`
+
+주요 어노테이션.
+
+| 어노테이션 | 역할 |
 | --- | --- |
-| -5001 | 필수값 누락 |
-| -5002 | 유효하지 않은 상품 ID |
-| -5101 | 상품 없음 |
-| -5201 | 상품 저장 실패 |
-| -5301 | 비활성화된 상품 |
-| -5302 | 재고 부족 |
-| -5999 | 상품 서비스 내부 오류 |
+| `@ApiDto` | 요청/응답 DTO 방향과 endpoint 목록 정의 |
+| `@ApiField` | 필드 설명, 예시, 필수/선택/제외 endpoint 정의 |
+| `@ApiType` | `REQUEST`, `RESPONSE`, `LEGACY` 방향 구분 |
 
-### BusinessErrorCode (libs/business-common)
+예.
 
-| 코드 | 설명 |
+```java
+@ApiDto(type = ApiType.REQUEST, name = "Auth", endpoints = {"login", "erp-login"})
+public class LoginReqDto {
+
+    @ApiField(description = "사용자 ID", example = "hong.gildong", required = {"login", "erp-login"})
+    private String usrId;
+
+    @ApiField(description = "비밀번호", format = "password", required = {"login"})
+    private String usrPwd;
+}
+```
+
+## 설정 파일 구조
+
+설정 파일은 루트의 `src/main/resources/config` 아래에 모음. Gradle `processResources`에서 선택된 profile 파일만 각 모듈 jar에 포함.
+
+```text
+src/main/resources/config/
+├─ api-gateway/
+│  ├─ application.yml
+│  ├─ local/application-local.yml
+│  └─ dev/application-dev.yml
+├─ auth-svc/
+├─ product-svc/
+├─ system-svc/
+├─ discovery-svc/
+└─ security-common/
+   ├─ local/application-local.yml
+   └─ dev/application-dev.yml
+```
+
+profile 기본값: `local`
+
+```bash
+./gradlew :services:auth-svc:bootJar -Pprofile=dev
+```
+
+`security-common` 설정은 auth-svc와 api-gateway에서 `spring.config.import`로 참조.
+
+## 빌드
+
+전체 주요 서비스 bootJar.
+
+```bash
+./gradlew :infra:discovery-svc:bootJar :infra:api-gateway:bootJar :services:auth-svc:bootJar :services:product-svc:bootJar :services:system-svc:bootJar -Pprofile=local
+```
+
+빌드 결과.
+
+```text
+build/dist/bx-cf-be/*.jar
+```
+
+개별 빌드 예.
+
+```bash
+./gradlew :services:auth-svc:bootJar -Pprofile=local
+./gradlew :infra:api-gateway:bootJar -Pprofile=local
+```
+
+## 실행
+
+jar 직접 실행 예.
+
+```bash
+java -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul \
+     -Dspring.profiles.active=local \
+     -jar build/dist/bx-cf-be/auth-svc-0.0.1-SNAPSHOT.jar
+```
+
+Gradle bootRun 사용 예.
+
+```bash
+./gradlew :infra:discovery-svc:bootRun -Pprofile=local
+./gradlew :services:auth-svc:bootRun -Pprofile=local
+./gradlew :services:product-svc:bootRun -Pprofile=local
+./gradlew :services:system-svc:bootRun -Pprofile=local
+./gradlew :infra:api-gateway:bootRun -Pprofile=local
+```
+
+## 테스트
+
+인증/세션/Gateway 관련 테스트.
+
+```bash
+./gradlew :services:auth-svc:test
+./gradlew :libs:security-common:test
+./gradlew :libs:session-context-common:test
+./gradlew :infra:api-gateway:test
+```
+
+전체 테스트.
+
+```bash
+./gradlew test
+```
+
+## 개발 환경
+
+| 항목 | 버전/기준 |
 | --- | --- |
-| -3001 | 필수 입력값 누락 |
-| -3002 | 유효하지 않은 업무 코드 |
-| -3003 | 시작일이 종료일보다 늦음 |
-| -3004 | Y/N 값 오류 |
-| -3101 | 업무 규칙 위반 |
-| -3201 | 업무 데이터 없음 |
-| -3999 | 업무 공통 서버 오류 |
+| Java | 21 |
+| Gradle Wrapper | 8.14.3 |
+| Spring Boot | 3.3.4 |
+| Spring Cloud | 2023.0.1 |
+| PostgreSQL | 16 계열 |
+| Redis/Valkey | 외부 서버 필요 |
 
-### GatewayErrorCode (infra/api-gateway)
+문자 인코딩.
 
-| 코드 | 설명 |
+- `.editorconfig`의 `charset = utf-8`
+- `gradle.properties`의 `-Dfile.encoding=UTF-8`
+- Java compile encoding `UTF-8`
+
+## 배포 참고
+
+`.github/workflows/deploy-dev.yml`은 `develop` push 시 변경 경로 기준으로 필요한 서비스만 빌드/배포.
+
+| 변경 경로 | 배포 대상 |
 | --- | --- |
-| -9999 | 게이트웨이 내부 오류 |
+| `services/auth-svc/**` | auth-svc |
+| `services/product-svc/**` | product-svc |
+| `services/system-svc/**`, `src/main/resources/config/system-svc/**` | system-svc |
+| `libs/**`, `infra/**`, `scripts/**`, `.github/workflows/**` | 전체 서비스 |
 
-## 참고
+## GitHub Project
 
-`reffile/웹앱 프레임워크_구축 v0.6 2026.06.17.pptx`
+- Issues: `https://github.com/yooyongbeom/bx-cf-be/issues`
+- Project board: `https://github.com/users/yooyongbeom/projects/2`
+
+## 참고 자료
+
+`reffile/` 아래 프로젝트 참고 문서와 Postman collection 위치.
