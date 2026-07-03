@@ -6,7 +6,7 @@ import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.domain.entity.Role;
 import com.bwg.channel.backend.authsvc.domain.entity.User;
 import com.bwg.channel.backend.authsvc.repository.LoginRepository;
-import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
+import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
 import com.bwg.channel.backend.securitycommon.exception.BwgAuthException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -27,8 +27,8 @@ public class JpaLoginRepositoryAdapter implements LoginRepository {
         User user = jpaLoginRepository.findByUsrIdAndUsrPwd(paramDto.getUsrId(), paramDto.getUsrPwd())
                 .orElseThrow(() ->
                         new BwgAuthException.Builder()
-                                .code(AuthErrorCode.DB_NO_DATA_ERROR)
-                                .message(AuthErrorCode.DB_NO_DATA_ERROR.getMsg())
+                                .code(CommonErrorCode.DB_NO_DATA_ERROR)
+                                .message(CommonErrorCode.DB_NO_DATA_ERROR.getMsg())
                                 .details(null)
                                 .build());
 
@@ -41,8 +41,8 @@ public class JpaLoginRepositoryAdapter implements LoginRepository {
         User user = jpaLoginRepository.findByRefreshToken(refreshTknReqDto.getRefreshToken())
                 .orElseThrow(() ->
                         new BwgAuthException.Builder()
-                                .code(AuthErrorCode.DB_NO_DATA_ERROR)
-                                .message(AuthErrorCode.DB_NO_DATA_ERROR.getMsg())
+                                .code(CommonErrorCode.DB_NO_DATA_ERROR)
+                                .message(CommonErrorCode.DB_NO_DATA_ERROR.getMsg())
                                 .details(null)
                                 .build());
 
@@ -73,7 +73,7 @@ public class JpaLoginRepositoryAdapter implements LoginRepository {
         User user = jpaLoginRepository.findByUsrId(loginResDto.getUsrId())
                 .orElseThrow(() ->
                         new BwgAuthException.Builder()
-                                .code(AuthErrorCode.DB_SAVE_DATA_ERROR)
+                                .code(CommonErrorCode.DB_SAVE_DATA_ERROR)
                                 .message("User not found for refresh token update")
                                 .details(null)
                                 .build());

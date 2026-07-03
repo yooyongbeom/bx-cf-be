@@ -1,7 +1,8 @@
 package com.bwg.channel.backend.securitycommon.exception;
 
-import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
+import com.bwg.channel.backend.common.constants.enums.BwgErrorCode;
 import com.bwg.channel.backend.common.exception.BwgException;
+import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
 
 public class BwgAuthException extends BwgException {
     private static final long serialVersionUID = 1L;
@@ -11,13 +12,18 @@ public class BwgAuthException extends BwgException {
     }
 
     @Override
-    public AuthErrorCode getCode() {
-        return (AuthErrorCode) super.getCode();
+    public BwgErrorCode getCode() {
+        return super.getCode();
     }
 
     public static class Builder extends BwgException.Builder<Builder> {
 
         public Builder code(AuthErrorCode code) {
+            super.code(code);
+            return this;
+        }
+
+        public Builder code(BwgErrorCode code) {
             super.code(code);
             return this;
         }

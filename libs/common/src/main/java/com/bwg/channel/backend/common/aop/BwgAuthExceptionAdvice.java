@@ -1,6 +1,7 @@
 package com.bwg.channel.backend.common.aop;
 
 import com.bwg.channel.backend.common.constants.enums.BwgErrorCode;
+import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.common.exception.BwgException;
 import org.slf4j.Logger;
@@ -19,10 +20,10 @@ public class BwgAuthExceptionAdvice {
 
     @ExceptionHandler(BwgException.class)
     protected ResponseEntity<ApiResponse<Void>> handleBwgException(BwgException e) {
-        BwgErrorCode errorCode = e.getCode();
-        String code = errorCode != null ? errorCode.getCode() : BwgException.FALLBACK_CODE;
-        String msg  = e.getMessage()  != null ? e.getMessage()  : BwgException.FALLBACK_MSG;
-        HttpStatus status = resolveStatus(code);
+        BwgErrorCode errorCode = e.getCode() != null ? e.getCode() : CommonErrorCode.SERVER_ERROR;
+        String code = errorCode.getCode();
+        String msg = e.getMessage() != null ? e.getMessage() : errorCode.getMsg();
+        HttpStatus status = errorCode.getStatus();
 
         if (status.is5xxServerError()) {
             log.error("BwgException [{}] {}", code, msg, e);
@@ -36,8 +37,11 @@ public class BwgAuthExceptionAdvice {
     protected ResponseEntity<ApiResponse<Void>> handleValidationException(Exception e) {
         log.warn("ValidationException: {}", e.getMessage());
         return new ResponseEntity<>(
-            ApiResponse.fail("-1001", "필수값이 없거나 유효하지 않습니다"),
-            HttpStatus.BAD_REQUEST
+                ApiResponse.fail(
+                        CommonErrorCode.REQUIRED_VALUE_MISSING.getCode(),
+                        CommonErrorCode.REQUIRED_VALUE_MISSING.getMsg()
+                ),
+                CommonErrorCode.REQUIRED_VALUE_MISSING.getStatus()
         );
     }
 
@@ -45,8 +49,11 @@ public class BwgAuthExceptionAdvice {
     protected ResponseEntity<ApiResponse<Void>> handleNotReadableException(HttpMessageNotReadableException e) {
         log.warn("HttpMessageNotReadableException: {}", e.getMessage());
         return new ResponseEntity<>(
-            ApiResponse.fail("-2003", "Json String to VO Parsing Error"),
-            HttpStatus.BAD_REQUEST
+                ApiResponse.fail(
+                        CommonErrorCode.JSON_STR_TO_VO_PARSING_ERROR.getCode(),
+                        CommonErrorCode.JSON_STR_TO_VO_PARSING_ERROR.getMsg()
+                ),
+                CommonErrorCode.JSON_STR_TO_VO_PARSING_ERROR.getStatus()
         );
     }
 
@@ -54,18 +61,8 @@ public class BwgAuthExceptionAdvice {
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException e) {
         log.error("RuntimeException: {}", e.getMessage(), e);
         return new ResponseEntity<>(
-            ApiResponse.fail(BwgException.FALLBACK_CODE, BwgException.FALLBACK_MSG),
-            HttpStatus.INTERNAL_SERVER_ERROR
+                ApiResponse.fail(CommonErrorCode.SERVER_ERROR.getCode(), CommonErrorCode.SERVER_ERROR.getMsg()),
+                CommonErrorCode.SERVER_ERROR.getStatus()
         );
-    }
-
-    private HttpStatus resolveStatus(String code) {
-        return switch (code) {
-            case "-1001", "-1002", "-2003", "-2004", "-5001", "-5002", "-5003", "-5004" -> HttpStatus.BAD_REQUEST;
-            case "-1003", "-1004" -> HttpStatus.UNAUTHORIZED;
-            case "-1005" -> HttpStatus.FORBIDDEN;
-            case "-4001", "-5101", "-5102" -> HttpStatus.NOT_FOUND;
-            default -> HttpStatus.INTERNAL_SERVER_ERROR;
-        };
     }
 }

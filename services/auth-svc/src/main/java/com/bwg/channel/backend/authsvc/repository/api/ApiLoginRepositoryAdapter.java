@@ -5,6 +5,7 @@ import com.bwg.channel.backend.authsvc.domain.dto.LoginReqDto;
 import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.repository.LoginRepository;
+import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
 import com.bwg.channel.backend.common.util.ApiCallUtil;
 import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
 import com.bwg.channel.backend.securitycommon.exception.BwgAuthException;
@@ -69,14 +70,14 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
                 Map<String, Object> details = new HashMap<>();
                 details.put("param", dto);
                 throw new BwgAuthException.Builder()
-                        .code(AuthErrorCode.JSON_STR_TO_VO_PARSING_ERROR)
-                        .message(AuthErrorCode.JSON_STR_TO_VO_PARSING_ERROR.getMsg())
+                        .code(CommonErrorCode.JSON_STR_TO_VO_PARSING_ERROR)
+                        .message(CommonErrorCode.JSON_STR_TO_VO_PARSING_ERROR.getMsg())
                         .details(Collections.unmodifiableMap(details))
                         .build();
             }
         } else {
             throw new BwgAuthException.Builder()
-                    .code(AuthErrorCode.SERVER_ERROR)
+                    .code(CommonErrorCode.SERVER_ERROR)
                     .message("responseStatusCode : " + response.getStatusCode() + " responseBody : " + response.getBody())
                     .build();
         }
@@ -125,7 +126,7 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
             }
         }
         throw new BwgAuthException.Builder()
-                .code(AuthErrorCode.SERVER_ERROR)
+                .code(CommonErrorCode.SERVER_ERROR)
                 .message("Failed to parse API login response")
                 .build();
     }
