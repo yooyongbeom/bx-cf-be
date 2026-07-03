@@ -1,5 +1,6 @@
 package com.bwg.channel.backend.sessioncontext.config;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.bwg.channel.backend.sessioncontext.domain.SessionContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,9 +24,15 @@ public class SessionContextRedisConfig {
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(StringRedisSerializer.UTF_8);
         redisTemplate.setHashKeySerializer(StringRedisSerializer.UTF_8);
-        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-        redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+        GenericJackson2JsonRedisSerializer valueSerializer = sessionContextJsonSerializer();
+        redisTemplate.setValueSerializer(valueSerializer);
+        redisTemplate.setHashValueSerializer(valueSerializer);
         redisTemplate.afterPropertiesSet();
         return redisTemplate;
+    }
+
+    private GenericJackson2JsonRedisSerializer sessionContextJsonSerializer() {
+        return new GenericJackson2JsonRedisSerializer()
+                .configure(objectMapper -> objectMapper.registerModule(new JavaTimeModule()));
     }
 }

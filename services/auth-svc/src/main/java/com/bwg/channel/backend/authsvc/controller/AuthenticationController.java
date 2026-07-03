@@ -5,11 +5,13 @@ import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.service.AuthenticationService;
 import com.bwg.channel.backend.authsvc.token.cookie.RefreshTokenCookieSupport;
+import com.bwg.channel.backend.common.config.OpenApiSupport;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
 import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
 import com.bwg.channel.backend.securitycommon.exception.BwgAuthException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -99,6 +101,7 @@ public class AuthenticationController {
      * Gateway 내부 인증 헤더의 사용자/sessionId로 DB refresh token과 Redis 세션을 제거한다.
      */
     @Operation(summary = "로그아웃", description = "Refresh Token과 Redis 세션 컨텍스트를 제거한다.")
+    @SecurityRequirement(name = OpenApiSupport.BEARER_SCHEME)
     @PostMapping("/logout")
     public ApiResponse<Void> logout(
             @RequestHeader(InternalAuthHeaders.USER) String userId,

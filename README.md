@@ -258,6 +258,43 @@ Swagger에서 인증 API 호출 순서.
 3. Swagger UI 상단 `Authorize`에 access token 입력
 4. `product-svc` 또는 `system-svc` API 호출
 
+### Swagger에서 로그아웃 테스트
+
+Gateway Swagger(`http://localhost:18081/swagger-ui.html`)에서 테스트하는 것이 권장 흐름.
+
+1. `auth-svc` definition에서 `login` API 호출
+2. 응답의 `payload.accessToken` 복사
+3. Swagger UI 상단 `Authorize`에 `Bearer <accessToken>` 형식으로 입력
+4. `auth-svc` definition에서 `logout` API 호출
+
+Gateway를 통해 호출하면 Gateway의 JWT 필터가 access token을 검증한 뒤 내부 요청에 아래 헤더를 자동 주입한다.
+
+```text
+X-Auth-User
+X-Auth-Roles
+X-Auth-Session-Id
+```
+
+따라서 Gateway Swagger에서는 `X-Auth-User`, `X-Auth-Session-Id`를 직접 찾거나 입력하지 않고 `Authorization`만 넣는 흐름이 정상이다.
+
+auth-svc를 직접 호출해 테스트해야 한다면 내부 인증 헤더를 수동으로 넣어야 한다.
+
+```text
+X-Auth-User: <로그인 사용자 ID>
+X-Auth-Session-Id: <access token의 sessionId claim>
+```
+
+`X-Auth-Session-Id`는 서버 로그에서 찾기보다 access token의 JWT payload에서 확인한다. JWT는 `header.payload.signature` 구조이므로 가운데 `payload` 부분만 Base64URL 디코딩하면 `sessionId` claim을 볼 수 있다. 실제 access token 전체를 외부 AI, 공개 웹 디코더, 채팅 도구에 붙여 넣지 않는다. 필요하면 로컬 도구나 브라우저 개발자 도구 콘솔에서 payload만 확인한다.
+
+브라우저 콘솔 예시.
+
+```js
+const token = "<accessToken>";
+JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+```
+
+출력 JSON의 `sub`가 `X-Auth-User`, `sessionId`가 `X-Auth-Session-Id`에 해당한다.
+
 ## 공통 응답
 
 기본 응답 구조: `ApiResponse<T>`
