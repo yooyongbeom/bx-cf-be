@@ -5,8 +5,6 @@ spring:
     timeout-per-shutdown-phase: 35s
 server:
   port: 18081
-bwgProp:
-  test: "api-gateway"
 eureka:
   instance:
     prefer-ip-address: false
@@ -18,7 +16,11 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
 app:
+  test: "api-gateway"
   log-path: /Users/channelunit/apps/bx-cf-be/logs
+  cors:
+    allowed-origin-patterns:
+      - http://192.168.110.217
 
 logging:
   level:

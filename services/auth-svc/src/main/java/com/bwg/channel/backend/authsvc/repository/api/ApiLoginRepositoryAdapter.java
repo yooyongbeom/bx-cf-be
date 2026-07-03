@@ -37,7 +37,7 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
     private final ObjectMapper objectMapper;
 
     /** ERP 인증 API 엔드포인트 URL. */
-    @Value("${bwgProp.erp-login-url}")
+    @Value("${app.erp-login-url}")
     private String erpLoginUrl;
 
     @Override

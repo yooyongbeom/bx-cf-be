@@ -45,9 +45,6 @@ server:
   port: 18082
   shutdown: graceful
 
-bwgProp:
-  erp-login-url: "https://erp.bankwareglobal.com/serviceEndpoint/httpService/request.json"
-
 eureka:
   instance:
     prefer-ip-address: false
@@ -60,6 +57,7 @@ eureka:
     fetch-registry: true
 
 app:
+  erp-login-url: "https://erp.bankwareglobal.com/serviceEndpoint/httpService/request.json"
   log-path: /Users/channelunit/apps/bx-cf-be/logs
   auth:
     refresh-cookie:

@@ -5,6 +5,7 @@ import com.bwg.channel.backend.gateway.security.WebFluxCustomAuthEntryPoint;
 import com.bwg.channel.backend.securitycommon.filter.WebFluxJwtAuthFilter;
 import com.bwg.channel.backend.securitycommon.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,17 +17,17 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
 /**
  * API Gateway의 CORS, 인증 예외 경로, JWT WebFlux 보안 필터 체인을 구성한다.
  */
 @RequiredArgsConstructor
 @Configuration
 @EnableWebFluxSecurity
+@EnableConfigurationProperties(GatewayCorsProperties.class)
 public class SecurityConfig {
     /** Gateway로 들어온 access token 검증에 사용할 JWT 유틸리티. */
     private final JwtUtil jwtUtil;
+    private final GatewayCorsProperties corsProperties;
 
     /** 로그인/토큰 재발급/문서처럼 JWT 없이 접근 가능한 인증 전 API 화이트리스트. */
     private static final String[] PERMIT_URL_ARRAY = {
@@ -63,12 +64,14 @@ public class SecurityConfig {
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        // 개발/학습 환경에서 모든 origin을 패턴으로 허용하되 credential 전송은 유지
+        // 환경별 설정에 등록된 프론트엔드 origin만 Gateway CORS 정책으로 허용
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        config.setAllowedOriginPatterns(corsProperties.getAllowedOriginPatterns());
+        config.setAllowedMethods(corsProperties.getAllowedMethods());
+        config.setAllowedHeaders(corsProperties.getAllowedHeaders());
+        config.setExposedHeaders(corsProperties.getExposedHeaders());
+        config.setAllowCredentials(corsProperties.getAllowCredentials());
+        config.setMaxAge(corsProperties.getMaxAge());
 
         // Gateway 전체 경로에 동일 CORS 정책 적용
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -96,6 +99,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .csrf(csrf -> csrf.disable())
                 .authorizeExchange(auth -> auth
+                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 로그인/재발급/문서 경로는 JWT 검증 없이 통과
                         .pathMatchers(PERMIT_URL_ARRAY).permitAll()
                         .pathMatchers(HttpMethod.GET, "/te/st.do").permitAll()

@@ -10,8 +10,6 @@ spring:
           enabled: true    # local 개발 편의: 서비스 직접 라우팅 허용 (dev/운영은 공통 설정에서 off)
 server:
   port: 18081
-bwgProp:
-  test: "api-gateway"
 eureka:
   instance:
     prefer-ip-address: false
@@ -23,7 +21,12 @@ eureka:
     register-with-eureka: true    # Gateway를 Eureka에 등록
     fetch-registry: true          # 다른 서비스 정보 조회 가능
 app:
+  test: "api-gateway"
   log-path: C:/work/bx-cf-be/logs
+  cors:
+    allowed-origin-patterns:
+      - http://localhost:8000
+      - http://127.0.0.1:8000
 
 logging:
   level:

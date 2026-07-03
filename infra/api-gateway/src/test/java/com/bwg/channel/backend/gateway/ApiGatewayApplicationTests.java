@@ -1,10 +1,14 @@
 package com.bwg.channel.backend.gateway;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @ActiveProfiles("local")
@@ -17,6 +21,9 @@ class ApiGatewayApplicationTests {
 
     @LocalServerPort
     int port;
+
+    @Autowired
+    WebTestClient webTestClient;
 
     @Test
     void contextLoads() {
@@ -51,5 +58,17 @@ class ApiGatewayApplicationTests {
                 .contains("/auth-svc/v3/api-docs")
                 .contains("/product-svc/v3/api-docs")
                 .contains("/system-svc/v3/api-docs");
+    }
+
+    @Test
+    void corsPreflightAllowsLocalFrontendOrigin() {
+        webTestClient.options()
+                .uri("/channel/backend/api/v1/product/test")
+                .header(HttpHeaders.ORIGIN, "http://localhost:8000")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:8000")
+                .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
     }
 }
