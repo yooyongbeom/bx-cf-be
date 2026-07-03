@@ -10,6 +10,7 @@ spring:
           enabled: true    # local 개발 편의: 서비스 직접 라우팅 허용 (dev/운영은 공통 설정에서 off)
 server:
   port: 18081
+  shutdown: graceful
 eureka:
   instance:
     prefer-ip-address: false
