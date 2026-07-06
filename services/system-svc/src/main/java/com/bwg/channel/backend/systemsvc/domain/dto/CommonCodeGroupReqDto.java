@@ -1,14 +1,17 @@
 package com.bwg.channel.backend.systemsvc.domain.dto;
 
+import com.bwg.channel.backend.common.domain.dto.BaseAuditReqDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /** 공통코드 그룹 등록/수정 요청 모델 */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ApiDto(type = ApiType.REQUEST, name = "CommonCodeGroup", endpoints = {"create", "update"})
-public class CommonCodeGroupReqDto {
+public class CommonCodeGroupReqDto extends BaseAuditReqDto {
 
     @ApiField(description = "공통코드 그룹 코드", example = "USE_YN", required = {"create"})
     private String groupCd;
@@ -28,9 +31,4 @@ public class CommonCodeGroupReqDto {
     @ApiField(description = "정렬 순서", example = "1", optional = {"create", "update"})
     private Integer sortSeq;
 
-    @ApiField(description = "생성자 ID", example = "admin", optional = {"create"})
-    private String createdBy;
-
-    @ApiField(description = "수정자 ID", example = "admin", optional = {"update"})
-    private String updatedBy;
 }

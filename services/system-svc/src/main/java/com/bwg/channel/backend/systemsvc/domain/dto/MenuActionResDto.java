@@ -1,14 +1,17 @@
 package com.bwg.channel.backend.systemsvc.domain.dto;
 
+import com.bwg.channel.backend.common.domain.dto.BaseAuditResDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /** 메뉴 기능 목록 응답 모델 */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ApiDto(type = ApiType.RESPONSE, name = "MenuAction", endpoints = {"list"})
-public class MenuActionResDto {
+public class MenuActionResDto extends BaseAuditResDto {
 
     @ApiField(description = "메뉴 기능 ID", optional = {"list"})
     private Long actionId;
@@ -34,9 +37,4 @@ public class MenuActionResDto {
     @ApiField(description = "사용 여부", example = "Y", allowableValues = {"Y", "N"}, optional = {"list"})
     private String useYn;
 
-    @ApiField(description = "생성자 ID", optional = {"list"})
-    private String createdBy;
-
-    @ApiField(description = "수정자 ID", optional = {"list"})
-    private String updatedBy;
 }

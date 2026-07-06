@@ -14,7 +14,7 @@ import java.util.List;
  * Gateway 인증 이후 여러 서비스가 공유하는 로그인 세션 컨텍스트.
  *
  * <p>WAS 로컬 세션 대신 Redis/Valkey에 저장되는 값이며, 내부 서비스는 sessionId 기준으로 사용자,
- * 권한, 인증 수준 같은 요청 처리 문맥을 조회한다.</p>
+ * 권한, 인증 수준 같은 요청 처리 컨텍스트를 조회한다.</p>
  */
 @Getter
 @Setter

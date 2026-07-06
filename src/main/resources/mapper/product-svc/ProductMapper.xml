@@ -46,10 +46,83 @@
                 AND product_nm LIKE '%' || #{productNm} || '%'
                 ]]>
             </if>
+            <!-- 통합 검색어 조건: searchType이 없으면 상품명/설명을 함께 검색한다. -->
+            <if test="keyword != null and keyword != ''">
+                <choose>
+                    <when test="searchType == 'productDesc'">
+                        <![CDATA[
+                        AND product_desc LIKE '%' || #{keyword} || '%'
+                        ]]>
+                    </when>
+                    <otherwise>
+                        <![CDATA[
+                        AND (
+                            product_nm LIKE '%' || #{keyword} || '%'
+                            OR product_desc LIKE '%' || #{keyword} || '%'
+                        )
+                        ]]>
+                    </otherwise>
+                </choose>
+            </if>
         </where>
-        <![CDATA[
-        ORDER BY product_id DESC
-        ]]>
+        <!-- 정렬 조건: 허용된 컬럼/방향만 분기 처리한다. -->
+        <choose>
+            <when test="sort == 'productId,asc'">
+                <![CDATA[
+                ORDER BY product_id ASC
+                ]]>
+            </when>
+            <when test="sort == 'productId,desc'">
+                <![CDATA[
+                ORDER BY product_id DESC
+                ]]>
+            </when>
+            <when test="sort == 'productNm,asc'">
+                <![CDATA[
+                ORDER BY product_nm ASC, product_id DESC
+                ]]>
+            </when>
+            <when test="sort == 'productNm,desc'">
+                <![CDATA[
+                ORDER BY product_nm DESC, product_id DESC
+                ]]>
+            </when>
+            <when test="sort == 'price,asc'">
+                <![CDATA[
+                ORDER BY price ASC, product_id DESC
+                ]]>
+            </when>
+            <when test="sort == 'price,desc'">
+                <![CDATA[
+                ORDER BY price DESC, product_id DESC
+                ]]>
+            </when>
+            <when test="sort == 'stockQty,asc'">
+                <![CDATA[
+                ORDER BY stock_qty ASC, product_id DESC
+                ]]>
+            </when>
+            <when test="sort == 'stockQty,desc'">
+                <![CDATA[
+                ORDER BY stock_qty DESC, product_id DESC
+                ]]>
+            </when>
+            <otherwise>
+                <![CDATA[
+                ORDER BY product_id DESC
+                ]]>
+            </otherwise>
+        </choose>
+        <if test="size != null and size > 0">
+            <![CDATA[
+            LIMIT #{size}
+            ]]>
+        </if>
+        <if test="offset != null">
+            <![CDATA[
+            OFFSET #{offset}
+            ]]>
+        </if>
     </select>
 
     <!-- 상품 ID 단건 조회 -->

@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
-@Component("apiLogin")
+@Repository("apiLogin")
 @RequiredArgsConstructor
 @Primary
 public class ApiLoginRepositoryAdapter implements LoginRepository {

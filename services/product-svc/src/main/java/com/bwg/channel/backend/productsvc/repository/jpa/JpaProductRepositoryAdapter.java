@@ -7,7 +7,7 @@ import com.bwg.channel.backend.productsvc.domain.dto.ProductResDto;
 import com.bwg.channel.backend.productsvc.domain.entity.Product;
 import com.bwg.channel.backend.productsvc.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * ProductRepository 계약을 JPA Repository 호출로 연결하는 어댑터
  */
-@Component("jpaProduct")
+@Repository("jpaProduct")
 @RequiredArgsConstructor
 public class JpaProductRepositoryAdapter implements ProductRepository {
 

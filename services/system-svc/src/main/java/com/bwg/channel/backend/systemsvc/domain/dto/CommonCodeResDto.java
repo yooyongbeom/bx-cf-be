@@ -1,16 +1,19 @@
 package com.bwg.channel.backend.systemsvc.domain.dto;
 
+import com.bwg.channel.backend.common.domain.dto.BaseAuditResDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 
 /** 공통코드 목록 응답 모델 */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ApiDto(type = ApiType.RESPONSE, name = "CommonCode", endpoints = {"list"})
-public class CommonCodeResDto {
+public class CommonCodeResDto extends BaseAuditResDto {
 
     @ApiField(description = "공통코드 ID", optional = {"list"})
     private Long codeId;
@@ -48,9 +51,4 @@ public class CommonCodeResDto {
     @ApiField(description = "추가 데이터(JSON 문자열)", example = "{}", optional = {"list"})
     private String extraData;
 
-    @ApiField(description = "생성자 ID", example = "admin", optional = {"list"})
-    private String createdBy;
-
-    @ApiField(description = "수정자 ID", example = "admin", optional = {"list"})
-    private String updatedBy;
 }

@@ -1,21 +1,20 @@
 package com.bwg.channel.backend.productsvc.domain.dto;
 
+import com.bwg.channel.backend.common.domain.dto.BaseSearchReqDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * 상품 API 요청(검색 조건) 모델. 엔드포인트별 요청 스키마를 생성한다.
+ * 상품 API 요청(검색 조건) 모델. 공통 검색 조건과 상품별 검색 조건을 함께 사용한다.
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ApiDto(type = ApiType.REQUEST, name = "Product", endpoints = {"list"})
-public class ProductReqDto {
+public class ProductReqDto extends BaseSearchReqDto {
 
-    @ApiField(description = "상품명", example = "안정형 펀드", optional = {"list"})
+    @ApiField(description = "상품명", example = "예정된 상품", optional = {"list"})
     private String productNm;
-
-    @ApiField(description = "사용 여부 (Y/N)", example = "Y",
-              allowableValues = {"Y", "N"}, optional = {"list"})
-    private String useYn;
 }

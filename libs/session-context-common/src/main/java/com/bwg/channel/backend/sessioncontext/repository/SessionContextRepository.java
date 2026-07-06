@@ -14,7 +14,7 @@ public interface SessionContextRepository {
     /**
      * 세션 컨텍스트를 TTL과 함께 저장한다.
      *
-     * @param context 저장할 세션 문맥
+     * @param context 저장할 세션 컨텍스트
      * @param ttl refresh token 만료 정책과 맞춘 세션 유지 시간
      */
     void save(SessionContext context, Duration ttl);

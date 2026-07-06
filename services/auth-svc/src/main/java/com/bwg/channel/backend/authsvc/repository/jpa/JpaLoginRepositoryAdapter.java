@@ -9,13 +9,13 @@ import com.bwg.channel.backend.authsvc.repository.LoginRepository;
 import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
 import com.bwg.channel.backend.securitycommon.exception.BwgAuthException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component("jpaLogin")
+@Repository("jpaLogin")
 @RequiredArgsConstructor
 public class JpaLoginRepositoryAdapter implements LoginRepository {
     /** JPA 엔티티 기반 사용자와 refresh token 조회/갱신 저장소. */

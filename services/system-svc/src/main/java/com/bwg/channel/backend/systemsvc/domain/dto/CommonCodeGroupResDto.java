@@ -1,14 +1,17 @@
 package com.bwg.channel.backend.systemsvc.domain.dto;
 
+import com.bwg.channel.backend.common.domain.dto.BaseAuditResDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /** 공통코드 그룹 목록 응답 모델 */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ApiDto(type = ApiType.RESPONSE, name = "CommonCodeGroup", endpoints = {"list"})
-public class CommonCodeGroupResDto {
+public class CommonCodeGroupResDto extends BaseAuditResDto {
 
     @ApiField(description = "공통코드 그룹 ID", optional = {"list"})
     private Long groupId;
@@ -31,9 +34,4 @@ public class CommonCodeGroupResDto {
     @ApiField(description = "정렬 순서", example = "1", optional = {"list"})
     private Integer sortSeq;
 
-    @ApiField(description = "생성자 ID", example = "admin", optional = {"list"})
-    private String createdBy;
-
-    @ApiField(description = "수정자 ID", example = "admin", optional = {"list"})
-    private String updatedBy;
 }

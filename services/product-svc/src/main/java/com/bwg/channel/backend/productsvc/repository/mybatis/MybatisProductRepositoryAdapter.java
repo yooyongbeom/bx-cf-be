@@ -8,14 +8,14 @@ import com.bwg.channel.backend.productsvc.repository.ProductRepository;
 import com.bwg.channel.backend.productsvc.repository.mybatis.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
  * ProductRepository 계약을 MyBatis Mapper 호출로 연결하는 어댑터
  */
-@Component("mybatisProduct")
+@Repository("mybatisProduct")
 @Primary
 @RequiredArgsConstructor
 public class MybatisProductRepositoryAdapter implements ProductRepository {

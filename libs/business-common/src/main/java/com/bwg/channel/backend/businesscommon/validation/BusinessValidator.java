@@ -54,7 +54,7 @@ public final class BusinessValidator {
         try {
             return BusinessDateRange.of(startDate, endDate);
         } catch (BwgBusinessException e) {
-            // 범위 규칙은 값 객체에 맡기고, 이 계층에서는 필드 문맥 보강
+            // 범위 규칙은 값 객체에 맡기고, 이 계층에서는 필드 컨텍스트 보강
             throw new BwgBusinessException.Builder()
                     .code(BusinessErrorCode.INVALID_DATE_RANGE)
                     .message(BusinessErrorCode.INVALID_DATE_RANGE.getMsg())

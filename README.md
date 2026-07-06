@@ -37,15 +37,15 @@ services:system-svc
 
 ## 모듈 의존성
 
-| 모듈 | 주요 의존성 | 역할 |
-| --- | --- | --- |
-| `infra:api-gateway` | `common`, `security-common`, `session-context-common` | 외부 요청 진입점, JWT 검증, 내부 인증 헤더 생성, Eureka 기반 라우팅 |
-| `infra:discovery-svc` | - | 서비스 인스턴스 등록/탐색용 Eureka 서버 |
+| 모듈 | 주요 의존성 | 역할                                                   |
+| --- | --- |------------------------------------------------------|
+| `infra:api-gateway` | `common`, `security-common`, `session-context-common` | 외부 요청 진입점, JWT 검증, 내부 인증 헤더 생성, Eureka 기반 라우팅        |
+| `infra:discovery-svc` | - | 서비스 인스턴스 등록/탐색용 Eureka 서버                            |
 | `services:auth-svc` | `common`, `business-common`, `security-common`, `session-context-common` | 사용자 인증, access/refresh token 발급, Redis 세션 컨텍스트 저장/삭제 |
-| `services:product-svc` | `common`, `business-common`, `session-context-common` | 상품 API, 필요 시 내부 인증 헤더/sessionId 기반 세션 문맥 조회 |
-| `services:system-svc` | `common`, `business-common`, `session-context-common` | 메뉴/공통코드 API, 필요 시 내부 인증 헤더/sessionId 기반 세션 문맥 조회 |
-| `libs:security-common` | `common`, Spring Security, JJWT | JWT와 인증 실패 응답 공통화 |
-| `libs:session-context-common` | `common`, Spring Data Redis | `session:{sessionId}` 규칙의 Redis 세션 문맥 공통화 |
+| `services:product-svc` | `common`, `business-common`, `session-context-common` | 상품 API, 필요 시 내부 인증 헤더/sessionId 기반 세션 컨텍스트 조회          |
+| `services:system-svc` | `common`, `business-common`, `session-context-common` | 메뉴/공통코드 API, 필요 시 내부 인증 헤더/sessionId 기반 세션 컨텍스트 조회     |
+| `libs:security-common` | `common`, Spring Security, JJWT | JWT와 인증 실패 응답 공통화                                    |
+| `libs:session-context-common` | `common`, Spring Data Redis | `session:{sessionId}` 규칙의 Redis 세션 컨텍스트 공통화          |
 
 ## 실행 순서
 
@@ -132,7 +132,7 @@ await fetch("/channel/backend/api/v1/auth/refresh-token", {
 
 ### Redis/Valkey 세션 컨텍스트
 
-`session-context-common` 공통 세션 문맥.
+`session-context-common` 공통 세션 컨텍스트.
 
 | 필드 | 설명 |
 | --- | --- |

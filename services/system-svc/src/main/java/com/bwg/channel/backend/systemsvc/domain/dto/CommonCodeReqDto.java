@@ -1,16 +1,19 @@
 package com.bwg.channel.backend.systemsvc.domain.dto;
 
+import com.bwg.channel.backend.common.domain.dto.BaseAuditReqDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 
 /** 공통코드 등록/수정 요청 모델 */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ApiDto(type = ApiType.REQUEST, name = "CommonCode", endpoints = {"create", "update"})
-public class CommonCodeReqDto {
+public class CommonCodeReqDto extends BaseAuditReqDto {
 
     // 경로변수(groupCd)로 주입되는 값. 요청 스키마에는 노출하지 않는다(hidden).
     @ApiField(description = "공통코드 그룹 코드", hidden = true)
@@ -43,9 +46,4 @@ public class CommonCodeReqDto {
     @ApiField(description = "추가 데이터(JSON 문자열)", example = "{}", optional = {"create", "update"})
     private String extraData;
 
-    @ApiField(description = "생성자 ID", example = "admin", optional = {"create"})
-    private String createdBy;
-
-    @ApiField(description = "수정자 ID", example = "admin", optional = {"update"})
-    private String updatedBy;
 }

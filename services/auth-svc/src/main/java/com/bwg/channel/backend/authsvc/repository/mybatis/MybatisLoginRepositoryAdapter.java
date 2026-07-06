@@ -8,10 +8,10 @@ import com.bwg.channel.backend.authsvc.repository.mybatis.mapper.UserMapper;
 import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
 import com.bwg.channel.backend.securitycommon.exception.BwgAuthException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("mybatisLogin")
+@Repository("mybatisLogin")
 @RequiredArgsConstructor
 public class MybatisLoginRepositoryAdapter implements LoginRepository {
     /** MyBatis XML/Mapper SQL로 사용자와 refresh token을 조회/갱신하는 매퍼. */

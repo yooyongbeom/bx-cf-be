@@ -24,7 +24,7 @@ public class LoginResDto {
               required = {"login", "erp-login", "refresh-token"})
     private String usrId;
 
-    /** 로그인 성공 후 화면 표시나 감사 로그에 사용할 사용자명. */
+    /** 로그인 성공 후 화면 표시나 로그에 사용할 사용자명. */
     @ApiField(description = "사용자명", example = "홍길동",
               optional = {"login", "erp-login", "refresh-token"})
     private String usrNm;
