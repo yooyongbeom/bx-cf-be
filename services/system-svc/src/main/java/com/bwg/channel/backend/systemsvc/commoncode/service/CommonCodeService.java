@@ -38,7 +38,7 @@ public interface CommonCodeService {
     /**
      * 공통코드 그룹과 하위 공통코드 목록 상세 조회
      */
-    ApiResponse<CommonCodeGroupDetailResDto> getCommonCodeGroupDetail(String groupCd);
+    ApiResponse<List<CommonCodeGroupDetailResDto>> getCommonCodeGroupDetails(ApiRequest<CommonCodeGroupReqDto> paramDto);
 
     /**
      * 공통코드 등록

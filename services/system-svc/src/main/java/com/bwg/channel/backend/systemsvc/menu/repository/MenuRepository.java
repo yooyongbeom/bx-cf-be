@@ -46,4 +46,21 @@ public interface MenuRepository {
      * 역할별 메뉴 권한 등록
      */
     int insertRoleMenu(Long roleId, Long menuId, String createdBy);
+
+    /**
+     * 기준정보 버전 변경 이력 등록
+     */
+    int insertReferenceDataVersionHistory(
+            String refType,
+            String changeType,
+            String targetTable,
+            String targetId,
+            String changeSummary,
+            String changedBy
+    );
+
+    /**
+     * 기준정보 최신 버전 갱신
+     */
+    int updateReferenceDataVersion(String refType, String remark, String changedBy);
 }

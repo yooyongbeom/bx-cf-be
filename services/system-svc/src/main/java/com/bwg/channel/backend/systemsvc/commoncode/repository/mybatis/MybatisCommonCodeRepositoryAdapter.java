@@ -53,6 +53,12 @@ public class MybatisCommonCodeRepositoryAdapter implements CommonCodeRepository 
     }
 
     @Override
+    public List<CommonCodeGroupDetailResDto> findCommonCodeGroupDetails() {
+        // MyBatis Mapper를 통해 전체 공통코드 그룹 상세 정보 조회
+        return commonCodeMapper.findCommonCodeGroupDetails();
+    }
+
+    @Override
     public List<CommonCodeResDto> findCommonCodeDetails(String groupCd) {
         // MyBatis Mapper를 통해 공통코드 상세 항목 목록 조회
         return commonCodeMapper.findCommonCodeDetails(groupCd);
@@ -68,5 +74,31 @@ public class MybatisCommonCodeRepositoryAdapter implements CommonCodeRepository 
     public int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto) {
         // MyBatis Mapper를 통해 공통코드 수정
         return commonCodeMapper.updateCommonCode(paramDto);
+    }
+
+    @Override
+    public int insertReferenceDataVersionHistory(
+            String refType,
+            String changeType,
+            String targetTable,
+            String targetId,
+            String changeSummary,
+            String changedBy
+    ) {
+        // MyBatis Mapper를 통해 기준정보 버전 변경 이력 등록
+        return commonCodeMapper.insertReferenceDataVersionHistory(
+                refType,
+                changeType,
+                targetTable,
+                targetId,
+                changeSummary,
+                changedBy
+        );
+    }
+
+    @Override
+    public int updateReferenceDataVersion(String refType, String remark, String changedBy) {
+        // MyBatis Mapper를 통해 기준정보 최신 버전 갱신
+        return commonCodeMapper.updateReferenceDataVersion(refType, remark, changedBy);
     }
 }

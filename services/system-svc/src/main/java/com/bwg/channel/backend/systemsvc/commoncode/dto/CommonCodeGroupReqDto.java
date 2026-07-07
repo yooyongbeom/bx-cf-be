@@ -9,10 +9,10 @@ import org.apache.ibatis.type.Alias;
 /** 공통코드 그룹 등록/수정 요청 모델 */
 @Alias("CommonCodeGroupReqDto")
 @Data
-@ApiDto(type = ApiType.REQUEST, name = "CommonCodeGroup", endpoints = {"create", "update"})
+@ApiDto(type = ApiType.REQUEST, name = "CommonCodeGroup", endpoints = {"create", "update", "detail"})
 public class CommonCodeGroupReqDto {
 
-    @ApiField(description = "공통코드 그룹 코드", example = "USE_YN", required = {"create"})
+    @ApiField(description = "공통코드 그룹 코드", example = "ALL", required = {"create", "detail"})
     private String groupCd;
 
     @ApiField(description = "공통코드 그룹명", example = "사용 여부", required = {"create", "update"})

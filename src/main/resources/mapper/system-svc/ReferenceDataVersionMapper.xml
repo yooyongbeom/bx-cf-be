@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bwg.channel.backend.systemsvc.referencedata.repository.mybatis.mapper.ReferenceDataVersionMapper">
+
+    <!-- 기준정보 버전 DTO 매핑 정보 -->
+    <resultMap id="referenceDataVersionResult" type="ReferenceDataVersionResDto">
+        <id     property="versionId"      column="version_id"/>
+        <result property="refType"        column="ref_type"/>
+        <result property="versionNo"      column="version_no"/>
+        <result property="lastChangedAt"  column="last_changed_at"/>
+        <result property="lastChangedBy"  column="last_changed_by"/>
+        <result property="remark"         column="remark"/>
+    </resultMap>
+
+    <!-- 전체 기준정보 최신 버전 목록 조회 -->
+    <select id="findLatestReferenceDataVersions" resultMap="referenceDataVersionResult">
+        <![CDATA[
+        /* systemsvc.ReferenceDataVersionMapper.findLatestReferenceDataVersions(전체 기준정보 최신 버전 목록 조회) */
+        SELECT
+            version_id       /* 기준정보 버전 ID */
+            ,ref_type        /* 기준정보 유형 */
+            ,version_no      /* 버전 번호 */
+            ,last_changed_at /* 최종 변경 일시 */
+            ,last_changed_by /* 최종 변경자 ID */
+            ,remark          /* 비고 */
+        FROM reference_data_versions
+        ORDER BY ref_type
+        ]]>
+    </select>
+
+    <!-- 기준정보 유형별 최신 버전 조회 -->
+    <select id="findLatestReferenceDataVersionsByRefType" resultMap="referenceDataVersionResult">
+        <![CDATA[
+        /* systemsvc.ReferenceDataVersionMapper.findLatestReferenceDataVersionsByRefType(기준정보 유형별 최신 버전 조회) */
+        SELECT
+            version_id       /* 기준정보 버전 ID */
+            ,ref_type        /* 기준정보 유형 */
+            ,version_no      /* 버전 번호 */
+            ,last_changed_at /* 최종 변경 일시 */
+            ,last_changed_by /* 최종 변경자 ID */
+            ,remark          /* 비고 */
+        FROM reference_data_versions
+        WHERE ref_type = #{refType}
+        ORDER BY ref_type
+        ]]>
+    </select>
+</mapper>

@@ -39,6 +39,8 @@ public interface CommonCodeRepository {
      */
     CommonCodeGroupDetailResDto findCommonCodeGroupDetail(String groupCd);
 
+    List<CommonCodeGroupDetailResDto> findCommonCodeGroupDetails();
+
     /**
      * 그룹 코드 기준 공통코드 상세 항목 목록 조회
      */
@@ -53,4 +55,21 @@ public interface CommonCodeRepository {
      * 공통코드 수정
      */
     int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto);
+
+    /**
+     * 기준정보 버전 변경 이력 등록
+     */
+    int insertReferenceDataVersionHistory(
+            String refType,
+            String changeType,
+            String targetTable,
+            String targetId,
+            String changeSummary,
+            String changedBy
+    );
+
+    /**
+     * 기준정보 최신 버전 갱신
+     */
+    int updateReferenceDataVersion(String refType, String remark, String changedBy);
 }

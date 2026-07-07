@@ -7,6 +7,8 @@ import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.menu.controller.MenuController;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
+import com.bwg.channel.backend.systemsvc.referencedata.controller.ReferenceDataVersionController;
+import com.bwg.channel.backend.systemsvc.referencedata.dto.ReferenceDataVersionReqDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +38,11 @@ class SystemControllerMappingTests {
     }
 
     @Test
+    void referenceDataVersionControllerUsesPostMappingsOnly() {
+        assertPostOnly(ReferenceDataVersionController.class);
+    }
+
+    @Test
     void commonCodeControllerRequestBodiesUseApiRequestWrapper() throws NoSuchMethodException {
         assertRequestBodyType(
                 CommonCodeController.class.getDeclaredMethod("createCommonCodeGroup", ApiRequest.class),
@@ -43,6 +50,10 @@ class SystemControllerMappingTests {
         );
         assertRequestBodyType(
                 CommonCodeController.class.getDeclaredMethod("updateCommonCodeGroup", String.class, ApiRequest.class),
+                CommonCodeGroupReqDto.class
+        );
+        assertRequestBodyType(
+                CommonCodeController.class.getDeclaredMethod("getCommonCodeGroupDetails", ApiRequest.class),
                 CommonCodeGroupReqDto.class
         );
         assertRequestBodyType(
@@ -68,6 +79,14 @@ class SystemControllerMappingTests {
         assertRequestBodyType(
                 MenuController.class.getDeclaredMethod("saveRoleMenus", Long.class, ApiRequest.class),
                 RoleMenuSaveReqDto.class
+        );
+    }
+
+    @Test
+    void referenceDataVersionControllerRequestBodiesUseApiRequestWrapper() throws NoSuchMethodException {
+        assertRequestBodyType(
+                ReferenceDataVersionController.class.getDeclaredMethod("getLatestReferenceDataVersions", ApiRequest.class),
+                ReferenceDataVersionReqDto.class
         );
     }
 

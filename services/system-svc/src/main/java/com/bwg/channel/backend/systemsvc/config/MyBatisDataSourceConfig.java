@@ -11,7 +11,8 @@ import org.springframework.context.annotation.Configuration;
 @MapperScan(
     basePackages = {
         "com.bwg.channel.backend.systemsvc.commoncode.repository.mybatis.mapper",
-        "com.bwg.channel.backend.systemsvc.menu.repository.mybatis.mapper"
+        "com.bwg.channel.backend.systemsvc.menu.repository.mybatis.mapper",
+        "com.bwg.channel.backend.systemsvc.referencedata.repository.mybatis.mapper"
     },
     sqlSessionFactoryRef = "mybatisMainSqlSessionFactory"
 )
@@ -22,6 +23,7 @@ public class MyBatisDataSourceConfig extends MyBatisMainConfigBase {
     protected String typeAliasesPackage() {
         return "com.bwg.channel.backend.common.domain.dto,"
                 + "com.bwg.channel.backend.systemsvc.commoncode.dto,"
-                + "com.bwg.channel.backend.systemsvc.menu.dto";
+                + "com.bwg.channel.backend.systemsvc.menu.dto,"
+                + "com.bwg.channel.backend.systemsvc.referencedata.dto";
     }
 }

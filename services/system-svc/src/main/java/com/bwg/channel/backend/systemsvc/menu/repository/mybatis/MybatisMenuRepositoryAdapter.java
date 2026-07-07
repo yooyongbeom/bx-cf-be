@@ -61,4 +61,30 @@ public class MybatisMenuRepositoryAdapter implements MenuRepository {
         // MyBatis Mapper를 통해 역할별 메뉴 권한 등록
         return menuMapper.insertRoleMenu(roleId, menuId, createdBy);
     }
+
+    @Override
+    public int insertReferenceDataVersionHistory(
+            String refType,
+            String changeType,
+            String targetTable,
+            String targetId,
+            String changeSummary,
+            String changedBy
+    ) {
+        // MyBatis Mapper를 통해 기준정보 버전 변경 이력 등록
+        return menuMapper.insertReferenceDataVersionHistory(
+                refType,
+                changeType,
+                targetTable,
+                targetId,
+                changeSummary,
+                changedBy
+        );
+    }
+
+    @Override
+    public int updateReferenceDataVersion(String refType, String remark, String changedBy) {
+        // MyBatis Mapper를 통해 기준정보 최신 버전 갱신
+        return menuMapper.updateReferenceDataVersion(refType, remark, changedBy);
+    }
 }

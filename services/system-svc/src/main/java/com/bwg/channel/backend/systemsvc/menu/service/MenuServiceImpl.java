@@ -22,6 +22,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuServiceImpl implements MenuService {
 
+    private static final String REF_TYPE_MENU = "MENU";
+
     private final MenuRepository menuRepository;
 
     @Override
@@ -42,6 +44,13 @@ public class MenuServiceImpl implements MenuService {
         data.setMenuNm(BusinessValidator.requireNonBlank(data.getMenuNm(), "menuNm"));
         // 메뉴 등록 처리
         menuRepository.insertMenu(paramDto);
+        recordMenuVersionChange(
+                "CREATE",
+                "menus",
+                data.getMenuCd(),
+                "메뉴 등록",
+                data.getCreatedBy()
+        );
         return ApiResponse.success(null);
     }
 
@@ -55,6 +64,13 @@ public class MenuServiceImpl implements MenuService {
         data.setMenuNm(BusinessValidator.requireNonBlank(data.getMenuNm(), "menuNm"));
         // 메뉴 수정 처리
         menuRepository.updateMenu(paramDto);
+        recordMenuVersionChange(
+                "UPDATE",
+                "menus",
+                String.valueOf(data.getMenuId()),
+                "메뉴 수정",
+                data.getCreatedBy()
+        );
         return ApiResponse.success(null);
     }
 
@@ -86,7 +102,33 @@ public class MenuServiceImpl implements MenuService {
         for (Long menuId : data.getMenuIds()) {
             menuRepository.insertRoleMenu(requiredRoleId, BusinessValidator.requireNonNull(menuId, "menuId"), data.getCreatedBy());
         }
+        recordMenuVersionChange(
+                "SAVE",
+                "role_menus",
+                String.valueOf(requiredRoleId),
+                "역할별 메뉴 권한 저장",
+                data.getCreatedBy()
+        );
         return ApiResponse.success(null);
+    }
+
+    private void recordMenuVersionChange(
+            String changeType,
+            String targetTable,
+            String targetId,
+            String changeSummary,
+            String changedBy
+    ) {
+        // 업무 데이터 변경과 같은 트랜잭션에서 기준정보 버전 이력과 최신 버전을 함께 갱신
+        menuRepository.insertReferenceDataVersionHistory(
+                REF_TYPE_MENU,
+                changeType,
+                targetTable,
+                targetId,
+                changeSummary,
+                changedBy
+        );
+        menuRepository.updateReferenceDataVersion(REF_TYPE_MENU, changeSummary, changedBy);
     }
 
     private <T> T requireData(ApiRequest<T> request) {

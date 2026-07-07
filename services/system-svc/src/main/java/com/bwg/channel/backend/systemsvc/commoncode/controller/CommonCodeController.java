@@ -61,11 +61,16 @@ public class CommonCodeController {
         return commonCodeService.getCommonCodes(groupCd);
     }
 
-    @Operation(summary = "공통코드 그룹 상세 조회")
-    @PostMapping("/groups/{groupCd}/detail")
-    public ApiResponse<CommonCodeGroupDetailResDto> getCommonCodeGroupDetail(@PathVariable String groupCd) {
-        // 그룹 코드 기준 공통코드 그룹과 상세 코드 목록 조회를 서비스에 위임
-        return commonCodeService.getCommonCodeGroupDetail(groupCd);
+    @Operation(
+            summary = "공통코드 그룹 상세 및 코드 목록 조회",
+            description = "data.groupCd가 ALL이면 전체 그룹과 하위 공통코드 목록을 조회하고, 그 외에는 해당 그룹만 조회한다."
+    )
+    @PostMapping("/groups/detail")
+    public ApiResponse<List<CommonCodeGroupDetailResDto>> getCommonCodeGroupDetails(
+            @RequestBody ApiRequest<CommonCodeGroupReqDto> req
+    ) {
+        // 요청 그룹 코드 기준 공통코드 그룹과 상세 코드 목록 조회를 서비스에 위임
+        return commonCodeService.getCommonCodeGroupDetails(req);
     }
 
     @Operation(summary = "공통코드 등록")
