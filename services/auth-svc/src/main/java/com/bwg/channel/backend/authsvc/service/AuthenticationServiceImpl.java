@@ -5,6 +5,7 @@ import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.repository.LoginRepository;
 import com.bwg.channel.backend.authsvc.repository.jpa.JpaLoginRepository;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
 import com.bwg.channel.backend.securitycommon.domain.dto.CustomUserDetails;
@@ -62,7 +63,7 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
      */
     @Override
     @Transactional
-    public ApiResponse<LoginResDto> login(LoginReqDto paramDto, String type) {
+    public ApiResponse<LoginResDto> login(ApiRequest<LoginReqDto> paramDto, String type) {
         log.info("current login type =====================> {}", type);
 
         // 로그인 type에 맞는 저장소 선택 후 ID/PW 기준 사용자 정보 조회

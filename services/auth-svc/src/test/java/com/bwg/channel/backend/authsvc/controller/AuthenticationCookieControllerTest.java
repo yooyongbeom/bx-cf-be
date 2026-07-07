@@ -7,6 +7,7 @@ import com.bwg.channel.backend.authsvc.service.AuthenticationService;
 import com.bwg.channel.backend.authsvc.token.cookie.RefreshTokenCookieProperties;
 import com.bwg.channel.backend.authsvc.token.cookie.RefreshTokenCookieSupport;
 import com.bwg.channel.backend.common.aop.BwgAuthExceptionAdvice;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,12 +48,12 @@ class AuthenticationCookieControllerTest {
     @Test
     void loginSetsRefreshTokenCookieAndRemovesRefreshTokenFromBody() throws Exception {
         LoginResDto loginResponse = loginResponse();
-        when(authenticationService.login(org.mockito.ArgumentMatchers.any(LoginReqDto.class), eq("mybatisLogin")))
+        when(authenticationService.login(org.mockito.ArgumentMatchers.any(), eq("mybatisLogin")))
                 .thenReturn(com.bwg.channel.backend.common.domain.dto.ApiResponse.success(loginResponse));
 
         mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest())))
+                        .content(objectMapper.writeValueAsString(apiRequest(loginRequest()))))
                 .andExpect(status().isOk())
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.allOf(
                         org.hamcrest.Matchers.containsString("refreshToken=refresh.jwt.token"),
@@ -131,6 +132,12 @@ class AuthenticationCookieControllerTest {
         LoginReqDto request = new LoginReqDto();
         request.setUsrId("hong.gildong");
         request.setUsrPwd("password");
+        return request;
+    }
+
+    private ApiRequest<LoginReqDto> apiRequest(LoginReqDto data) {
+        ApiRequest<LoginReqDto> request = new ApiRequest<>();
+        request.setData(data);
         return request;
     }
 

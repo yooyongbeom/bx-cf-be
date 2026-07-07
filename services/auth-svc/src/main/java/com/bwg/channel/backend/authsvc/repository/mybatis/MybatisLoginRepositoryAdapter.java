@@ -6,6 +6,7 @@ import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.repository.LoginRepository;
 import com.bwg.channel.backend.authsvc.repository.mybatis.mapper.UserMapper;
 import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.securitycommon.exception.BwgAuthException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -18,9 +19,10 @@ public class MybatisLoginRepositoryAdapter implements LoginRepository {
     private final UserMapper userMapper;
 
     @Override
-    public LoginResDto findByUsrIdAndUsrPwd(LoginReqDto paramDto) {
+    public LoginResDto findByUsrIdAndUsrPwd(ApiRequest<LoginReqDto> paramDto) {
         // 로그인 요청의 사용자 ID/PW 기준으로 사용자 정보 조회
-        return userMapper.findByUsrIdAndUsrPwd(paramDto.getUsrId(), paramDto.getUsrPwd())
+        LoginReqDto data = paramDto.getData();
+        return userMapper.findByUsrIdAndUsrPwd(data.getUsrId(), data.getUsrPwd())
                 .orElseThrow(() ->
                         new BwgAuthException.Builder()
                                 .code(CommonErrorCode.DB_NO_DATA_ERROR)

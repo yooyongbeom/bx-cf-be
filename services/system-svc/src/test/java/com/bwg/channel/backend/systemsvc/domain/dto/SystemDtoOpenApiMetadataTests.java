@@ -2,6 +2,15 @@ package com.bwg.channel.backend.systemsvc.domain.dto;
 
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -14,6 +23,7 @@ class SystemDtoOpenApiMetadataTests {
     private static final List<Class<?>> DTO_TYPES = List.of(
             CommonCodeGroupReqDto.class,
             CommonCodeGroupResDto.class,
+            CommonCodeGroupDetailResDto.class,
             CommonCodeReqDto.class,
             CommonCodeResDto.class,
             MenuReqDto.class,

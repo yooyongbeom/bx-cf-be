@@ -1,5 +1,6 @@
 package com.bwg.channel.backend.productsvc.repository.jpa;
 
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.productsvc.constants.ProductErrorCode;
 import com.bwg.channel.backend.productsvc.exception.BwgProductException;
 import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
@@ -25,9 +26,11 @@ public class JpaProductRepositoryAdapter implements ProductRepository {
      * JPA 기반 사용 여부별 상품 목록 조회
      */
     @Override
-    public List<ProductResDto> findAll(ProductReqDto paramDto) {
+    public List<ProductResDto> findAll(ApiRequest<ProductReqDto> paramDto) {
         // 사용 여부 기본값 보정
-        String useYn = paramDto.getUseYn() != null ? paramDto.getUseYn() : "Y";
+        String useYn = paramDto.getFilter() != null && paramDto.getFilter().getUseYn() != null
+                ? paramDto.getFilter().getUseYn()
+                : "Y";
         return jpaProductRepository.findByUseYn(useYn).stream()
                 .map(this::toResDto)
                 .collect(Collectors.toList());

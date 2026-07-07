@@ -4,6 +4,7 @@ import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
+import org.apache.ibatis.type.Alias;
 
 /**
  * 상품 API 응답 모델. 엔드포인트별 응답 스키마를 생성한다.
@@ -14,6 +15,7 @@ import lombok.Data;
  *   <li>detail→ productId, productNm, productDesc, price, stockQty, useYn (전부 노출)</li>
  * </ul>
  */
+@Alias("ProductResDto")
 @Data
 @ApiDto(type = ApiType.RESPONSE, name = "Product", endpoints = {"list", "detail"})
 public class ProductResDto {

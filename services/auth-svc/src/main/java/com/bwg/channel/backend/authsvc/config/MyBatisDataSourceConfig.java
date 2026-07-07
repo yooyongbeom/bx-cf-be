@@ -10,4 +10,11 @@ import org.springframework.context.annotation.Configuration;
     sqlSessionFactoryRef = "mybatisMainSqlSessionFactory"
 )
 public class MyBatisDataSourceConfig extends MyBatisMainConfigBase {
+
+    /** auth-svc Mapper XML에서 사용할 DTO alias scan 패키지 */
+    @Override
+    protected String typeAliasesPackage() {
+        return "com.bwg.channel.backend.common.domain.dto,"
+                + "com.bwg.channel.backend.authsvc.domain.dto";
+    }
 }

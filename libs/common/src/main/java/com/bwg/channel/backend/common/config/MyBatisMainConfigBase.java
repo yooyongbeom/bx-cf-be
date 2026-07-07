@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
 
@@ -18,6 +19,11 @@ public abstract class MyBatisMainConfigBase {
     /** mapper XML 위치 — 기본값 classpath*:mappers/**\/*.xml, 필요시 오버라이드 */
     protected String mapperLocations() {
         return "classpath*:mappers/**/*.xml";
+    }
+
+    /** MyBatis type alias scan package. 필요한 서비스 설정에서 오버라이드한다. */
+    protected String typeAliasesPackage() {
+        return null;
     }
 
     @Bean(name = "mybatisMainDataSource")
@@ -34,6 +40,9 @@ public abstract class MyBatisMainConfigBase {
         sessionFactory.setMapperLocations(
             new PathMatchingResourcePatternResolver().getResources(mapperLocations())
         );
+        if (StringUtils.hasText(typeAliasesPackage())) {
+            sessionFactory.setTypeAliasesPackage(typeAliasesPackage());
+        }
         return sessionFactory.getObject();
     }
 

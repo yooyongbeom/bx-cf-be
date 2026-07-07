@@ -7,6 +7,7 @@ import com.bwg.channel.backend.authsvc.domain.entity.Role;
 import com.bwg.channel.backend.authsvc.domain.entity.User;
 import com.bwg.channel.backend.authsvc.repository.LoginRepository;
 import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.securitycommon.exception.BwgAuthException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -22,9 +23,10 @@ public class JpaLoginRepositoryAdapter implements LoginRepository {
     private final JpaLoginRepository jpaLoginRepository;
 
     @Override
-    public LoginResDto findByUsrIdAndUsrPwd(LoginReqDto paramDto) {
+    public LoginResDto findByUsrIdAndUsrPwd(ApiRequest<LoginReqDto> paramDto) {
         // 로그인 요청의 사용자 ID/PW 기준으로 JPA 사용자 엔티티 조회
-        User user = jpaLoginRepository.findByUsrIdAndUsrPwd(paramDto.getUsrId(), paramDto.getUsrPwd())
+        LoginReqDto data = paramDto.getData();
+        User user = jpaLoginRepository.findByUsrIdAndUsrPwd(data.getUsrId(), data.getUsrPwd())
                 .orElseThrow(() ->
                         new BwgAuthException.Builder()
                                 .code(CommonErrorCode.DB_NO_DATA_ERROR)

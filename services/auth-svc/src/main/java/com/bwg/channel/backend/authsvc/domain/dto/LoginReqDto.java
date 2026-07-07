@@ -5,12 +5,14 @@ import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.ibatis.type.Alias;
 
 /**
  * 로그인 요청 모델.
  *
  * <p>일반 로그인은 사용자 ID/PW를 DB 조회 조건으로 사용하고, ERP 로그인은 ERP 인증 전문 입력값으로 사용한다.</p>
  */
+@Alias("LoginReqDto")
 @Getter
 @Setter
 @ApiDto(type = ApiType.REQUEST, name = "Auth", endpoints = {"login", "erp-login"})

@@ -7,11 +7,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ProductCommonDtoInheritanceTests {
 
     @Test
-    void productListRequestUsesSearchRequestBaseClass() throws Exception {
-        Class<?> searchRequestType = Class.forName("com.bwg.channel.backend.common.domain.dto.BaseSearchReqDto");
-
-        assertThat(searchRequestType.isAssignableFrom(ProductReqDto.class))
-                .as("ProductReqDto should extend BaseSearchReqDto")
-                .isTrue();
+    void productRequestIsUsedAsApiRequestDataBlock() throws Exception {
+        assertThat(ProductReqDto.class.getSuperclass()).isEqualTo(Object.class);
+        assertThat(ProductReqDto.class.getDeclaredField("productNm")).isNotNull();
     }
 }

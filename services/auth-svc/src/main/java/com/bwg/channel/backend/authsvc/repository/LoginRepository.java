@@ -3,6 +3,7 @@ package com.bwg.channel.backend.authsvc.repository;
 import com.bwg.channel.backend.authsvc.domain.dto.LoginReqDto;
 import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 
 /**
  * 로그인 사용자 조회와 refresh token 저장을 추상화한 저장소 계약.
@@ -14,7 +15,7 @@ public interface LoginRepository {
      * @param loginReqDto 로그인 요청 파라미터
      * @return 토큰 정보를 제외한 사용자 정보
      */
-    LoginResDto findByUsrIdAndUsrPwd(LoginReqDto loginReqDto);
+    LoginResDto findByUsrIdAndUsrPwd(ApiRequest<LoginReqDto> loginReqDto);
 
     /**
      * 사용자별 refresh token 저장값을 갱신하거나 제거한다.

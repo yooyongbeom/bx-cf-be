@@ -6,6 +6,7 @@ import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.repository.LoginRepository;
 import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.util.ApiCallUtil;
 import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
 import com.bwg.channel.backend.securitycommon.exception.BwgAuthException;
@@ -42,9 +43,10 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
     private String erpLoginUrl;
 
     @Override
-    public LoginResDto findByUsrIdAndUsrPwd(LoginReqDto paramDto) {
+    public LoginResDto findByUsrIdAndUsrPwd(ApiRequest<LoginReqDto> paramDto) {
         // 로그인 요청 값을 ERP 인증 API 요청 전문으로 변환
         ErpLoginDto dto = makeErpDto(paramDto);
+        LoginReqDto data = paramDto.getData();
 
         // ERP API 호출에 필요한 기본 HTTP 헤더
         final String userAgent = "Mozila/5.0";
@@ -64,7 +66,7 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
             try {
                 // ERP 응답 JSON을 Map으로 파싱 후 로그인 결과 DTO로 변환
                 Map<String, Object> result = objectMapper.readValue(response.getBody(), new TypeReference<Map<String, Object>>() {});
-                return makeResult(paramDto.getUsrId(), result);
+                return makeResult(data.getUsrId(), result);
             } catch (JsonProcessingException ex) {
                 ex.printStackTrace();
                 Map<String, Object> details = new HashMap<>();
@@ -131,7 +133,8 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
                 .build();
     }
 
-    private ErpLoginDto makeErpDto(LoginReqDto paramDto) {
+    private ErpLoginDto makeErpDto(ApiRequest<LoginReqDto> paramDto) {
+        LoginReqDto data = paramDto.getData();
         // ERP 요청 전문 추적용 거래 UUID
         final String grwUUID = UUID.randomUUID().toString().replace("-", "");
 
@@ -151,8 +154,8 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
 
         // 로그인 요청 ID/PW를 ERP 입력 전문에 매핑
         ErpLoginDto.SSMAUTH00101In rqstData = new ErpLoginDto.SSMAUTH00101In();
-        rqstData.setId(paramDto.getUsrId());
-        rqstData.setPassword(paramDto.getUsrPwd());
+        rqstData.setId(data.getUsrId());
+        rqstData.setPassword(data.getUsrPwd());
 
         dto.setHeader(header);
         dto.setSSMAUTH00101In(rqstData);

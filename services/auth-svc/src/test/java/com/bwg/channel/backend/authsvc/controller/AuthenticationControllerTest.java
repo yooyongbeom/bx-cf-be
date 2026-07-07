@@ -2,13 +2,20 @@ package com.bwg.channel.backend.authsvc.controller;
 
 
 import com.bwg.channel.backend.authsvc.domain.dto.ErpLoginDto;
+import com.bwg.channel.backend.authsvc.domain.dto.LoginReqDto;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AuthenticationControllerTest {
@@ -43,5 +50,30 @@ class AuthenticationControllerTest {
         String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dto);
 
         System.out.println(json);
+    }
+
+    @Test
+    void loginRequestBodiesUseApiRequestWrapper() throws NoSuchMethodException {
+        assertLoginRequestBody(AuthenticationController.class.getDeclaredMethod(
+                "erpLogin",
+                ApiRequest.class,
+                jakarta.servlet.http.HttpServletResponse.class
+        ));
+        assertLoginRequestBody(AuthenticationController.class.getDeclaredMethod(
+                "login",
+                ApiRequest.class,
+                jakarta.servlet.http.HttpServletResponse.class
+        ));
+    }
+
+    private void assertLoginRequestBody(Method method) {
+        assertThat(method.getParameters()[0].getAnnotation(RequestBody.class)).isNotNull();
+        assertThat(method.getParameterTypes()[0]).isEqualTo(ApiRequest.class);
+
+        Type requestType = method.getGenericParameterTypes()[0];
+        assertThat(requestType).isInstanceOf(ParameterizedType.class);
+        ParameterizedType parameterizedType = (ParameterizedType) requestType;
+        assertThat(parameterizedType.getRawType()).isEqualTo(ApiRequest.class);
+        assertThat(parameterizedType.getActualTypeArguments()).containsExactly(LoginReqDto.class);
     }
 }

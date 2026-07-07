@@ -1,0 +1,64 @@
+package com.bwg.channel.backend.systemsvc.menu.repository.mybatis;
+
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuResDto;
+import com.bwg.channel.backend.systemsvc.menu.repository.MenuRepository;
+import com.bwg.channel.backend.systemsvc.menu.repository.mybatis.mapper.MenuMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+/**
+ * MenuRepository 계약을 MyBatis Mapper 호출로 연결하는 어댑터.
+ */
+@Repository("mybatisMenu")
+@RequiredArgsConstructor
+public class MybatisMenuRepositoryAdapter implements MenuRepository {
+
+    private final MenuMapper menuMapper;
+
+    @Override
+    public List<MenuResDto> findMenus() {
+        // MyBatis Mapper를 통해 전체 메뉴 목록 조회
+        return menuMapper.findMenus();
+    }
+
+    @Override
+    public int insertMenu(ApiRequest<MenuReqDto> paramDto) {
+        // MyBatis Mapper를 통해 메뉴 등록
+        return menuMapper.insertMenu(paramDto);
+    }
+
+    @Override
+    public int updateMenu(ApiRequest<MenuReqDto> paramDto) {
+        // MyBatis Mapper를 통해 메뉴 수정
+        return menuMapper.updateMenu(paramDto);
+    }
+
+    @Override
+    public List<MenuActionResDto> findMenuActions(Long menuId) {
+        // MyBatis Mapper를 통해 메뉴 기능 목록 조회
+        return menuMapper.findMenuActions(menuId);
+    }
+
+    @Override
+    public List<MenuResDto> findMenusByRoleId(Long roleId) {
+        // MyBatis Mapper를 통해 역할별 메뉴 목록 조회
+        return menuMapper.findMenusByRoleId(roleId);
+    }
+
+    @Override
+    public int deleteRoleMenus(Long roleId) {
+        // MyBatis Mapper를 통해 역할별 메뉴 권한 삭제
+        return menuMapper.deleteRoleMenus(roleId);
+    }
+
+    @Override
+    public int insertRoleMenu(Long roleId, Long menuId, String createdBy) {
+        // MyBatis Mapper를 통해 역할별 메뉴 권한 등록
+        return menuMapper.insertRoleMenu(roleId, menuId, createdBy);
+    }
+}

@@ -3,7 +3,7 @@
 <mapper namespace="com.bwg.channel.backend.productsvc.repository.mybatis.mapper.ProductMapper">
 
     <!-- 상품 DTO 매핑 정보 -->
-    <resultMap id="productDtoResult" type="com.bwg.channel.backend.productsvc.domain.dto.ProductResDto">
+    <resultMap id="productDtoResult" type="ProductResDto">
         <!-- productId: 상품 ID -->
         <id     property="productId"   column="product_id"/>
         <!-- productNm: 상품명 -->
@@ -19,7 +19,7 @@
     </resultMap>
 
     <!-- 상품 목록 조건 조회 -->
-    <select id="findAll" parameterType="com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto"
+    <select id="findAll" parameterType="ApiRequest"
             resultMap="productDtoResult">
         <![CDATA[
         /* productsvc.ProductMapper.findAll(상품 목록 조회) */
@@ -35,30 +35,30 @@
         <!-- 동적 검색 조건 -->
         <where>
             <!-- 사용 여부 조건 -->
-            <if test="useYn != null and useYn != ''">
+            <if test="filter != null and filter.useYn != null and filter.useYn != ''">
                 <![CDATA[
-                AND use_yn = #{useYn}
+                AND use_yn = #{filter.useYn}
                 ]]>
             </if>
             <!-- 상품명 부분 일치 조건 -->
-            <if test="productNm != null and productNm != ''">
+            <if test="data != null and data.productNm != null and data.productNm != ''">
                 <![CDATA[
-                AND product_nm LIKE '%' || #{productNm} || '%'
+                AND product_nm LIKE '%' || #{data.productNm} || '%'
                 ]]>
             </if>
             <!-- 통합 검색어 조건: searchType이 없으면 상품명/설명을 함께 검색한다. -->
-            <if test="keyword != null and keyword != ''">
+            <if test="filter != null and filter.keyword != null and filter.keyword != ''">
                 <choose>
-                    <when test="searchType == 'productDesc'">
+                    <when test="filter.searchType == 'productDesc'">
                         <![CDATA[
-                        AND product_desc LIKE '%' || #{keyword} || '%'
+                        AND product_desc LIKE '%' || #{filter.keyword} || '%'
                         ]]>
                     </when>
                     <otherwise>
                         <![CDATA[
                         AND (
-                            product_nm LIKE '%' || #{keyword} || '%'
-                            OR product_desc LIKE '%' || #{keyword} || '%'
+                            product_nm LIKE '%' || #{filter.keyword} || '%'
+                            OR product_desc LIKE '%' || #{filter.keyword} || '%'
                         )
                         ]]>
                     </otherwise>
@@ -67,42 +67,42 @@
         </where>
         <!-- 정렬 조건: 허용된 컬럼/방향만 분기 처리한다. -->
         <choose>
-            <when test="sort == 'productId,asc'">
+            <when test="sort != null and sort.sort == 'productId,asc'">
                 <![CDATA[
                 ORDER BY product_id ASC
                 ]]>
             </when>
-            <when test="sort == 'productId,desc'">
+            <when test="sort != null and sort.sort == 'productId,desc'">
                 <![CDATA[
                 ORDER BY product_id DESC
                 ]]>
             </when>
-            <when test="sort == 'productNm,asc'">
+            <when test="sort != null and sort.sort == 'productNm,asc'">
                 <![CDATA[
                 ORDER BY product_nm ASC, product_id DESC
                 ]]>
             </when>
-            <when test="sort == 'productNm,desc'">
+            <when test="sort != null and sort.sort == 'productNm,desc'">
                 <![CDATA[
                 ORDER BY product_nm DESC, product_id DESC
                 ]]>
             </when>
-            <when test="sort == 'price,asc'">
+            <when test="sort != null and sort.sort == 'price,asc'">
                 <![CDATA[
                 ORDER BY price ASC, product_id DESC
                 ]]>
             </when>
-            <when test="sort == 'price,desc'">
+            <when test="sort != null and sort.sort == 'price,desc'">
                 <![CDATA[
                 ORDER BY price DESC, product_id DESC
                 ]]>
             </when>
-            <when test="sort == 'stockQty,asc'">
+            <when test="sort != null and sort.sort == 'stockQty,asc'">
                 <![CDATA[
                 ORDER BY stock_qty ASC, product_id DESC
                 ]]>
             </when>
-            <when test="sort == 'stockQty,desc'">
+            <when test="sort != null and sort.sort == 'stockQty,desc'">
                 <![CDATA[
                 ORDER BY stock_qty DESC, product_id DESC
                 ]]>
@@ -113,14 +113,14 @@
                 ]]>
             </otherwise>
         </choose>
-        <if test="size != null and size > 0">
+        <if test="pagination != null and pagination.size != null and pagination.size > 0">
             <![CDATA[
-            LIMIT #{size}
+            LIMIT #{pagination.size}
             ]]>
         </if>
-        <if test="offset != null">
+        <if test="pagination != null and pagination.offset != null">
             <![CDATA[
-            OFFSET #{offset}
+            OFFSET #{pagination.offset}
             ]]>
         </if>
     </select>

@@ -1,5 +1,6 @@
 package com.bwg.channel.backend.productsvc.repository.mybatis;
 
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.productsvc.constants.ProductErrorCode;
 import com.bwg.channel.backend.productsvc.exception.BwgProductException;
 import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
@@ -26,7 +27,7 @@ public class MybatisProductRepositoryAdapter implements ProductRepository {
      * MyBatis 기반 상품 목록 조회
      */
     @Override
-    public List<ProductResDto> findAll(ProductReqDto paramDto) {
+    public List<ProductResDto> findAll(ApiRequest<ProductReqDto> paramDto) {
         return productMapper.findAll(paramDto);
     }
 

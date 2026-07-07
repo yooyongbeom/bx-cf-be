@@ -10,33 +10,65 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CommonDtoContractTests {
 
     @Test
-    void baseAuditRequestDtoDefinesAuditWriters() throws Exception {
-        Class<?> dtoType = Class.forName("com.bwg.channel.backend.common.domain.dto.BaseAuditReqDto");
+    void apiRequestDefinesSeparatedRequestBlocks() throws Exception {
+        Class<?> dtoType = Class.forName("com.bwg.channel.backend.common.domain.dto.ApiRequest");
 
-        assertApiField(dtoType, "createdBy");
-        assertApiField(dtoType, "updatedBy");
+        assertApiField(dtoType, "pagination");
+        assertApiField(dtoType, "filter");
+        assertApiField(dtoType, "sort");
+        assertApiField(dtoType, "data");
     }
 
     @Test
-    void baseAuditResponseDtoDefinesAuditWritersAndTimestamps() throws Exception {
-        Class<?> dtoType = Class.forName("com.bwg.channel.backend.common.domain.dto.BaseAuditResDto");
+    void paginationRequestDtoDefinesOnlyRequestPagingFields() throws Exception {
+        Class<?> dtoType = Class.forName("com.bwg.channel.backend.common.domain.dto.PaginationReqDto");
 
-        assertApiField(dtoType, "createdBy");
-        assertApiField(dtoType, "updatedBy");
-        assertApiField(dtoType, "createdAt");
-        assertApiField(dtoType, "updatedAt");
-    }
-
-    @Test
-    void baseSearchRequestDtoDefinesCommonSearchFields() throws Exception {
-        Class<?> dtoType = Class.forName("com.bwg.channel.backend.common.domain.dto.BaseSearchReqDto");
-
-        assertApiField(dtoType, "keyword");
-        assertApiField(dtoType, "searchType");
-        assertApiField(dtoType, "useYn");
         assertApiField(dtoType, "page");
         assertApiField(dtoType, "size");
-        assertApiField(dtoType, "sort");
+        assertThat(dtoType.getDeclaredFields())
+                .extracting("name")
+                .doesNotContain("totalCount", "totalPages");
+    }
+
+    @Test
+    void filterAndSortRequestDtosDefineCommonBlocks() throws Exception {
+        Class<?> filterType = Class.forName("com.bwg.channel.backend.common.domain.dto.FilterReqDto");
+        Class<?> sortType = Class.forName("com.bwg.channel.backend.common.domain.dto.SortReqDto");
+
+        assertApiField(filterType, "keyword");
+        assertApiField(filterType, "searchType");
+        assertApiField(filterType, "useYn");
+        assertApiField(sortType, "sort");
+    }
+
+    @Test
+    void paginationResponseDtoDefinesPagingResultFields() throws Exception {
+        Class<?> dtoType = Class.forName("com.bwg.channel.backend.common.domain.dto.PaginationResDto");
+
+        assertApiField(dtoType, "page");
+        assertApiField(dtoType, "size");
+        assertApiField(dtoType, "totalCount");
+        assertApiField(dtoType, "totalPages");
+    }
+
+    @Test
+    void apiResponseCanCarryListMetadata() throws Exception {
+        Class<?> paginationType = Class.forName("com.bwg.channel.backend.common.domain.dto.PaginationResDto");
+        Object pagination = paginationType.getDeclaredConstructor().newInstance();
+        paginationType.getMethod("setPage", Integer.class).invoke(pagination, 1);
+        paginationType.getMethod("setSize", Integer.class).invoke(pagination, 20);
+        paginationType.getMethod("setTotalCount", Long.class).invoke(pagination, 100L);
+        paginationType.getMethod("setTotalPages", Integer.class).invoke(pagination, 5);
+
+        Object response = ApiResponse.class
+                .getMethod("success", Object.class, paginationType)
+                .invoke(null, "payload", pagination);
+
+        assertApiField(ApiResponse.class, "pagination");
+        assertThat(Arrays.stream(ApiResponse.class.getDeclaredFields()))
+                .extracting("name")
+                .doesNotContain("sort");
+        assertThat(ApiResponse.class.getMethod("getPagination").invoke(response)).isSameAs(pagination);
     }
 
     private static void assertApiField(Class<?> dtoType, String fieldName) throws Exception {

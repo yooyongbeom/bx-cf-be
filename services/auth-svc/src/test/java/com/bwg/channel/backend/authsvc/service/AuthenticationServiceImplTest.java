@@ -5,6 +5,7 @@ import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.repository.LoginRepository;
 import com.bwg.channel.backend.authsvc.repository.jpa.JpaLoginRepository;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.securitycommon.util.JwtUtil;
 import com.bwg.channel.backend.sessioncontext.domain.SessionContext;
 import com.bwg.channel.backend.sessioncontext.service.SessionContextService;
@@ -45,7 +46,7 @@ class AuthenticationServiceImplTest {
         loginUser.setUsrId("hong.gildong");
         loginUser.setRoles(List.of("USER", "MANAGER"));
 
-        when(loginRepository.findByUsrIdAndUsrPwd(any(LoginReqDto.class))).thenReturn(loginUser);
+        when(loginRepository.findByUsrIdAndUsrPwd(any())).thenReturn(loginUser);
         when(jwtUtil.createAccessToken(eq("hong.gildong"), eq(List.of("USER", "MANAGER")), anyString()))
                 .thenReturn("access.jwt.token");
         when(jwtUtil.createRefreshToken("hong.gildong")).thenReturn("refresh.jwt.token");
@@ -54,7 +55,7 @@ class AuthenticationServiceImplTest {
         when(jwtUtil.getExpirationDateFromToken("refresh.jwt.token"))
                 .thenReturn(new Date(System.currentTimeMillis() + Duration.ofDays(7).toMillis()));
 
-        authenticationService.login(new LoginReqDto(), "mybatisLogin");
+        authenticationService.login(apiRequest(new LoginReqDto()), "mybatisLogin");
 
         ArgumentCaptor<SessionContext> contextCaptor = ArgumentCaptor.forClass(SessionContext.class);
         ArgumentCaptor<Duration> ttlCaptor = ArgumentCaptor.forClass(Duration.class);
@@ -145,5 +146,11 @@ class AuthenticationServiceImplTest {
         assertThat(logoutUserCaptor.getValue().getRefreshToken()).isNull();
         assertThat(logoutUserCaptor.getValue().getRefreshTokenExpiresAt()).isNull();
         verify(sessionContextService).deleteBySessionId("session-123");
+    }
+
+    private ApiRequest<LoginReqDto> apiRequest(LoginReqDto data) {
+        ApiRequest<LoginReqDto> request = new ApiRequest<>();
+        request.setData(data);
+        return request;
     }
 }

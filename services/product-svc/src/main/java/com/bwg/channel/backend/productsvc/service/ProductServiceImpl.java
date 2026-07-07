@@ -1,6 +1,9 @@
 package com.bwg.channel.backend.productsvc.service;
 
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
+import com.bwg.channel.backend.common.domain.dto.PaginationReqDto;
+import com.bwg.channel.backend.common.domain.dto.PaginationResDto;
 import com.bwg.channel.backend.productsvc.constants.ProductErrorCode;
 import com.bwg.channel.backend.productsvc.exception.BwgProductException;
 import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
@@ -26,12 +29,12 @@ public class ProductServiceImpl implements ProductService {
      * 상품 목록 조회
      */
     @Override
-    public ApiResponse<List<ProductResDto>> getProductList(ProductReqDto paramDto, String type) {
+    public ApiResponse<List<ProductResDto>> getProductList(ApiRequest<ProductReqDto> paramDto, String type) {
         // 저장소 전략 선택
         ProductRepository repository = getRepository(type);
         // 선택된 저장소 기준 상품 목록 조회
         List<ProductResDto> result = repository.findAll(paramDto);
-        return ApiResponse.success(result);
+        return ApiResponse.success(result, toPagination(result, paramDto));
     }
 
     /**
@@ -62,5 +65,26 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return repository;
+    }
+
+    private PaginationResDto toPagination(List<ProductResDto> result, ApiRequest<ProductReqDto> paramDto) {
+        if (paramDto == null || paramDto.getPagination() == null) {
+            return null;
+        }
+
+        PaginationReqDto requestPagination = paramDto.getPagination();
+        PaginationResDto responsePagination = new PaginationResDto();
+        responsePagination.setPage(requestPagination.getPage());
+        responsePagination.setSize(requestPagination.getSize());
+        responsePagination.setTotalCount((long) result.size());
+        responsePagination.setTotalPages(calculateTotalPages(result.size(), requestPagination.getSize()));
+        return responsePagination;
+    }
+
+    private Integer calculateTotalPages(int totalCount, Integer size) {
+        if (size == null || size < 1) {
+            return null;
+        }
+        return (int) Math.ceil((double) totalCount / size);
     }
 }

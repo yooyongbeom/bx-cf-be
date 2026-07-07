@@ -1,6 +1,7 @@
 package com.bwg.channel.backend.productsvc.controller;
 
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
 import com.bwg.channel.backend.productsvc.domain.dto.ProductResDto;
 import com.bwg.channel.backend.productsvc.service.ProductService;
@@ -14,7 +15,7 @@ import java.util.List;
 
 /**
  * 상품 목록/단건 조회 API 컨트롤러.
- * <p>API 경계에서 요청 {@link ProductReqDto} / 응답 {@link ProductResDto}를 그대로 사용한다.
+ * <p>API 경계에서 공통 요청 블록과 상품 요청 데이터 {@link ProductReqDto}를 함께 사용한다.
  */
 @Tag(name = "상품")
 @RestController
@@ -30,7 +31,7 @@ public class ProductController {
      */
     @Operation(summary = "상품 목록 조회", description = "조건에 맞는 상품 목록을 조회한다.")
     @PostMapping("/list")
-    public ApiResponse<List<ProductResDto>> getProductList(@RequestBody ProductReqDto req) {
+    public ApiResponse<List<ProductResDto>> getProductList(@RequestBody ApiRequest<ProductReqDto> req) {
         return productService.getProductList(req, REPOSITORY_TYPE);
     }
 

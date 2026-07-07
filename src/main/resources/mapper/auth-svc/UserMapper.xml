@@ -3,7 +3,7 @@
 <mapper namespace="com.bwg.channel.backend.authsvc.repository.mybatis.mapper.UserMapper">
 
     <!-- 로그인 사용자와 역할 목록 매핑 (응답 DTO에는 비밀번호를 담지 않는다) -->
-    <resultMap id="loginResWithRoles" type="com.bwg.channel.backend.authsvc.domain.dto.LoginResDto">
+    <resultMap id="loginResWithRoles" type="LoginResDto">
         <!-- usrId: 사용자 ID, 역할 collection 그룹핑 기준 -->
         <id property="usrId" column="USER_ID"/>
         <!-- usrNm: 사용자명 -->
@@ -58,7 +58,7 @@
     </select>
 
     <!-- 로그인/토큰 재발급 refresh token 갱신 -->
-    <update id="updateRefreshToken" parameterType="com.bwg.channel.backend.authsvc.domain.dto.LoginResDto">
+    <update id="updateRefreshToken" parameterType="LoginResDto">
         <![CDATA[
         /* authsvc.UserMapper.updateRefreshToken(Refresh Token 갱신) */
         UPDATE USERS

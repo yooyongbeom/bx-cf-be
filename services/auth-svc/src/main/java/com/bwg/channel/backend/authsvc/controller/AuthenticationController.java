@@ -6,6 +6,7 @@ import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.service.AuthenticationService;
 import com.bwg.channel.backend.authsvc.token.cookie.RefreshTokenCookieSupport;
 import com.bwg.channel.backend.common.config.OpenApiSupport;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
 import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
@@ -40,7 +41,7 @@ public class AuthenticationController {
      */
     @Operation(summary = "ERP 로그인", description = "ERP 연동 계정으로 로그인하고 토큰을 발급한다.")
     @PostMapping("erp-login")
-    public ApiResponse<LoginResDto> erpLogin(@RequestBody LoginReqDto req, HttpServletResponse response) {
+    public ApiResponse<LoginResDto> erpLogin(@RequestBody ApiRequest<LoginReqDto> req, HttpServletResponse response) {
         return writeRefreshCookie(doLogin(req, "apiLogin"), response);
     }
 
@@ -49,21 +50,22 @@ public class AuthenticationController {
      */
     @Operation(summary = "일반 로그인", description = "사용자 ID와 비밀번호로 로그인하고 토큰을 발급한다.")
     @PostMapping("login")
-    public ApiResponse<LoginResDto> login(@RequestBody LoginReqDto req, HttpServletResponse response) {
+    public ApiResponse<LoginResDto> login(@RequestBody ApiRequest<LoginReqDto> req, HttpServletResponse response) {
         return writeRefreshCookie(doLogin(req, "mybatisLogin"), response);
     }
 
     /**
      * 로그인 필수값을 검증한 뒤 지정된 저장소 type으로 인증 서비스를 호출한다.
      */
-    private ApiResponse<LoginResDto> doLogin(LoginReqDto req, String type) {
+    private ApiResponse<LoginResDto> doLogin(ApiRequest<LoginReqDto> req, String type) {
         // 필수값 누락 시 인증 서비스 조회 전에 공통 실패 응답 반환
         final String requiredChkCode = AuthErrorCode.REQUIRED_VALUE_MISSING.getCode();
         final String requiredChkMsg = AuthErrorCode.REQUIRED_VALUE_MISSING.getMsg();
-        if (StringUtils.isBlank(req.getUsrId())) {
+        LoginReqDto data = req == null ? null : req.getData();
+        if (data == null || StringUtils.isBlank(data.getUsrId())) {
             return ApiResponse.fail(requiredChkCode, requiredChkMsg + " (아이디)");
         }
-        if (StringUtils.isBlank(req.getUsrPwd())) {
+        if (StringUtils.isBlank(data.getUsrPwd())) {
             return ApiResponse.fail(requiredChkCode, requiredChkMsg + " (비밀번호)");
         }
 

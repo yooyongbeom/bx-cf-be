@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import org.apache.ibatis.type.Alias;
 
 import java.util.Map;
+import org.apache.ibatis.type.Alias;
 
+@Alias("ErpLoginDto")
 @Data
 public class ErpLoginDto {
     private Header header;

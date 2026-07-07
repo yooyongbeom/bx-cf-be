@@ -1,9 +1,11 @@
 package com.bwg.channel.backend.systemsvc.service;
 
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeGroupResDto;
-import com.bwg.channel.backend.systemsvc.domain.dto.CommonCodeResDto;
-import com.bwg.channel.backend.systemsvc.repository.SystemRepository;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.repository.CommonCodeRepository;
+import com.bwg.channel.backend.systemsvc.commoncode.service.CommonCodeService;
+import com.bwg.channel.backend.systemsvc.commoncode.service.CommonCodeServiceImpl;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,8 +19,8 @@ import static org.mockito.Mockito.when;
  */
 class CommonCodeServiceTests {
 
-    private final SystemRepository systemRepository = mock(SystemRepository.class);
-    private final CommonCodeService commonCodeService = new CommonCodeServiceImpl(systemRepository);
+    private final CommonCodeRepository commonCodeRepository = mock(CommonCodeRepository.class);
+    private final CommonCodeService commonCodeService = new CommonCodeServiceImpl(commonCodeRepository);
 
     @Test
     void returnsCommonCodeGroups() {
@@ -26,13 +28,17 @@ class CommonCodeServiceTests {
         group.setGroupCd("USE_YN");
         group.setGroupNm("사용 여부");
 
-        when(systemRepository.findCommonCodeGroups()).thenReturn(List.of(group));
+        when(commonCodeRepository.findCommonCodeGroups()).thenReturn(List.of(group));
 
         ApiResponse<List<CommonCodeGroupResDto>> response = commonCodeService.getCommonCodeGroups();
 
         assertThat(response.isSuccess()).isTrue();
         assertThat(response.getPayload()).extracting(CommonCodeGroupResDto::getGroupCd)
                 .containsExactly("USE_YN");
+        assertThat(response.getPagination().getPage()).isEqualTo(1);
+        assertThat(response.getPagination().getSize()).isEqualTo(1);
+        assertThat(response.getPagination().getTotalCount()).isEqualTo(1L);
+        assertThat(response.getPagination().getTotalPages()).isEqualTo(1);
     }
 
     @Test
@@ -42,12 +48,16 @@ class CommonCodeServiceTests {
         code.setCode("Y");
         code.setCodeNm("사용");
 
-        when(systemRepository.findCommonCodes("USE_YN")).thenReturn(List.of(code));
+        when(commonCodeRepository.findCommonCodes("USE_YN")).thenReturn(List.of(code));
 
         ApiResponse<List<CommonCodeResDto>> response = commonCodeService.getCommonCodes("USE_YN");
 
         assertThat(response.isSuccess()).isTrue();
         assertThat(response.getPayload()).extracting(CommonCodeResDto::getCode)
                 .containsExactly("Y");
+        assertThat(response.getPagination().getPage()).isEqualTo(1);
+        assertThat(response.getPagination().getSize()).isEqualTo(1);
+        assertThat(response.getPagination().getTotalCount()).isEqualTo(1L);
+        assertThat(response.getPagination().getTotalPages()).isEqualTo(1);
     }
 }

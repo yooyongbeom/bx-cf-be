@@ -1,5 +1,6 @@
 package com.bwg.channel.backend.productsvc.repository;
 
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
 import com.bwg.channel.backend.productsvc.domain.dto.ProductResDto;
 
@@ -13,7 +14,7 @@ public interface ProductRepository {
     /**
      * 상품 목록 조회
      */
-    List<ProductResDto> findAll(ProductReqDto paramDto);
+    List<ProductResDto> findAll(ApiRequest<ProductReqDto> paramDto);
 
     /**
      * 상품 단건 조회

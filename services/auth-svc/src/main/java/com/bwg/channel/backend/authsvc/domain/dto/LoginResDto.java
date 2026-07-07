@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.apache.ibatis.type.Alias;
+
 import java.util.List;
 
 /**
@@ -14,6 +16,7 @@ import java.util.List;
  *
  * <p>access token은 응답 본문으로 전달하고, refresh token은 컨트롤러에서 HttpOnly 쿠키로만 전달한다.</p>
  */
+@Alias("LoginResDto")
 @Getter
 @Setter
 @ApiDto(type = ApiType.RESPONSE, name = "Auth", endpoints = {"login", "erp-login", "refresh-token"})
