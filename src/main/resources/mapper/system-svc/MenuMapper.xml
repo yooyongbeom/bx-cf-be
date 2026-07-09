@@ -84,6 +84,9 @@
             ,use_yn
             ,remark
             ,created_by
+            ,created_at
+            ,updated_by
+            ,updated_at
         )
         VALUES (
             #{data.parentMenuId}
@@ -99,6 +102,9 @@
             ,COALESCE(#{data.useYn}, 'Y')
             ,#{data.remark}
             ,#{data.createdBy}
+            ,current_timestamp
+            ,#{data.createdBy}
+            ,current_timestamp
         )
         ]]>
     </insert>
@@ -196,11 +202,17 @@
             role_id
             ,menu_id
             ,created_by
+            ,created_at
+            ,updated_by
+            ,updated_at
         )
         VALUES (
             #{roleId}
             ,#{menuId}
             ,#{createdBy}
+            ,current_timestamp
+            ,#{createdBy}
+            ,current_timestamp
         )
         ]]>
     </insert>
@@ -218,6 +230,10 @@
             ,change_summary
             ,changed_at
             ,changed_by
+            ,created_by
+            ,created_at
+            ,updated_by
+            ,updated_at
         )
         SELECT
             ref_type
@@ -235,6 +251,10 @@
             ,#{changeSummary}
             ,current_timestamp
             ,#{changedBy}
+            ,#{changedBy}
+            ,current_timestamp
+            ,#{changedBy}
+            ,current_timestamp
         FROM reference_data_versions
         WHERE ref_type = #{refType}
         ]]>

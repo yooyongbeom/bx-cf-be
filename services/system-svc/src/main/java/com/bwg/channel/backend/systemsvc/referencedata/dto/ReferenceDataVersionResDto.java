@@ -31,4 +31,16 @@ public class ReferenceDataVersionResDto {
 
     @ApiField(description = "비고", example = "메뉴 샘플 데이터 최초 버전", optional = {"latest"})
     private String remark;
+
+    @ApiField(description = "생성자 ID", example = "system", optional = {"latest"})
+    private String createdBy;
+
+    @ApiField(description = "수정자 ID", example = "system", optional = {"latest"})
+    private String updatedBy;
+
+    @ApiField(description = "생성 일시", example = "2026-06-25T16:01:14+09:00", optional = {"latest"})
+    private OffsetDateTime createdAt;
+
+    @ApiField(description = "수정 일시", example = "2026-06-25T16:01:14+09:00", optional = {"latest"})
+    private OffsetDateTime updatedAt;
 }
