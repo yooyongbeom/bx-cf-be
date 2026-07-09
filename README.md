@@ -1,6 +1,6 @@
 # BX-CF-BE
 
-BWG 채널 백엔드 프레임워크 프로젝트. Java 21, Spring Boot 3.3.4, Spring Cloud Gateway, Eureka Discovery, Gradle 멀티모듈 기반. 인증, 상품, 기준정보 서비스를 관심사별로 분리.
+BWG 채널 파운데이션(Channel Foundation) 백엔드 프로젝트. Java 21, Spring Boot 3.3.4, Spring Cloud Gateway, Eureka Discovery, Gradle 멀티모듈 기반. 인증, 상품, 기준정보 서비스를 관심사별로 분리.
 
 ## 현재 구조
 
@@ -75,6 +75,37 @@ Gateway는 Eureka에 등록된 서비스 이름으로 `lb://...` 라우팅. Gate
 | --- | --- | --- | --- |
 | local | `http://localhost:18761` | `http://localhost:18081/swagger-ui.html` | `jdbc:postgresql://192.168.110.217:5432/bxcfdb` |
 | dev | `http://192.168.110.217:18761` | `http://192.168.110.217:18081/swagger-ui.html` | `jdbc:postgresql://192.168.110.217:5432/bxcfdb` |
+
+## DB 연결 정보
+
+현재 `local`, `dev` profile은 동일한 PostgreSQL DB를 사용.
+
+| 항목 | 값 |
+| --- | --- |
+| DBMS | PostgreSQL |
+| Host | `192.168.110.217` |
+| Port | `5432` |
+| Database | `bxcfdb` |
+| JDBC URL | `jdbc:postgresql://192.168.110.217:5432/bxcfdb` |
+| Driver | `org.postgresql.Driver` |
+| Username | `bxcf` |
+| Password | `1111` |
+
+직접 접속 예.
+
+```bash
+PGPASSWORD=1111 psql -h 192.168.110.217 -p 5432 -U bxcf -d bxcfdb
+```
+
+서비스별 datasource 설정 위치.
+
+| 서비스 | local 설정 | dev 설정 | datasource |
+| --- | --- | --- | --- |
+| `auth-svc` | `src/main/resources/config/auth-svc/local/application-local.yml` | `src/main/resources/config/auth-svc/dev/application-dev.yml` | `jpa-main`, `mybatis-main` |
+| `product-svc` | `src/main/resources/config/product-svc/local/application-local.yml` | `src/main/resources/config/product-svc/dev/application-dev.yml` | `jpa-main`, `mybatis-main` |
+| `system-svc` | `src/main/resources/config/system-svc/local/application-local.yml` | `src/main/resources/config/system-svc/dev/application-dev.yml` | `mybatis-main` |
+
+운영/외부 배포 환경에서는 DB 계정과 비밀번호를 README나 profile 설정에 직접 두지 말고 환경변수, Vault, Kubernetes Secret 같은 외부 Secret 저장소로 분리 권장.
 
 ## Gateway 라우팅
 
