@@ -6,7 +6,10 @@ import lombok.Data;
 import org.apache.ibatis.type.Alias;
 
 /**
- * 요청 본문을 관심사별 블록으로 분리하기 위한 공통 요청 모델.
+ * 요청 본문을 분리하기 위한 공통 요청 모델.
+ * <p>
+ * 목록 조회는 {@code pagination/filter/sort}를, 생성·수정 계열은 {@code data}를 중심으로 사용한다.
+ * TypeBridge는 이 구조를 기준으로 엔드포인트별 Request 스키마를 생성한다.
  */
 @Alias("ApiRequest")
 @Data

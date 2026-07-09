@@ -1,6 +1,7 @@
 package com.bwg.channel.backend.common.openapi.typebridge.customizer;
 
-import com.bwg.channel.backend.common.config.ResponseWrapperSchemaCustomizer;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
+import com.bwg.channel.backend.common.openapi.customizer.ResponseWrapperSchemaCustomizer;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.ArraySchema;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import org.springframework.web.method.HandlerMethod;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -233,12 +236,76 @@ class TypeBridgeOpenApiCustomizerTests {
 
     /** REQUEST 타입 DTO는 엔드포인트별 {Name}{Endpoint}Request 스키마를 생성한다. */
     @Test
-    void requestTypeGeneratesEndpointRequestSchema() {
+    void requestTypeGeneratesApiRequestWrapperSchema() {
         OpenAPI openApi = new OpenAPI();
         new TypeBridgeOpenApiCustomizer().customise(openApi);
 
         Schema<?> listReq = openApi.getComponents().getSchemas().get("SampleListRequest");
-        assertThat(listReq.getProperties().keySet()).containsExactly("name");
+        assertThat(listReq.getProperties().keySet())
+                .containsExactly("pagination", "filter", "sort", "data");
+        Schema<?> data = (Schema<?>) listReq.getProperties().get("data");
+        assertThat(data.getProperties().keySet()).containsExactly("name");
+    }
+
+    @Test
+    void nonListApiRequestWrapperOnlyShowsEndpointDataAndExample() {
+        OpenAPI openApi = new OpenAPI();
+        new TypeBridgeOpenApiCustomizer().customise(openApi);
+
+        Schema<?> loginReq = openApi.getComponents().getSchemas().get("WrappedLoginRequest");
+
+        assertThat(loginReq.getProperties().keySet()).containsExactly("data");
+        Schema<?> data = (Schema<?>) loginReq.getProperties().get("data");
+        assertThat(data.getProperties().keySet()).containsExactly("usrId", "usrPwd");
+        assertThat(loginReq.getExample()).isEqualTo(Map.of(
+                "data", Map.of(
+                        "usrId", "sample-user",
+                        "usrPwd", "string"
+                )
+        ));
+    }
+
+    @Test
+    void operationCustomizerUsesApiRequestGenericForRequestBodySchema() throws NoSuchMethodException {
+        TypeBridgeOperationCustomizer customizer = new TypeBridgeOperationCustomizer();
+        Operation operation = new Operation()
+                .requestBody(new RequestBody().content(new Content().addMediaType("application/json", new MediaType()
+                        .schema(new Schema<>().$ref("#/components/schemas/ApiRequestWrappedReqDto")))));
+        HandlerMethod handlerMethod = new HandlerMethod(
+                new WrappedReqController(),
+                WrappedReqController.class.getDeclaredMethod("login", ApiRequest.class));
+
+        customizer.customize(operation, handlerMethod);
+
+        MediaType mediaType = operation.getRequestBody().getContent().get("application/json");
+        assertThat(mediaType.getSchema().get$ref()).isEqualTo("#/components/schemas/WrappedLoginRequest");
+        assertThat(mediaType.getExample()).isEqualTo(Map.of(
+                "data", Map.of(
+                        "usrId", "sample-user",
+                        "usrPwd", "string"
+                )
+        ));
+    }
+
+    @Test
+    void responseWrapperCleanupHidesUnreferencedRawAndCommonSchemas() {
+        OpenAPI openApi = new OpenAPI();
+        openApi.schema("ApiRequestWrappedReqDto", new Schema<>().type("object"));
+        openApi.schema("WrappedReqDto", new Schema<>().type("object"));
+        openApi.schema("FilterReqDto", new Schema<>().type("object"));
+        openApi.schema("PaginationReqDto", new Schema<>().type("object"));
+        openApi.schema("SortReqDto", new Schema<>().type("object"));
+        openApi.schema("WrappedLoginRequest", new Schema<>().type("object"));
+        openApi.setPaths(new Paths().addPathItem("/login", new PathItem().post(new Operation()
+                .requestBody(new RequestBody().content(new Content().addMediaType("application/json", new MediaType()
+                        .schema(new Schema<>().$ref("#/components/schemas/WrappedLoginRequest"))))))));
+
+        new ResponseWrapperSchemaCustomizer().customise(openApi);
+
+        assertThat(openApi.getComponents().getSchemas())
+                .containsKey("WrappedLoginRequest")
+                .doesNotContainKeys("ApiRequestWrappedReqDto", "WrappedReqDto",
+                        "FilterReqDto", "PaginationReqDto", "SortReqDto");
     }
 
     /** OperationCustomizer는 RESPONSE 타입 반환에 대해 엔드포인트별 응답 스키마를 참조하도록 교체한다. */
@@ -263,6 +330,12 @@ class TypeBridgeOpenApiCustomizerTests {
         @PostMapping("/detail/{id}")
         com.bwg.channel.backend.common.domain.dto.ApiResponse<SampleResDto> detail() {
             return null;
+        }
+    }
+
+    static class WrappedReqController {
+        @PostMapping("/login")
+        void login(@org.springframework.web.bind.annotation.RequestBody ApiRequest<WrappedReqDto> req) {
         }
     }
 

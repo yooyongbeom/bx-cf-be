@@ -6,7 +6,7 @@ import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.service.AuthenticationService;
 import com.bwg.channel.backend.authsvc.token.cookie.RefreshTokenCookieProperties;
 import com.bwg.channel.backend.authsvc.token.cookie.RefreshTokenCookieSupport;
-import com.bwg.channel.backend.common.aop.BwgAuthExceptionAdvice;
+import com.bwg.channel.backend.common.aop.GlobalRestExceptionAdvice;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
@@ -41,7 +41,7 @@ class AuthenticationCookieControllerTest {
                     authenticationService,
                     new RefreshTokenCookieSupport(new RefreshTokenCookieProperties())
             ))
-            .setControllerAdvice(new BwgAuthExceptionAdvice())
+            .setControllerAdvice(new GlobalRestExceptionAdvice())
             .build();
     private final ObjectMapper objectMapper = new ObjectMapper();
 

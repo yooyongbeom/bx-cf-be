@@ -1,5 +1,6 @@
 package com.bwg.channel.backend.common.openapi.typebridge.customizer;
 
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
@@ -66,7 +67,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
                 case REQUEST -> {
                     for (String endpoint : apiDto.endpoints()) {
                         components.getSchemas().put(baseName + toPascalCase(endpoint) + "Request",
-                                buildEndpointSchema(clazz, endpoint));
+                                buildApiRequestSchema(clazz, endpoint));
                     }
                 }
                 // 신규: 응답 전용 DTO → 엔드포인트별 Response 스키마 (필수/노출 엔드포인트별 제어)
@@ -95,6 +96,45 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
 
     // ── 스키마 빌드 ────────────────────────────────────────────────────────
 
+    private Schema<?> buildApiRequestSchema(Class<?> dataClass, String endpoint) {
+        Schema<Object> schema = new Schema<>();
+        schema.setType("object");
+
+        Map<String, Schema> properties = new LinkedHashMap<>();
+        List<String> requiredList = new ArrayList<>();
+
+        for (Field field : getAllFields(ApiRequest.class)) {
+            ApiField af = field.getAnnotation(ApiField.class);
+            if (af == null || af.hidden()) continue;
+
+            if ("data".equals(field.getName())) {
+                // ApiRequest<T>의 data 자리에 실제 요청 DTO의 엔드포인트별 스키마를 끼워 넣는다.
+                Schema<?> dataSchema = buildEndpointSchema(dataClass, endpoint);
+                if (dataSchema.getProperties() == null || dataSchema.getProperties().isEmpty()) continue;
+
+                properties.put("data", dataSchema);
+                if (dataSchema.getRequired() != null && !dataSchema.getRequired().isEmpty()) {
+                    requiredList.add("data");
+                }
+                continue;
+            }
+
+            if (Arrays.asList(af.exclude()).contains(endpoint)) continue;
+
+            boolean isRequired = Arrays.asList(af.required()).contains(endpoint);
+            boolean isOptional = Arrays.asList(af.optional()).contains(endpoint);
+            if (!isRequired && !isOptional) continue;
+
+            properties.put(field.getName(), toFieldSchema(field, af, endpoint));
+            if (isRequired) requiredList.add(field.getName());
+        }
+
+        schema.setProperties(properties);
+        if (!requiredList.isEmpty()) schema.setRequired(requiredList);
+        schema.setExample(exampleFor(schema));
+        return schema;
+    }
+
     private Schema<?> buildRequestSchema(Class<?> clazz, String endpoint) {
         Schema<Object> schema = new Schema<>();
         schema.setType("object");
@@ -105,6 +145,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
         for (Field field : getAllFields(clazz)) {
             ApiField af = field.getAnnotation(ApiField.class);
             if (af == null || af.hidden()) continue;
+            // LEGACY DTO는 요청/응답 겸용이므로 responseOnly 필드는 요청 스키마에서 제외한다.
             if (af.responseOnly()) continue;
             if (Arrays.asList(af.exclude()).contains(endpoint)) continue;
 
@@ -112,12 +153,13 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
             boolean isOptional = Arrays.asList(af.optional()).contains(endpoint);
             if (!isRequired && !isOptional) continue;
 
-            properties.put(field.getName(), toFieldSchema(field, af));
+            properties.put(field.getName(), toFieldSchema(field, af, endpoint));
             if (isRequired) requiredList.add(field.getName());
         }
 
         schema.setProperties(properties);
         if (!requiredList.isEmpty()) schema.setRequired(requiredList);
+        schema.setExample(exampleFor(schema));
         return schema;
     }
 
@@ -142,12 +184,13 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
             boolean isOptional = Arrays.asList(af.optional()).contains(endpoint);
             if (!isRequired && !isOptional) continue;
 
-            properties.put(field.getName(), toFieldSchema(field, af));
+            properties.put(field.getName(), toFieldSchema(field, af, endpoint));
             if (isRequired) requiredList.add(field.getName());
         }
 
         schema.setProperties(properties);
         if (!requiredList.isEmpty()) schema.setRequired(requiredList);
+        schema.setExample(exampleFor(schema));
         return schema;
     }
 
@@ -156,14 +199,16 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
         schema.setType("object");
 
         Map<String, Schema> properties = new LinkedHashMap<>();
+        // LEGACY 응답은 엔드포인트별 분기 없이 response 컨텍스트 기준의 단일 스키마를 만든다.
         for (Field field : getAllFields(clazz)) {
             ApiField af = field.getAnnotation(ApiField.class);
             if (af == null || af.hidden()) continue;
             if (Arrays.asList(af.exclude()).contains("response")) continue;
-            properties.put(field.getName(), toFieldSchema(field, af));
+            properties.put(field.getName(), toFieldSchema(field, af, "response"));
         }
 
         schema.setProperties(properties);
+        schema.setExample(exampleFor(schema));
         return schema;
     }
 
@@ -205,6 +250,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
     private Schema<?> cloneSchemaRefs(Schema<?> original, String dtoName, String responseName) {
         if (original == null) return null;
 
+        // springdoc이 만든 래퍼 구조는 유지하고, 내부 $ref 이름만 응답 전용 스키마로 바꾼다.
         Schema<Object> copy = original instanceof ArraySchema ? new ArraySchema() : new Schema<>();
         copy.setType(original.getType());
         copy.setFormat(original.getFormat());
@@ -235,21 +281,27 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
     // ── 필드 스키마 변환 ────────────────────────────────────────────────────
 
     @SuppressWarnings("unchecked")
-    private Schema<?> toFieldSchema(Field field, ApiField af) {
+    private Schema<?> toFieldSchema(Field field, ApiField af, String endpoint) {
         Schema schema;
 
         Class<?> type = field.getType();
         if (List.class.isAssignableFrom(type) || Collection.class.isAssignableFrom(type)) {
             ArraySchema array = new ArraySchema();
             Type generic = field.getGenericType();
+            // 제네릭 요소 타입을 알 수 있으면 해당 타입의 스키마를, 알 수 없으면 안전하게 string으로 둔다.
             if (generic instanceof ParameterizedType pt) {
-                array.setItems(primitiveSchema((Class<?>) pt.getActualTypeArguments()[0], af));
+                Type itemType = pt.getActualTypeArguments()[0];
+                if (itemType instanceof Class<?> itemClass) {
+                    array.setItems(fieldSchemaForClass(itemClass, af, endpoint));
+                } else {
+                    array.setItems(new Schema<>().type("string"));
+                }
             } else {
                 array.setItems(new Schema<>().type("string"));
             }
             schema = array;
         } else {
-            schema = primitiveSchema(type, af);
+            schema = fieldSchemaForClass(type, af, endpoint);
         }
 
         // 공통 메타데이터
@@ -266,6 +318,14 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
         if (af.allowableValues().length > 0) schema.setEnum(Arrays.asList(af.allowableValues()));
 
         return schema;
+    }
+
+    private Schema<?> fieldSchemaForClass(Class<?> type, ApiField af, String endpoint) {
+        if (hasApiFields(type)) {
+            // 중첩 DTO도 같은 엔드포인트 규칙(required/optional/exclude)을 적용해 인라인 스키마로 만든다.
+            return buildEndpointSchema(type, endpoint);
+        }
+        return primitiveSchema(type, af);
     }
 
     private Schema<?> primitiveSchema(Class<?> type, ApiField af) {
@@ -295,9 +355,40 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
         return s;
     }
 
+    private boolean hasApiFields(Class<?> type) {
+        return getAllFields(type).stream().anyMatch(field -> field.getAnnotation(ApiField.class) != null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object exampleFor(Schema<?> schema) {
+        if (schema == null) {
+            return null;
+        }
+        if (schema.getExample() != null) {
+            return schema.getExample();
+        }
+        if (schema instanceof ArraySchema arraySchema) {
+            return List.of(exampleFor(arraySchema.getItems()));
+        }
+        if (schema.getProperties() != null && !schema.getProperties().isEmpty()) {
+            // object/array 구조를 따라 내려가며 문서 예시도 실제 스키마 모양과 맞춘다.
+            Map<String, Object> example = new LinkedHashMap<>();
+            schema.getProperties().forEach((name, propertySchema) ->
+                    example.put(name, exampleFor((Schema<?>) propertySchema)));
+            return example;
+        }
+
+        String type = schema.getType();
+        if ("integer".equals(type)) return 0;
+        if ("number".equals(type)) return 0;
+        if ("boolean".equals(type)) return true;
+        return "string";
+    }
+
     // ── 유틸 ──────────────────────────────────────────────────────────────
 
     private Set<Class<?>> scanDtoClasses() {
+        // 각 서비스 모듈의 DTO까지 찾기 위해 common이 아닌 backend 루트 패키지 전체를 스캔한다.
         ClassPathScanningCandidateComponentProvider scanner =
                 new ClassPathScanningCandidateComponentProvider(false);
         scanner.addIncludeFilter(new AnnotationTypeFilter(ApiDto.class));
@@ -321,6 +412,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
         List<Field> fields = new ArrayList<>();
         Class<?> current = clazz;
         while (current != null && current != Object.class) {
+            // 부모 필드를 앞에 두어 상속 DTO도 선언 순서에 가깝게 문서화한다.
             fields.addAll(0, Arrays.asList(current.getDeclaredFields()));
             current = current.getSuperclass();
         }
@@ -328,6 +420,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
     }
 
     private String toPascalCase(String hyphenated) {
+        // endpoint id(login-user, login_user)를 스키마 이름 조각(LoginUser)으로 변환한다.
         return Arrays.stream(hyphenated.split("[-_]"))
                 .map(w -> Character.toUpperCase(w.charAt(0)) + w.substring(1))
                 .collect(Collectors.joining());

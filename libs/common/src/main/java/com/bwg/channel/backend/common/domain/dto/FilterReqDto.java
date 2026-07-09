@@ -4,7 +4,10 @@ import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import lombok.Data;
 
 /**
- * 목록 조회 요청에서 사용하는 공통 검색 조건 모델.
+ * 목록 조회 요청에서 사용하는 공통 검색 조건 모델
+ * <p>
+ * 서비스별 상세 검색 조건은 각 서비스 DTO의 {@code data} 또는 별도 필드에서 확장하고,
+ * 이 모델은 공통 목록 화면에서 반복되는 단순 검색 조건만 담는다.
  */
 @Data
 public class FilterReqDto {

@@ -1,4 +1,4 @@
-package com.bwg.channel.backend.common.config;
+package com.bwg.channel.backend.common.openapi.customizer;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -17,9 +17,12 @@ import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 공통 응답 래퍼 스키마({@code ApiResponse*}, {@code CommonResponse*})를 swagger "Schemas" 목록에서
@@ -65,8 +68,9 @@ public class ResponseWrapperSchemaCustomizer implements OpenApiCustomizer {
             openApi.getPaths().values().forEach(path -> rewritePath(path, wrapperPayload, schemas));
         }
 
-        // 래퍼 스키마 제거 (이름이 목록에 노출되지 않음)
-        // Keep wrapper schemas so any generated $ref that remains after rewriting stays resolvable.
+        // 문서에서 더 이상 도달할 수 없는 래퍼/원본 DTO만 제거한다.
+        // 아직 남아 있는 $ref는 보존해 OpenAPI 참조 무결성을 깨뜨리지 않는다.
+        removeUnreferencedDocumentationNoise(openApi, schemas);
     }
 
     private void rewritePath(PathItem path, Map<String, Schema> wrapperPayload, Map<String, Schema> componentSchemas) {
@@ -83,6 +87,7 @@ public class ResponseWrapperSchemaCustomizer implements OpenApiCustomizer {
                 for (MediaType mediaType : content.values()) {
                     String wrapper = refName(mediaType.getSchema());
                     if (wrapper != null && isWrapper(wrapper)) {
+                        // 우선 실제 래퍼의 payload를 사용하고, springdoc이 제거한 경우 이름에서 복원한다.
                         Schema payload = wrapperPayload.get(wrapper);
                         if (payload == null) {
                             payload = inferPayloadSchema(wrapper, componentSchemas);
@@ -159,5 +164,107 @@ public class ResponseWrapperSchemaCustomizer implements OpenApiCustomizer {
             }
         }
         return null;
+    }
+
+    private void removeUnreferencedDocumentationNoise(OpenAPI openApi, Map<String, Schema> schemas) {
+        // path에서 시작해 실제 요청/응답이 참조하는 스키마만 남긴다.
+        Set<String> reachable = reachableSchemasFromPaths(openApi, schemas);
+        schemas.entrySet().removeIf(entry ->
+                isDocumentationNoise(entry.getKey()) && !reachable.contains(entry.getKey()));
+    }
+
+    private Set<String> reachableSchemasFromPaths(OpenAPI openApi, Map<String, Schema> schemas) {
+        Set<String> reachable = new HashSet<>();
+        ArrayDeque<String> pending = new ArrayDeque<>();
+
+        // OpenAPI paths에 직접 걸린 requestBody/response 스키마를 그래프 탐색의 시작점으로 삼는다.
+        if (openApi.getPaths() != null) {
+            openApi.getPaths().values().forEach(path ->
+                    path.readOperations().forEach(operation -> collectOperationRefs(operation, pending)));
+        }
+
+        while (!pending.isEmpty()) {
+            String name = pending.removeFirst();
+            if (!reachable.add(name)) {
+                continue;
+            }
+
+            // 문서 노이즈는 도달 여부만 기록하고, 그 내부 참조를 따라가며 불필요한 DTO를 되살리지는 않는다.
+            Schema schema = schemas.get(name);
+            if (schema != null && !isDocumentationNoise(name)) {
+                collectSchemaRefs(schema, pending);
+            }
+        }
+
+        return reachable;
+    }
+
+    private void collectOperationRefs(Operation operation, ArrayDeque<String> pending) {
+        if (operation.getRequestBody() != null && operation.getRequestBody().getContent() != null) {
+            operation.getRequestBody().getContent().values().forEach(mediaType ->
+                    collectSchemaRefs(mediaType.getSchema(), pending));
+        }
+
+        ApiResponses responses = operation.getResponses();
+        if (responses != null) {
+            responses.values().forEach(response -> {
+                Content content = response.getContent();
+                if (content != null) {
+                    content.values().forEach(mediaType -> collectSchemaRefs(mediaType.getSchema(), pending));
+                }
+            });
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void collectSchemaRefs(Schema<?> schema, ArrayDeque<String> pending) {
+        if (schema == null) {
+            return;
+        }
+
+        // $ref, 배열 item, object property, 조합 스키마(allOf/oneOf/anyOf)를 모두 따라간다.
+        String refName = refName(schema);
+        if (refName != null) {
+            pending.add(refName);
+        }
+
+        if (schema instanceof ArraySchema arraySchema) {
+            collectSchemaRefs(arraySchema.getItems(), pending);
+        }
+
+        if (schema.getProperties() != null) {
+            schema.getProperties().values().forEach(property ->
+                    collectSchemaRefs((Schema<?>) property, pending));
+        }
+
+        if (schema.getAdditionalProperties() instanceof Schema<?> additionalSchema) {
+            collectSchemaRefs(additionalSchema, pending);
+        }
+
+        if (schema.getAllOf() != null) {
+            schema.getAllOf().forEach(child -> collectSchemaRefs((Schema<?>) child, pending));
+        }
+        if (schema.getOneOf() != null) {
+            schema.getOneOf().forEach(child -> collectSchemaRefs((Schema<?>) child, pending));
+        }
+        if (schema.getAnyOf() != null) {
+            schema.getAnyOf().forEach(child -> collectSchemaRefs((Schema<?>) child, pending));
+        }
+    }
+
+    private boolean isDocumentationNoise(String name) {
+        if (name == null) {
+            return false;
+        }
+        // springdoc이 중간 산출물로 만든 래퍼/원본 DTO 이름은 실제 path에서 쓰이지 않으면 Schemas에서 숨긴다.
+        return name.startsWith("ApiRequest")
+                || name.startsWith("ApiResponse")
+                || name.startsWith("CommonResponse")
+                || name.endsWith("ReqDto")
+                || name.endsWith("ResDto")
+                || name.equals("FilterReqDto")
+                || name.equals("PaginationReqDto")
+                || name.equals("PaginationResDto")
+                || name.equals("SortReqDto");
     }
 }

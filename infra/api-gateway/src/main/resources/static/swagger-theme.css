@@ -22,19 +22,19 @@
 
 /* ── Dark mode ── */
 body.bwg-dark {
-    background: #1c1c1e !important;
+    background: #2b2d31 !important;
 }
 
 /* 전체 래퍼 */
 body.bwg-dark .swagger-ui,
 body.bwg-dark .swagger-ui .wrapper {
-    background: #1c1c1e;
+    background: #2b2d31;
     color: #e0e0e0;
 }
 
 /* 상단 토픽바 */
 body.bwg-dark .swagger-ui .topbar {
-    background: #111 !important;
+    background: #202225 !important;
 }
 
 /* 정보 영역 */
@@ -48,10 +48,10 @@ body.bwg-dark .swagger-ui .info a {
 /* API 태그(섹션 헤더) */
 body.bwg-dark .swagger-ui .opblock-tag {
     color: #e0e0e0 !important;
-    border-bottom: 1px solid #3a3a3c !important;
+    border-bottom: 1px solid #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui .opblock-tag:hover {
-    background: #2c2c2e !important;
+    background: #3a3d42 !important;
 }
 body.bwg-dark .swagger-ui .opblock-tag a,
 body.bwg-dark .swagger-ui .opblock-tag span {
@@ -63,7 +63,7 @@ body.bwg-dark .swagger-ui .opblock-tag small {
 
 /* Operation 블록 공통 */
 body.bwg-dark .swagger-ui .opblock {
-    border-color: #3a3a3c !important;
+    border-color: #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui .opblock .opblock-summary {
     background: transparent !important;
@@ -83,8 +83,8 @@ body.bwg-dark .swagger-ui .opblock.opblock-patch  { background: rgba(80,227,194,
 
 /* opblock 섹션 헤더(Parameters / Request body 등) */
 body.bwg-dark .swagger-ui .opblock .opblock-section-header {
-    background: #2c2c2e !important;
-    border-bottom: 1px solid #3a3a3c !important;
+    background: #3a3d42 !important;
+    border-bottom: 1px solid #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui .opblock .opblock-section-header h4,
 body.bwg-dark .swagger-ui .opblock .opblock-section-header label {
@@ -95,7 +95,7 @@ body.bwg-dark .swagger-ui .opblock .opblock-section-header label {
 body.bwg-dark .swagger-ui table thead tr th,
 body.bwg-dark .swagger-ui table thead tr td {
     color: #c0c0c0 !important;
-    border-bottom: 1px solid #3a3a3c !important;
+    border-bottom: 1px solid #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui .parameter__name,
 body.bwg-dark .swagger-ui .parameter__type,
@@ -109,7 +109,7 @@ body.bwg-dark .swagger-ui input[type=password],
 body.bwg-dark .swagger-ui input[type=search],
 body.bwg-dark .swagger-ui textarea,
 body.bwg-dark .swagger-ui select {
-    background: #2c2c2e !important;
+    background: #3a3d42 !important;
     color: #e0e0e0 !important;
     border: 1px solid #555 !important;
 }
@@ -118,7 +118,7 @@ body.bwg-dark .swagger-ui select {
 body.bwg-dark .swagger-ui pre,
 body.bwg-dark .swagger-ui .microlight,
 body.bwg-dark .swagger-ui .highlight-code pre {
-    background: #2c2c2e !important;
+    background: #3a3d42 !important;
     color: #c8c8c8 !important;
 }
 
@@ -135,9 +135,9 @@ body.bwg-dark .swagger-ui .response-col_links {
 
 /* 스키마(Scheme) 컨테이너 */
 body.bwg-dark .swagger-ui .scheme-container {
-    background: #1c1c1e !important;
+    background: #2b2d31 !important;
     box-shadow: none !important;
-    border-bottom: 1px solid #3a3a3c !important;
+    border-bottom: 1px solid #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui .servers > label,
 body.bwg-dark .swagger-ui .schemes > label {
@@ -153,16 +153,16 @@ body.bwg-dark .swagger-ui .btn.authorize {
 
 /* 모델(Schema) 섹션 */
 body.bwg-dark .swagger-ui section.models {
-    border: 1px solid #3a3a3c !important;
+    border: 1px solid #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui section.models h4 {
     color: #e0e0e0 !important;
-    background: #2c2c2e !important;
-    border-bottom: 1px solid #3a3a3c !important;
+    background: #3a3d42 !important;
+    border-bottom: 1px solid #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui section.models .model-container {
-    background: #1c1c1e !important;
-    border-bottom: 1px solid #3a3a3c !important;
+    background: #2b2d31 !important;
+    border-bottom: 1px solid #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui .model,
 body.bwg-dark .swagger-ui .model-title,
@@ -187,7 +187,7 @@ body.bwg-dark .swagger-ui svg.arrow {
 /* 드롭다운 select (content-type 등) */
 body.bwg-dark .swagger-ui .content-type,
 body.bwg-dark .swagger-ui .download-url-wrapper .select-label select {
-    background: #2c2c2e !important;
+    background: #3a3d42 !important;
     color: #e0e0e0 !important;
     border-color: #555 !important;
 }
@@ -196,7 +196,7 @@ body.bwg-dark .swagger-ui .download-url-wrapper .select-label select {
 body.bwg-dark .swagger-ui .btn.try-out__btn {
     color: #e0e0e0 !important;
     border-color: #888 !important;
-    background: #2c2c2e !important;
+    background: #3a3d42 !important;
 }
 body.bwg-dark .swagger-ui .btn.try-out__btn:hover {
     border-color: #ccc !important;
@@ -229,12 +229,12 @@ body.bwg-dark .swagger-ui .parameters-col_description input[type=reset],
 body.bwg-dark .swagger-ui button[type=reset] {
     color: #e0e0e0 !important;
     border-color: #888 !important;
-    background: #3a3a3c !important;
+    background: #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui .btn-reset:hover,
 body.bwg-dark .swagger-ui .btn.btn-reset:hover {
     border-color: #bbb !important;
-    background: #4a4a4c !important;
+    background: #55585e !important;
 }
 
 /* Example Value / Schema 탭 */
@@ -256,18 +256,18 @@ body.bwg-dark .swagger-ui .tab li:first-of-type:after {
 body.bwg-dark .swagger-ui .example,
 body.bwg-dark .swagger-ui .example-col,
 body.bwg-dark .swagger-ui .model-example {
-    background: #2c2c2e !important;
+    background: #3a3d42 !important;
     color: #c8c8c8 !important;
 }
 body.bwg-dark .swagger-ui .body-param__text {
-    background: #2c2c2e !important;
+    background: #3a3d42 !important;
     color: #c8c8c8 !important;
     border: 1px solid #555 !important;
 }
 
 /* Schema (모델 트리) */
 body.bwg-dark .swagger-ui .model-box {
-    background: #2c2c2e !important;
+    background: #3a3d42 !important;
 }
 body.bwg-dark .swagger-ui .model-box .model,
 body.bwg-dark .swagger-ui .model .property,
@@ -288,18 +288,18 @@ body.bwg-dark .swagger-ui .model .toggle-handle {
 /* curl / request URL 영역 */
 body.bwg-dark .swagger-ui .request-snippet-container,
 body.bwg-dark .swagger-ui .curl-command {
-    background: #2c2c2e !important;
+    background: #3a3d42 !important;
     color: #c8c8c8 !important;
 }
 
 /* ── Authorize 모달 ── */
 body.bwg-dark .swagger-ui .dialog-ux .modal-ux {
-    background: #1c1c1e !important;
-    border: 1px solid #3a3a3c !important;
+    background: #2b2d31 !important;
+    border: 1px solid #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui .dialog-ux .modal-ux-header {
-    background: #2c2c2e !important;
-    border-bottom: 1px solid #3a3a3c !important;
+    background: #3a3d42 !important;
+    border-bottom: 1px solid #4a4d52 !important;
 }
 body.bwg-dark .swagger-ui .dialog-ux .modal-ux-header h3 {
     color: #e0e0e0 !important;
@@ -309,7 +309,7 @@ body.bwg-dark .swagger-ui .dialog-ux .modal-ux-header .close-modal {
     background: transparent !important;
 }
 body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content {
-    background: #1c1c1e !important;
+    background: #2b2d31 !important;
     color: #d0d0d0 !important;
 }
 body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content p,
@@ -319,18 +319,18 @@ body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content label {
     color: #d0d0d0 !important;
 }
 body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content .wrapper {
-    background: #1c1c1e !important;
+    background: #2b2d31 !important;
 }
 /* 입력 필드 */
 body.bwg-dark .swagger-ui .dialog-ux input[type=text],
 body.bwg-dark .swagger-ui .dialog-ux input[type=password] {
-    background: #2c2c2e !important;
+    background: #3a3d42 !important;
     color: #e0e0e0 !important;
     border: 1px solid #555 !important;
 }
 /* 구분선 */
 body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content hr {
-    border-color: #3a3a3c !important;
+    border-color: #4a4d52 !important;
 }
 /* scopes / 권한 설명 */
 body.bwg-dark .swagger-ui .dialog-ux .modal-ux-content .scopes,
@@ -353,5 +353,5 @@ body.bwg-dark .swagger-ui .dialog-ux .btn-done,
 body.bwg-dark .swagger-ui .dialog-ux .btn.modal-btn-close {
     color: #e0e0e0 !important;
     border-color: #888 !important;
-    background: #3a3a3c !important;
+    background: #4a4d52 !important;
 }

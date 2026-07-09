@@ -308,6 +308,14 @@ JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
 }
 ```
 
+### 예외 처리 원칙
+
+- 의미를 아는 업무 실패는 도메인 ErrorCode와 BwgException 계열로 명시한다.
+- 필요한 ErrorCode enum은 공통 개발팀에 요청하여 정의한다.
+- BwgException에는 반드시 ErrorCode와 message를 담는다.
+- 의미를 모르는 시스템/인프라/예상 밖 예외는 감싸지 않고 전파한다.
+- 최종 ApiResponse 변환은 GlobalRestExceptionAdvice가 담당한다.
+
 ## 에러 코드 범위
 
 | 영역 | 코드 범위 | 예 |

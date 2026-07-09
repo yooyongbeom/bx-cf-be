@@ -1,4 +1,4 @@
-package com.bwg.channel.backend.common.config;
+package com.bwg.channel.backend.common.openapi;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -37,6 +37,7 @@ public final class OpenApiSupport {
                         .title(title)
                         .version(VERSION)
                         .description(description + " - " + COMPANY))
+                // 보안 요구사항 적용 여부는 서비스별로 다르므로 여기서는 scheme 정의만 제공한다.
                 .components(new Components()
                         .addSecuritySchemes(BEARER_SCHEME, new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)

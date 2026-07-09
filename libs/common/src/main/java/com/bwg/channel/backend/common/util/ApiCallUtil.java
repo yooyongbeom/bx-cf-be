@@ -21,6 +21,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 외부 HTTP API 호출을 위한 공통 유틸리티.
+ * <p>
+ * 기존 코드 호환을 위한 static client와 Spring bean으로 주입받는 client를 함께 제공하며,
+ * 동기 호출(RestTemplate)은 단순 재시도, 비동기 호출(WebClient)은 Reactor retry를 적용한다.
+ */
 @Slf4j
 @Component
 public class ApiCallUtil {
@@ -31,6 +37,7 @@ public class ApiCallUtil {
     private static final WebClient staticWebClient;
 
     static {
+        // Spring bean 주입을 받기 어려운 레거시/정적 호출부에서 사용할 기본 client.
         staticRestTemplate = new RestTemplate();
         staticWebClient = WebClient.builder()
                 .build();
@@ -54,7 +61,7 @@ public class ApiCallUtil {
         this.restTemplate = new RestTemplate();
         this.webClient = webClientBuilder.build();
 
-        // UTF-8 적용
+        // UTF-8 적용: 문자열 응답/요청이 플랫폼 기본 charset에 흔들리지 않도록 보정한다.
         // 1. StringHttpMessageConverter
         List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
         for (int i = 0; i < converters.size(); i++) {
@@ -80,6 +87,7 @@ public class ApiCallUtil {
         httpHeaders.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8)); // UTF-8 명시
         httpHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
+        // 호출부에서 전달한 인증/추적 헤더를 공통 헤더 위에 덧씌운다.
         if (headers != null) headers.forEach(httpHeaders::set);
         HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
 
@@ -94,6 +102,7 @@ public class ApiCallUtil {
         httpHeaders.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8)); // UTF-8 명시
         httpHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
+        // POST body는 제네릭으로 받아 호출부의 DTO/Map 형태를 그대로 보존한다.
         if (headers != null) headers.forEach(httpHeaders::set);
         HttpEntity<B> entity = new HttpEntity<>(body, httpHeaders);
 
@@ -110,6 +119,7 @@ public class ApiCallUtil {
             try {
                 return action.execute();
             } catch (ResourceAccessException ex) {
+                // 네트워크 접근 실패만 재시도한다. HTTP 4xx/5xx 응답은 RestTemplate 예외 정책을 따른다.
                 log.warn("요청 실패, 재시도 {}/{} - {}", i, maxRetry, ex.getMessage());
                 if (i == maxRetry) throw ex;
                 try { Thread.sleep(delay.toMillis()); } catch (InterruptedException ignored) {}
@@ -128,6 +138,7 @@ public class ApiCallUtil {
     // ==========================
     public <T> Mono<T> getAsync(String url, Map<String, String> headers, Class<T> responseType) {
         WebClient.RequestHeadersSpec<?> request = webClient.get().uri(url);
+        // WebClient header mutation은 람다 안에서 수행해야 실제 요청 spec에 반영된다.
         if (headers != null) request.headers(httpHeaders -> headers.forEach(httpHeaders::set));
 
         return request
@@ -136,6 +147,7 @@ public class ApiCallUtil {
                 .bodyToMono(responseType)
                 .doOnSubscribe(sub -> log.info("WebClient GET 호출 URL={}", url))
                 .doOnError(err -> log.error("WebClient GET 오류 URL={} - {}", url, err.getMessage()))
+                // 응답 오류와 네트워크 오류만 1초 간격으로 최대 3회 재시도한다.
                 .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(1))
                         .filter(throwable -> throwable instanceof WebClientResponseException || throwable instanceof ResourceAccessException)
                         .onRetryExhaustedThrow((spec, signal) -> signal.failure()));
@@ -143,6 +155,7 @@ public class ApiCallUtil {
 
     public <T, B> Mono<T> postAsync(String url, B body, Map<String, String> headers, Class<T> responseType) {
         WebClient.RequestBodySpec request = webClient.post().uri(url);
+        // 호출부 헤더는 contentType/accept와 별개로 추가 주입한다.
         if (headers != null) request.headers(httpHeaders -> headers.forEach(httpHeaders::set));
 
         return request
@@ -153,6 +166,7 @@ public class ApiCallUtil {
                 .bodyToMono(responseType)
                 .doOnSubscribe(sub -> log.info("WebClient POST 호출 URL={}", url))
                 .doOnError(err -> log.error("WebClient POST 오류 URL={} - {}", url, err.getMessage()))
+                // WebClient는 Mono 체인에서 retry 정책을 선언해 구독 시점에 적용한다.
                 .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(1))
                         .filter(throwable -> throwable instanceof WebClientResponseException || throwable instanceof ResourceAccessException)
                         .onRetryExhaustedThrow((spec, signal) -> signal.failure()));
