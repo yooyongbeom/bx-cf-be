@@ -21,6 +21,7 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -345,7 +346,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
             s.setType("number");
         } else if (boolean.class == type || Boolean.class.isAssignableFrom(type)) {
             s.setType("boolean");
-        } else if (LocalDateTime.class.isAssignableFrom(type)) {
+        } else if (LocalDateTime.class.isAssignableFrom(type) || OffsetDateTime.class.isAssignableFrom(type)) {
             s.setType("string"); s.setFormat("date-time");
         } else if (LocalDate.class.isAssignableFrom(type)) {
             s.setType("string"); s.setFormat("date");

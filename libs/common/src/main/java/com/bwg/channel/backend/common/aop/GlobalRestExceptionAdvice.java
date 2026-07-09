@@ -1,7 +1,7 @@
 package com.bwg.channel.backend.common.aop;
 
-import com.bwg.channel.backend.common.constants.enums.BwgErrorCode;
-import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
+import com.bwg.channel.backend.common.constants.error.BwgErrorCode;
+import com.bwg.channel.backend.common.constants.error.CommonErrorCode;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.common.exception.BwgException;
 import org.slf4j.Logger;

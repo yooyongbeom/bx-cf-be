@@ -1,6 +1,6 @@
 package com.bwg.channel.backend.productsvc.constants;
 
-import com.bwg.channel.backend.common.constants.enums.BwgErrorCode;
+import com.bwg.channel.backend.common.constants.error.BwgErrorCode;
 import org.springframework.http.HttpStatus;
 
 /**

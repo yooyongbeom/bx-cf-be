@@ -1,4 +1,4 @@
-package com.bwg.channel.backend.common.constants.enums;
+package com.bwg.channel.backend.common.constants.error;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

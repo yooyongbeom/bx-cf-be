@@ -41,6 +41,19 @@ class TypeBridgeOpenApiCustomizerTests {
     }
 
     @Test
+    void offsetDateTimeIsGeneratedAsDateTimeString() {
+        OpenAPI openApi = new OpenAPI();
+
+        new TypeBridgeOpenApiCustomizer().customise(openApi);
+
+        Schema<?> schema = openApi.getComponents().getSchemas().get("DateTimeDetailResponse");
+        Schema<?> changedAt = (Schema<?>) schema.getProperties().get("changedAt");
+
+        assertThat(changedAt.getType()).isEqualTo("string");
+        assertThat(changedAt.getFormat()).isEqualTo("date-time");
+    }
+
+    @Test
     void nestedMappingUsesTerminalEndpointId() throws NoSuchMethodException {
         TypeBridgeOperationCustomizer customizer = new TypeBridgeOperationCustomizer();
         HandlerMethod handlerMethod = new HandlerMethod(

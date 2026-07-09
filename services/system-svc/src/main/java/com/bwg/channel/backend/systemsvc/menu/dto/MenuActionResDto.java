@@ -6,8 +6,7 @@ import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
 import org.apache.ibatis.type.Alias;
 
-import java.time.LocalDateTime;
-import org.apache.ibatis.type.Alias;
+import java.time.OffsetDateTime;
 
 /** 메뉴 기능 목록 응답 모델 */
 @Alias("MenuActionResDto")
@@ -45,9 +44,9 @@ public class MenuActionResDto {
     @ApiField(description = "수정자 ID", example = "admin", optional = {"list", "detail"})
     private String updatedBy;
 
-    @ApiField(description = "생성 일시", example = "2026-01-01T09:00:00", optional = {"list", "detail"})
-    private LocalDateTime createdAt;
+    @ApiField(description = "생성 일시", example = "2026-01-01T09:00:00+09:00", optional = {"list", "detail"})
+    private OffsetDateTime createdAt;
 
-    @ApiField(description = "수정 일시", example = "2026-01-01T10:00:00", optional = {"list", "detail"})
-    private LocalDateTime updatedAt;
+    @ApiField(description = "수정 일시", example = "2026-01-01T10:00:00+09:00", optional = {"list", "detail"})
+    private OffsetDateTime updatedAt;
 }

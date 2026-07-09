@@ -7,8 +7,7 @@ import lombok.Data;
 import org.apache.ibatis.type.Alias;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import org.apache.ibatis.type.Alias;
+import java.time.OffsetDateTime;
 
 /** 공통코드 목록/상세 응답 모델 */
 @Alias("CommonCodeResDto")
@@ -58,9 +57,9 @@ public class CommonCodeResDto {
     @ApiField(description = "수정자 ID", example = "admin", optional = {"list"})
     private String updatedBy;
 
-    @ApiField(description = "생성 일시", example = "2026-01-01T09:00:00", optional = {"list"})
-    private LocalDateTime createdAt;
+    @ApiField(description = "생성 일시", example = "2026-01-01T09:00:00+09:00", optional = {"list"})
+    private OffsetDateTime createdAt;
 
-    @ApiField(description = "수정 일시", example = "2026-01-01T10:00:00", optional = {"list"})
-    private LocalDateTime updatedAt;
+    @ApiField(description = "수정 일시", example = "2026-01-01T10:00:00+09:00", optional = {"list"})
+    private OffsetDateTime updatedAt;
 }

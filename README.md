@@ -7,7 +7,7 @@ BWG 채널 백엔드 프레임워크 프로젝트. Java 21, Spring Boot 3.3.4, S
 ```text
 bx-cf-be/
 ├─ libs/
-│  ├─ common/                  공통 응답, 예외, AOP, OpenAPI TypeBridge, JPA/MyBatis 기반 설정
+│  ├─ common/                  공통 응답, 예외 처리, OpenAPI TypeBridge, JPA/MyBatis 기반 설정
 │  ├─ business-common/         업무 공통 검증, 업무 예외, 업무 값 객체
 │  ├─ security-common/         JWT 발급/검증, 인증 필터, 인증 에러 코드, 내부 인증 헤더
 │  └─ session-context-common/  Redis/Valkey 기반 세션 컨텍스트 모델과 저장소
@@ -195,8 +195,10 @@ POST /channel/backend/api/v1/auth/logout
 
 ```json
 {
-  "usrId": "hong.gildong",
-  "usrPwd": "password"
+  "data": {
+    "usrId": "hong.gildong",
+    "usrPwd": "password"
+  }
 }
 ```
 
@@ -230,9 +232,16 @@ POST /channel/backend/api/v1/system/menus/roles/{roleId}/save
 POST /channel/backend/api/v1/system/common-codes/groups/list
 POST /channel/backend/api/v1/system/common-codes/groups/create
 POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/update
+POST /channel/backend/api/v1/system/common-codes/groups/detail
 POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/codes/list
 POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/codes/create
 POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/codes/{code}/update
+```
+
+### System - Reference Data
+
+```text
+POST /channel/backend/api/v1/system/reference-data/versions/latest
 ```
 
 ## Swagger
@@ -314,20 +323,28 @@ JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
 - 필요한 ErrorCode enum은 공통 개발팀에 요청하여 정의한다.
 - BwgException에는 반드시 ErrorCode와 message를 담는다.
 - 의미를 모르는 시스템/인프라/예상 밖 예외는 감싸지 않고 전파한다.
+- MVC 요청의 예외는 GlobalRestExceptionAdvice가 처리하고, Security/Gateway 경계의 예외는 각 security handler 또는 gateway advice가 처리한다.
 - 최종 ApiResponse 변환은 GlobalRestExceptionAdvice가 담당한다.
 
 ## 에러 코드 범위
 
 | 영역 | 코드 범위 | 예 |
 | --- | --- | --- |
-| Auth | `-1001` ~ `-1005`, `-2003`, `-2004`, `-4001`, `-4002`, `-9999` | 필수값 누락, 토큰 오류, 인증 실패, DB 오류 |
+| Common | `-2001`, `-2003`, `-2004`, `-4001` ~ `-4004`, `-9001`, `-9002`, `-9999` | validation, JSON 파싱, DB, timeout, server 공통 오류 |
+| Auth | `-1001` ~ `-1005` | 토큰 오류, 인증 실패 |
 | Business Common | `-3001` ~ `-3999` | 업무 검증 오류, 업무 데이터 없음 |
 | Product | `-5001` ~ `-5999` | 상품 입력값 오류, 상품 없음, 상품 저장 오류 |
 | Gateway | `-9999` | Gateway 내부 오류 |
 
 ## OpenAPI TypeBridge
 
-TypeBridge 관련 코드 위치: `libs/common/src/main/java/com/bwg/channel/backend/common/openapi/typebridge`
+OpenAPI 관련 코드 위치.
+
+| 영역 | 위치 |
+| --- | --- |
+| OpenAPI 공통 유틸 | `libs/common/src/main/java/com/bwg/channel/backend/common/openapi` |
+| OpenAPI customizer | `libs/common/src/main/java/com/bwg/channel/backend/common/openapi/customizer` |
+| TypeBridge | `libs/common/src/main/java/com/bwg/channel/backend/common/openapi/typebridge` |
 
 주요 어노테이션.
 

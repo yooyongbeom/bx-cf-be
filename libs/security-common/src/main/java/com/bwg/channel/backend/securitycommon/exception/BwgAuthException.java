@@ -1,6 +1,6 @@
 package com.bwg.channel.backend.securitycommon.exception;
 
-import com.bwg.channel.backend.common.constants.enums.BwgErrorCode;
+import com.bwg.channel.backend.common.constants.error.BwgErrorCode;
 import com.bwg.channel.backend.common.exception.BwgException;
 import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
 

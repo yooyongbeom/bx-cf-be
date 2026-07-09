@@ -1,7 +1,7 @@
 package com.bwg.channel.backend.common.exception;
 
-import com.bwg.channel.backend.common.constants.enums.BwgErrorCode;
-import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
+import com.bwg.channel.backend.common.constants.error.BwgErrorCode;
+import com.bwg.channel.backend.common.constants.error.CommonErrorCode;
 import org.springframework.http.HttpStatus;
 
 import java.time.Instant;

@@ -2,8 +2,8 @@ package com.bwg.channel.backend.common.aop;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bwg.channel.backend.common.constants.enums.BusinessTestErrorCode;
-import com.bwg.channel.backend.common.constants.enums.BwgErrorCode;
+import com.bwg.channel.backend.common.constants.error.BusinessTestErrorCode;
+import com.bwg.channel.backend.common.constants.error.BwgErrorCode;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.common.exception.BwgException;
 import org.junit.jupiter.api.Test;

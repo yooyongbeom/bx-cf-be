@@ -1,6 +1,6 @@
 package com.bwg.channel.backend.securitycommon.support;
 
-import com.bwg.channel.backend.common.constants.enums.BwgErrorCode;
+import com.bwg.channel.backend.common.constants.error.BwgErrorCode;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

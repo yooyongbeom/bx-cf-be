@@ -345,9 +345,25 @@ body.bwg-dark .swagger-ui .dialog-ux .btn.authorize {
     background: transparent !important;
 }
 body.bwg-dark .swagger-ui .dialog-ux .btn.modal-btn-auth-logout {
-    color: #f93e3e !important;
-    border-color: #f93e3e !important;
-    background: transparent !important;
+    color: #fff !important;
+    border-color: #ff6b6b !important;
+    background: #d92d20 !important;
+    opacity: 1 !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .08) inset !important;
+}
+body.bwg-dark .swagger-ui .dialog-ux .btn.modal-btn-auth-logout:hover,
+body.bwg-dark .swagger-ui .dialog-ux .btn.modal-btn-auth-logout:focus {
+    color: #fff !important;
+    border-color: #ff8787 !important;
+    background: #f04438 !important;
+}
+body.bwg-dark .swagger-ui .dialog-ux .btn.modal-btn-auth-logout:disabled,
+body.bwg-dark .swagger-ui .dialog-ux .btn.modal-btn-auth-logout[disabled] {
+    color: #ffb4b4 !important;
+    border-color: #8b3a3a !important;
+    background: #3a2424 !important;
+    opacity: .55 !important;
+    box-shadow: none !important;
 }
 body.bwg-dark .swagger-ui .dialog-ux .btn-done,
 body.bwg-dark .swagger-ui .dialog-ux .btn.modal-btn-close {

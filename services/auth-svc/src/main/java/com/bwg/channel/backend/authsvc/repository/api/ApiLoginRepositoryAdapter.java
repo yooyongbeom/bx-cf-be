@@ -5,7 +5,7 @@ import com.bwg.channel.backend.authsvc.domain.dto.LoginReqDto;
 import com.bwg.channel.backend.authsvc.domain.dto.LoginResDto;
 import com.bwg.channel.backend.authsvc.domain.dto.RefreshTknReqDto;
 import com.bwg.channel.backend.authsvc.repository.LoginRepository;
-import com.bwg.channel.backend.common.constants.enums.CommonErrorCode;
+import com.bwg.channel.backend.common.constants.error.CommonErrorCode;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.util.ApiCallUtil;
 import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
