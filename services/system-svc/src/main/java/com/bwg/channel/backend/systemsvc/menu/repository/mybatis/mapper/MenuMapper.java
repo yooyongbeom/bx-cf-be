@@ -21,6 +21,11 @@ public interface MenuMapper {
     List<MenuResDto> findMenus();
 
     /**
+     * 메뉴 ID 기준 상세 조회 SQL 매핑
+     */
+    MenuResDto findMenu(@Param("menuId") Long menuId);
+
+    /**
      * 메뉴 등록 SQL 매핑
      */
     int insertMenu(ApiRequest<MenuReqDto> paramDto);

@@ -250,6 +250,7 @@ POST /channel/backend/api/v1/product/detail/{productId}
 
 ```text
 POST /channel/backend/api/v1/system/menus/list
+POST /channel/backend/api/v1/system/menus/{menuId}/detail
 POST /channel/backend/api/v1/system/menus/create
 POST /channel/backend/api/v1/system/menus/{menuId}/update
 POST /channel/backend/api/v1/system/menus/{menuId}/actions/list

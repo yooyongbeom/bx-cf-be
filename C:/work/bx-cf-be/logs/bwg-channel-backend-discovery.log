@@ -1,0 +1,106 @@
+2026-07-09T16:16:14.675+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.b.c.b.d.DiscoverySvcApplication        : Starting DiscoverySvcApplication using Java 22.0.2 with PID 141 (/Users/yuhongsig/project/bx-cf/bx-cf-be/infra/discovery-svc/build/classes/java/main started by yuhongsig in /Users/yuhongsig/project/bx-cf/bx-cf-be)
+2026-07-09T16:16:14.676+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.b.c.b.d.DiscoverySvcApplication        : The following 1 profile is active: "local"
+2026-07-09T16:16:14.706+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-07-09T16:16:14.706+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-07-09T16:16:15.395+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] o.s.cloud.context.scope.GenericScope     : BeanFactory id=d9de5cc1-dc7d-31cf-b7dd-c425f6583f25
+2026-07-09T16:16:15.433+09:00  WARN 141 --- [bwg-channel-backend-discovery] [restartedMain] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead.
+2026-07-09T16:16:15.438+09:00  WARN 141 --- [bwg-channel-backend-discovery] [restartedMain] trationDelegate$BeanPostProcessorChecker : Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected into a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies.
+2026-07-09T16:16:15.743+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 18761 (http)
+2026-07-09T16:16:15.753+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-07-09T16:16:15.753+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-07-09T16:16:15.786+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-07-09T16:16:15.787+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1081 ms
+2026-07-09T16:16:16.300+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.d.provider.DiscoveryJerseyProvider   : Using JSON encoding codec LegacyJacksonJson
+2026-07-09T16:16:16.301+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.d.provider.DiscoveryJerseyProvider   : Using JSON decoding codec LegacyJacksonJson
+2026-07-09T16:16:16.442+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.d.provider.DiscoveryJerseyProvider   : Using XML encoding codec XStreamXml
+2026-07-09T16:16:16.443+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.d.provider.DiscoveryJerseyProvider   : Using XML decoding codec XStreamXml
+2026-07-09T16:16:17.118+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-07-09T16:16:17.156+09:00  WARN 141 --- [bwg-channel-backend-discovery] [restartedMain] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-07-09T16:16:17.167+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2026-07-09T16:16:17.184+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2026-07-09T16:16:17.184+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] com.netflix.discovery.DiscoveryClient    : Client configured to neither register nor query for data.
+2026-07-09T16:16:17.189+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1783581377188 with initial instances count: 0
+2026-07-09T16:16:17.208+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.eureka.DefaultEurekaServerContext    : Initializing ...
+2026-07-09T16:16:17.209+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.eureka.cluster.PeerEurekaNodes       : Adding new peer nodes [http://localhost:18761/eureka/]
+2026-07-09T16:16:17.288+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.d.provider.DiscoveryJerseyProvider   : Using JSON encoding codec LegacyJacksonJson
+2026-07-09T16:16:17.288+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.d.provider.DiscoveryJerseyProvider   : Using JSON decoding codec LegacyJacksonJson
+2026-07-09T16:16:17.288+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.d.provider.DiscoveryJerseyProvider   : Using XML encoding codec XStreamXml
+2026-07-09T16:16:17.288+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.d.provider.DiscoveryJerseyProvider   : Using XML decoding codec XStreamXml
+2026-07-09T16:16:17.323+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.eureka.cluster.PeerEurekaNodes       : Replica node URL:  http://localhost:18761/eureka/
+2026-07-09T16:16:17.330+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.e.registry.AbstractInstanceRegistry  : Finished initializing remote region registries. All known remote regions: []
+2026-07-09T16:16:17.331+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.n.eureka.DefaultEurekaServerContext    : Initialized
+2026-07-09T16:16:17.336+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-07-09T16:16:17.379+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application BWG-CHANNEL-BACKEND-DISCOVERY with eureka with status UP
+2026-07-09T16:16:17.387+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Thread-15] o.s.c.n.e.server.EurekaServerBootstrap   : isAws returned false
+2026-07-09T16:16:17.387+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Thread-15] o.s.c.n.e.server.EurekaServerBootstrap   : Initialized server context
+2026-07-09T16:16:17.387+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Thread-15] c.n.e.r.PeerAwareInstanceRegistryImpl    : Got 1 instances from neighboring DS node
+2026-07-09T16:16:17.387+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Thread-15] c.n.e.r.PeerAwareInstanceRegistryImpl    : Renew threshold is: 1
+2026-07-09T16:16:17.387+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Thread-15] c.n.e.r.PeerAwareInstanceRegistryImpl    : Changing status to UP
+2026-07-09T16:16:17.390+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 18761 (http) with context path '/'
+2026-07-09T16:16:17.390+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 18761
+2026-07-09T16:16:17.392+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Thread-15] e.s.EurekaServerInitializerConfiguration : Started Eureka Server
+2026-07-09T16:16:17.405+09:00  INFO 141 --- [bwg-channel-backend-discovery] [restartedMain] c.b.c.b.d.DiscoverySvcApplication        : Started DiscoverySvcApplication in 2.997 seconds (process running for 3.434)
+2026-07-09T16:16:17.837+09:00  INFO 141 --- [bwg-channel-backend-discovery] [RMI TCP Connection(4)-192.168.110.46] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-09T16:16:17.837+09:00  INFO 141 --- [bwg-channel-backend-discovery] [RMI TCP Connection(4)-192.168.110.46] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-07-09T16:16:17.838+09:00  INFO 141 --- [bwg-channel-backend-discovery] [RMI TCP Connection(4)-192.168.110.46] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-07-09T16:16:19.919+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-1] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-API-GATEWAY/192.168.110.46:bwg-channel-backend-api-gateway:18081 with status UP (replication=false)
+2026-07-09T16:16:20.495+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-3] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-API-GATEWAY/192.168.110.46:bwg-channel-backend-api-gateway:18081 with status UP (replication=true)
+2026-07-09T16:16:20.500+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-4] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-PRODUCT-SVC/192.168.110.46:bwg-channel-backend-product-svc:18083 with status UP (replication=false)
+2026-07-09T16:16:21.004+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-5] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-PRODUCT-SVC/192.168.110.46:bwg-channel-backend-product-svc:18083 with status UP (replication=true)
+2026-07-09T16:16:21.377+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-7] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-SYSTEM-SVC/192.168.110.46:bwg-channel-backend-system-svc:18084 with status UP (replication=false)
+2026-07-09T16:16:21.885+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-8] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-SYSTEM-SVC/192.168.110.46:bwg-channel-backend-system-svc:18084 with status UP (replication=true)
+2026-07-09T16:16:22.652+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-10] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-AUTH-SVC/192.168.110.46:bwg-channel-backend-auth-svc:18082 with status UP (replication=false)
+2026-07-09T16:16:23.164+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-11] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-AUTH-SVC/192.168.110.46:bwg-channel-backend-auth-svc:18082 with status UP (replication=true)
+2026-07-09T16:17:05.087+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-24] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-PRODUCT-SVC/192.168.110.46:bwg-channel-backend-product-svc:18083 with status DOWN (replication=false)
+2026-07-09T16:17:05.598+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-27] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-PRODUCT-SVC/192.168.110.46:bwg-channel-backend-product-svc:18083 with status DOWN (replication=true)
+2026-07-09T16:17:14.879+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-29] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-PRODUCT-SVC/192.168.110.46:bwg-channel-backend-product-svc:18083 with status UP (replication=false)
+2026-07-09T16:17:15.387+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-30] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-PRODUCT-SVC/192.168.110.46:bwg-channel-backend-product-svc:18083 with status UP (replication=true)
+2026-07-09T16:17:17.400+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 0ms
+2026-07-09T16:18:17.397+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 2ms
+2026-07-09T16:19:17.402+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 5ms
+2026-07-09T16:20:17.408+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 5ms
+2026-07-09T16:21:17.410+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 2ms
+2026-07-09T16:22:17.414+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 3ms
+2026-07-09T16:23:17.418+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 3ms
+2026-07-09T16:24:17.423+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 5ms
+2026-07-09T16:25:17.428+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 3ms
+2026-07-09T16:26:17.432+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 4ms
+2026-07-09T16:27:17.439+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 6ms
+2026-07-09T16:28:17.445+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 5ms
+2026-07-09T16:29:17.452+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 7ms
+2026-07-09T16:30:17.456+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 3ms
+2026-07-09T16:31:17.341+09:00  INFO 141 --- [bwg-channel-backend-discovery] [ReplicaAwareInstanceRegistry - RenewalThresholdUpdater] c.n.e.r.PeerAwareInstanceRegistryImpl    : Current renewal threshold is : 8
+2026-07-09T16:31:17.460+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 3ms
+2026-07-09T16:32:17.464+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 3ms
+2026-07-09T16:33:17.469+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 4ms
+2026-07-09T16:34:17.473+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 4ms
+2026-07-09T16:35:17.474+09:00  INFO 141 --- [bwg-channel-backend-discovery] [Eureka-EvictionTimer] c.n.e.registry.AbstractInstanceRegistry  : Running the evict task with compensationTime 0ms
+2026-07-09T16:35:28.618+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] o.s.c.n.e.s.EurekaServiceRegistry        : Unregistering application BWG-CHANNEL-BACKEND-DISCOVERY with eureka with status DOWN
+2026-07-09T16:35:28.641+09:00  INFO 141 --- [bwg-channel-backend-discovery] [tomcat-handler-474] c.n.e.registry.AbstractInstanceRegistry  : Registered instance BWG-CHANNEL-BACKEND-AUTH-SVC/192.168.110.46:bwg-channel-backend-auth-svc:18082 with status DOWN (replication=false)
+2026-07-09T16:35:28.702+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] o.s.c.n.e.server.EurekaServerBootstrap   : Shutting down Eureka Server..
+2026-07-09T16:35:28.719+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] c.n.eureka.DefaultEurekaServerContext    : Shutting down ...
+2026-07-09T16:35:28.726+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] com.netflix.servo.monitor.StatsMonitor   : Attempting to get the value for an expired monitor: eurekaServer.replication.batchSize.Will start computing stats again.
+2026-07-09T16:35:28.728+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] com.netflix.servo.monitor.StatsMonitor   : Attempting to get the value for an expired monitor: eurekaServer.replication.executionTime.Will start computing stats again.
+2026-07-09T16:35:28.728+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] com.netflix.servo.monitor.StatsMonitor   : Attempting to get the value for an expired monitor: eurekaServer.replication.executionTime.Will start computing stats again.
+2026-07-09T16:35:28.729+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] com.netflix.servo.monitor.StatsMonitor   : Attempting to get the value for an expired monitor: eurekaServer.replication.batchSize.Will start computing stats again.
+2026-07-09T16:35:28.730+09:00 ERROR 141 --- [bwg-channel-backend-discovery] [Eureka-Jersey3Client-Conn-Cleaner2] c.n.d.s.t.j.EurekaJersey3ClientImpl      : Cannot clean connections
+
+java.lang.IllegalStateException: Client instance has been closed.
+	at org.glassfish.jersey.internal.guava.Preconditions.checkState(Preconditions.java:169) ~[jersey-common-3.1.8.jar:na]
+	at org.glassfish.jersey.client.JerseyClient.checkNotClosed(JerseyClient.java:248) ~[jersey-client-3.1.8.jar:na]
+	at org.glassfish.jersey.client.JerseyClient.getConfiguration(JerseyClient.java:363) ~[jersey-client-3.1.8.jar:na]
+	at org.glassfish.jersey.client.JerseyClient.getConfiguration(JerseyClient.java:54) ~[jersey-client-3.1.8.jar:na]
+	at com.netflix.discovery.shared.transport.jersey3.EurekaJersey3ClientImpl$ConnectionCleanerTask.run(EurekaJersey3ClientImpl.java:347) ~[eureka-client-jersey3-2.0.2.jar:2.0.2]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[na:na]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[na:na]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[na:na]
+	at java.base/java.lang.Thread.run(Thread.java:1570) ~[na:na]
+
+2026-07-09T16:35:28.775+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] c.n.eureka.DefaultEurekaServerContext    : Shut down
+2026-07-09T16:35:28.775+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] o.s.c.n.e.server.EurekaServerBootstrap   : Eureka Service is now shutdown...
+2026-07-09T16:35:28.775+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] c.n.eureka.DefaultEurekaServerContext    : Shutting down ...
+2026-07-09T16:35:28.784+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] c.n.eureka.DefaultEurekaServerContext    : Shut down
+2026-07-09T16:35:28.793+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] com.netflix.discovery.DiscoveryClient    : Shutting down DiscoveryClient ...
+2026-07-09T16:35:28.794+09:00  INFO 141 --- [bwg-channel-backend-discovery] [SpringApplicationShutdownHook] com.netflix.discovery.DiscoveryClient    : Completed shut down of DiscoveryClient
