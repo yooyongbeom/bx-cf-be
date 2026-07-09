@@ -21,7 +21,6 @@ dependencyManagement {
 dependencies {
     implementation project(':libs:common')
     implementation project(':libs:business-common')
-    implementation project(':libs:session-context-common')
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
