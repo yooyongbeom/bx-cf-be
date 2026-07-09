@@ -6,6 +6,8 @@ import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
 import org.apache.ibatis.type.Alias;
 
+import java.time.OffsetDateTime;
+
 /**
  * 상품 API 응답 모델. 엔드포인트별 응답 스키마를 생성한다.
  * <p>
@@ -38,4 +40,16 @@ public class ProductResDto {
     @ApiField(description = "사용 여부 (Y/N)", example = "Y",
               allowableValues = {"Y", "N"}, optional = {"detail"})
     private String useYn;
+
+    @ApiField(description = "생성자 ID", example = "system", optional = {"detail"})
+    private String createdBy;
+
+    @ApiField(description = "수정자 ID", example = "system", optional = {"detail"})
+    private String updatedBy;
+
+    @ApiField(description = "생성 일시", example = "2026-06-25T16:01:14+09:00", optional = {"detail"})
+    private OffsetDateTime createdAt;
+
+    @ApiField(description = "수정 일시", example = "2026-06-25T16:01:14+09:00", optional = {"detail"})
+    private OffsetDateTime updatedAt;
 }

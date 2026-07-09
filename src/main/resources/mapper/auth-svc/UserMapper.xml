@@ -64,6 +64,8 @@
         UPDATE USERS
         SET REFRESH_TOKEN = #{refreshToken}                    /* 리프레시 토큰 */
             ,REFRESH_TOKEN_EXPIRES_AT = #{refreshTokenExpiresAt} /* 리프레시 토큰 만료 일시 */
+            ,UPDATED_BY = #{usrId}
+            ,UPDATED_AT = current_timestamp
         WHERE USER_ID = #{usrId}                               /* 사용자 ID */
         ]]>
     </update>

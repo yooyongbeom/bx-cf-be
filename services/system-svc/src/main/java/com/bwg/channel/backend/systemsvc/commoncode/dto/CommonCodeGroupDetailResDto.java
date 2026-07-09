@@ -6,6 +6,7 @@ import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import lombok.Data;
 import org.apache.ibatis.type.Alias;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.ibatis.type.Alias;
@@ -30,6 +31,18 @@ public class CommonCodeGroupDetailResDto {
 
     @ApiField(description = "사용 여부", example = "Y", allowableValues = {"Y", "N"}, optional = {"detail"})
     private String useYn;
+
+    @ApiField(description = "생성자 ID", example = "system", optional = {"detail"})
+    private String createdBy;
+
+    @ApiField(description = "수정자 ID", example = "system", optional = {"detail"})
+    private String updatedBy;
+
+    @ApiField(description = "생성 일시", example = "2026-06-25T16:01:14+09:00", optional = {"detail"})
+    private OffsetDateTime createdAt;
+
+    @ApiField(description = "수정 일시", example = "2026-06-25T16:01:14+09:00", optional = {"detail"})
+    private OffsetDateTime updatedAt;
 
     @ApiField(description = "공통코드 목록", optional = {"detail"})
     private List<CommonCodeResDto> codes = new ArrayList<>();

@@ -16,6 +16,10 @@
         <result property="stockQty"    column="stock_qty"/>
         <!-- useYn: 사용 여부 -->
         <result property="useYn"       column="use_yn"/>
+        <result property="createdBy"   column="created_by"/>
+        <result property="updatedBy"   column="updated_by"/>
+        <result property="createdAt"   column="created_at"/>
+        <result property="updatedAt"   column="updated_at"/>
     </resultMap>
 
     <!-- 상품 목록 조건 조회 -->
@@ -30,6 +34,10 @@
             ,price          /* 상품 가격 */
             ,stock_qty      /* 재고 수량 */
             ,use_yn         /* 사용 여부 */
+            ,created_by     /* 생성자 ID */
+            ,updated_by     /* 수정자 ID */
+            ,created_at     /* 생성 일시 */
+            ,updated_at     /* 수정 일시 */
         FROM products
         ]]>
         <!-- 동적 검색 조건 -->
@@ -136,6 +144,10 @@
             ,price          /* 상품 가격 */
             ,stock_qty      /* 재고 수량 */
             ,use_yn         /* 사용 여부 */
+            ,created_by     /* 생성자 ID */
+            ,updated_by     /* 수정자 ID */
+            ,created_at     /* 생성 일시 */
+            ,updated_at     /* 수정 일시 */
         FROM products
         WHERE product_id = #{productId}
         ]]>
