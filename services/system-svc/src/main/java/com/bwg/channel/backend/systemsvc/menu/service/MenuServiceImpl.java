@@ -36,9 +36,9 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public ApiResponse<MenuResDto> getMenu(Long menuId) {
-        // 메뉴 ID 검증 후 단건 메뉴 상세 조회
+        // 메뉴 ID 검증 후 단건 메뉴 상세 조회, 미존재 시 404 응답
         Long requiredMenuId = BusinessValidator.requireNonNull(menuId, "menuId");
-        MenuResDto result = BusinessValidator.requireNonNull(menuRepository.findMenu(requiredMenuId), "menu");
+        MenuResDto result = BusinessValidator.requireFound(menuRepository.findMenu(requiredMenuId), "menu");
         return ApiResponse.success(result);
     }
 

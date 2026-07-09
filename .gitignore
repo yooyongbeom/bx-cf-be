@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Logs ###
+logs/
+*.log
+*.log.gz
+# Windows 절대 로그 경로가 다른 OS에서 리터럴 디렉터리로 생성되는 경우 방지
+C:/

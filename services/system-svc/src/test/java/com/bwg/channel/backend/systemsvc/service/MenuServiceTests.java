@@ -52,7 +52,7 @@ class MenuServiceTests {
         assertThatThrownBy(() -> menuService.getMenu(99L))
                 .isInstanceOf(BwgBusinessException.class)
                 .extracting("code")
-                .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);
+                .isEqualTo(BusinessErrorCode.BUSINESS_DATA_NOT_FOUND);
         verify(menuRepository).findMenu(99L);
     }
 
