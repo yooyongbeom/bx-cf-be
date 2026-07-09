@@ -20,6 +20,11 @@ public interface MenuService {
     ApiResponse<List<MenuResDto>> getMenus();
 
     /**
+     * 메뉴 ID 기준 상세 조회
+     */
+    ApiResponse<MenuResDto> getMenu(Long menuId);
+
+    /**
      * 메뉴 등록
      */
     ApiResponse<Void> createMenu(ApiRequest<MenuReqDto> paramDto);

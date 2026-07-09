@@ -11,6 +11,7 @@ import com.bwg.channel.backend.systemsvc.referencedata.controller.ReferenceDataV
 import com.bwg.channel.backend.systemsvc.referencedata.dto.ReferenceDataVersionReqDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,6 +36,16 @@ class SystemControllerMappingTests {
     @Test
     void menuControllerUsesPostMappingsOnly() {
         assertPostOnly(MenuController.class);
+    }
+
+    @Test
+    void menuDetailUsesPathVariablePostMapping() throws NoSuchMethodException {
+        Method method = MenuController.class.getDeclaredMethod("getMenu", Long.class);
+        PostMapping mapping = method.getAnnotation(PostMapping.class);
+
+        assertThat(mapping.value()).containsExactly("/{menuId}/detail");
+        assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
+        assertThat(method.getParameters()[0].isAnnotationPresent(RequestBody.class)).isFalse();
     }
 
     @Test

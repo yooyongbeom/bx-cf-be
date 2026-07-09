@@ -66,6 +66,33 @@
         ]]>
     </select>
 
+    <!-- 메뉴 상세 조회 -->
+    <select id="findMenu" resultMap="menuResult">
+        <![CDATA[
+        /* systemsvc.MenuMapper.findMenu(메뉴 상세 조회) */
+        SELECT
+            menu_id
+            ,parent_menu_id
+            ,menu_cd
+            ,menu_nm
+            ,menu_type
+            ,path
+            ,component
+            ,icon
+            ,depth
+            ,sort_seq
+            ,visible_yn
+            ,use_yn
+            ,remark
+            ,created_by
+            ,updated_by
+            ,created_at
+            ,updated_at
+        FROM menus
+        WHERE menu_id = #{menuId}
+        ]]>
+    </select>
+
     <!-- 메뉴 등록 -->
     <insert id="insertMenu" parameterType="ApiRequest">
         <![CDATA[

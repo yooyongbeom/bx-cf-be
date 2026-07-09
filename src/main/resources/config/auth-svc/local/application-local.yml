@@ -58,7 +58,7 @@ eureka:
 
 app:
   erp-login-url: "https://erp.bankwareglobal.com/serviceEndpoint/httpService/request.json"
-  log-path: C:/work/bx-cf-be/logs
+  log-path: ./logs
   auth:
     refresh-cookie:
       name: refreshToken

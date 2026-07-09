@@ -27,7 +27,7 @@ eureka:
     fetch-registry: true
 
 app:
-  log-path: C:/work/bx-cf-be/logs
+  log-path: ./logs
 
 logging:
   level:

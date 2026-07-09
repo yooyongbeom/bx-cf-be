@@ -36,6 +36,13 @@ public class MenuController {
         return menuService.getMenus();
     }
 
+    @Operation(summary = "메뉴 상세 조회")
+    @PostMapping("/{menuId}/detail")
+    public ApiResponse<MenuResDto> getMenu(@PathVariable Long menuId) {
+        // 메뉴 ID 기준 상세 조회를 서비스에 위임
+        return menuService.getMenu(menuId);
+    }
+
     @Operation(summary = "메뉴 등록")
     @PostMapping("/create")
     public ApiResponse<Void> createMenu(@RequestBody ApiRequest<MenuReqDto> req) {

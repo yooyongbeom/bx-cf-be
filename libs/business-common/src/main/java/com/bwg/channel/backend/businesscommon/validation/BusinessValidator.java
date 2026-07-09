@@ -26,6 +26,17 @@ public final class BusinessValidator {
         return value;
     }
 
+    public static <T> T requireFound(T value, String target) {
+        if (value == null) {
+            throw new BwgBusinessException.Builder()
+                    .code(BusinessErrorCode.BUSINESS_DATA_NOT_FOUND)
+                    .message(BusinessErrorCode.BUSINESS_DATA_NOT_FOUND.getMsg())
+                    .details(Map.of("target", normalizeFieldName(target)))
+                    .build();
+        }
+        return value;
+    }
+
     public static String requireNonBlank(String value, String fieldName) {
         if (value == null || value.trim().isEmpty()) {
             throw requiredValueMissing(fieldName);

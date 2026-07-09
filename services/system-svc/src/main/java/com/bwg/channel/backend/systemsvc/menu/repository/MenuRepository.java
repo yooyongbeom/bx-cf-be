@@ -18,6 +18,11 @@ public interface MenuRepository {
     List<MenuResDto> findMenus();
 
     /**
+     * 메뉴 ID 기준 상세 조회
+     */
+    MenuResDto findMenu(Long menuId);
+
+    /**
      * 메뉴 등록
      */
     int insertMenu(ApiRequest<MenuReqDto> paramDto);
