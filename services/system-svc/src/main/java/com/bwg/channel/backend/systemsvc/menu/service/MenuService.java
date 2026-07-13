@@ -39,7 +39,7 @@ public interface MenuService {
     /**
      * 메뉴와 모든 하위 메뉴 물리 삭제
      */
-    ApiResponse<Void> deleteMenu(Long menuId, String userId);
+    ApiResponse<Void> deleteMenu(Long menuId);
 
     /**
      * 메뉴 ID 기준 기능 목록 조회

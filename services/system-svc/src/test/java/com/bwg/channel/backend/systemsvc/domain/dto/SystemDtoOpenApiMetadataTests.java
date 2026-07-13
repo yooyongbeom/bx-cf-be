@@ -41,10 +41,13 @@ class SystemDtoOpenApiMetadataTests {
     void menuCommandDtosExposeOnlyTheirOperationFields() {
         assertThat(MenuCreateReqDto.class.getDeclaredFields())
                 .extracting(Field::getName)
-                .doesNotContain("menuId");
+                .doesNotContain("menuId", "createdBy");
         assertThat(MenuUpdateReqDto.class.getDeclaredFields())
                 .extracting(Field::getName)
-                .doesNotContain("menuId", "menuCd");
+                .doesNotContain("menuId", "menuCd", "createdBy");
+        assertThat(RoleMenuSaveReqDto.class.getDeclaredFields())
+                .extracting(Field::getName)
+                .doesNotContain("createdBy");
     }
 
     @Test

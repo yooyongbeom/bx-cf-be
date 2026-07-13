@@ -24,7 +24,6 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -109,7 +108,6 @@ class MenuServiceTests {
         MenuCreateReqDto data = new MenuCreateReqDto();
         data.setMenuCd(" DASHBOARD ");
         data.setMenuNm(" 대시보드 ");
-        data.setCreatedBy("admin");
         ApiRequest<MenuCreateReqDto> request = new ApiRequest<>();
         request.setData(data);
 
@@ -118,7 +116,7 @@ class MenuServiceTests {
         assertThat(response.isSuccess()).isTrue();
         assertThat(data.getMenuCd()).isEqualTo("DASHBOARD");
         assertThat(data.getMenuNm()).isEqualTo("대시보드");
-        verify(menuRepository).insertMenu(request);
+        verify(menuRepository).insertMenu(request, "admin");
         verify(menuRepository).insertReferenceDataVersionHistory(
                 "MENU", "CREATE", "menus", "DASHBOARD", "메뉴 등록", "admin");
         verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 등록", "admin");
@@ -128,7 +126,6 @@ class MenuServiceTests {
     void updatesMenuWithPathIdAndUpdateDto() {
         MenuUpdateReqDto data = new MenuUpdateReqDto();
         data.setMenuNm(" 대시보드 ");
-        data.setCreatedBy("admin");
         ApiRequest<MenuUpdateReqDto> request = new ApiRequest<>();
         request.setData(data);
 
@@ -136,7 +133,7 @@ class MenuServiceTests {
 
         assertThat(response.isSuccess()).isTrue();
         assertThat(data.getMenuNm()).isEqualTo("대시보드");
-        verify(menuRepository).updateMenu(7L, request);
+        verify(menuRepository).updateMenu(7L, request, "admin");
         verify(menuRepository).insertReferenceDataVersionHistory(
                 "MENU", "UPDATE", "menus", "7", "메뉴 수정", "admin");
         verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 수정", "admin");
@@ -147,7 +144,7 @@ class MenuServiceTests {
         List<Long> menuIds = List.of(10L, 11L, 12L);
         when(menuRepository.findMenuHierarchyIds(10L)).thenReturn(menuIds);
 
-        ApiResponse<Void> response = menuService.deleteMenu(10L, "admin");
+        ApiResponse<Void> response = menuService.deleteMenu(10L);
 
         assertThat(response.isSuccess()).isTrue();
         InOrder inOrder = inOrder(menuRepository);
@@ -164,7 +161,7 @@ class MenuServiceTests {
     void rejectsMissingMenuHierarchyBeforeDelete() {
         when(menuRepository.findMenuHierarchyIds(99L)).thenReturn(List.of());
 
-        assertThatThrownBy(() -> menuService.deleteMenu(99L, "admin"))
+        assertThatThrownBy(() -> menuService.deleteMenu(99L))
                 .isInstanceOf(BwgBusinessException.class)
                 .extracting("code")
                 .isEqualTo(BusinessErrorCode.BUSINESS_DATA_NOT_FOUND);
@@ -175,20 +172,9 @@ class MenuServiceTests {
     }
 
     @Test
-    void rejectsDeleteWithoutAuthenticatedUser() {
-        assertThatThrownBy(() -> menuService.deleteMenu(10L, " "))
-                .isInstanceOf(BwgBusinessException.class)
-                .extracting("code")
-                .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);
-
-        verifyNoInteractions(menuRepository);
-    }
-
-    @Test
     void replacesRoleMenus() {
         RoleMenuSaveReqDto paramDto = new RoleMenuSaveReqDto();
         paramDto.setMenuIds(List.of(1L, 2L));
-        paramDto.setCreatedBy("admin");
         ApiRequest<RoleMenuSaveReqDto> request = new ApiRequest<>();
         request.setData(paramDto);
 
@@ -198,5 +184,8 @@ class MenuServiceTests {
         verify(menuRepository).deleteRoleMenus(1L);
         verify(menuRepository).insertRoleMenu(1L, 1L, "admin");
         verify(menuRepository).insertRoleMenu(1L, 2L, "admin");
+        verify(menuRepository).insertReferenceDataVersionHistory(
+                "MENU", "SAVE", "role_menus", "1", "역할별 메뉴 권한 저장", "admin");
+        verify(menuRepository).updateReferenceDataVersion("MENU", "역할별 메뉴 권한 저장", "admin");
     }
 }

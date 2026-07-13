@@ -24,14 +24,22 @@ class SystemCommonDtoInheritanceTests {
     void writeDtosDeclareAuditWriterFieldsDirectly() {
         assertThat(List.of(
                 CommonCodeGroupReqDto.class,
-                CommonCodeReqDto.class,
-                MenuCreateReqDto.class,
-                MenuUpdateReqDto.class,
-                RoleMenuSaveReqDto.class
+                CommonCodeReqDto.class
         )).allSatisfy(dtoType -> {
             assertApiField(dtoType, "createdBy");
             assertThat(dtoType.getSuperclass()).isEqualTo(Object.class);
         });
+    }
+
+    @Test
+    void menuWriteDtosDoNotExposeAuditWriterFields() {
+        assertThat(List.of(
+                MenuCreateReqDto.class,
+                MenuUpdateReqDto.class,
+                RoleMenuSaveReqDto.class
+        )).allSatisfy(dtoType -> assertThat(dtoType.getDeclaredFields())
+                .extracting(java.lang.reflect.Field::getName)
+                .doesNotContain("createdBy"));
     }
 
     @Test

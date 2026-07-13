@@ -35,15 +35,15 @@ public class MybatisMenuRepositoryAdapter implements MenuRepository {
     }
 
     @Override
-    public int insertMenu(ApiRequest<MenuCreateReqDto> paramDto) {
+    public int insertMenu(ApiRequest<MenuCreateReqDto> paramDto, String createdBy) {
         // MyBatis Mapper를 통해 메뉴 등록
-        return menuMapper.insertMenu(paramDto);
+        return menuMapper.insertMenu(paramDto, createdBy);
     }
 
     @Override
-    public int updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto) {
+    public int updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto, String updatedBy) {
         // MyBatis Mapper를 통해 메뉴 수정
-        return menuMapper.updateMenu(menuId, paramDto);
+        return menuMapper.updateMenu(menuId, paramDto, updatedBy);
     }
 
     @Override

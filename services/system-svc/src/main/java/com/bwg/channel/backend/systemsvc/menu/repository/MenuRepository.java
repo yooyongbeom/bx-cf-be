@@ -27,12 +27,12 @@ public interface MenuRepository {
     /**
      * 메뉴 등록
      */
-    int insertMenu(ApiRequest<MenuCreateReqDto> paramDto);
+    int insertMenu(ApiRequest<MenuCreateReqDto> paramDto, String createdBy);
 
     /**
      * 메뉴 수정
      */
-    int updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto);
+    int updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto, String updatedBy);
 
     /**
      * 루트 메뉴와 모든 하위 메뉴 ID 조회

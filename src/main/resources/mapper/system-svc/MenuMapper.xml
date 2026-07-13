@@ -115,7 +115,7 @@
     </select>
 
     <!-- 메뉴 등록 -->
-    <insert id="insertMenu" parameterType="ApiRequest">
+    <insert id="insertMenu">
         <![CDATA[
         /* systemsvc.MenuMapper.insertMenu(메뉴 등록) */
         INSERT INTO menus (
@@ -137,21 +137,21 @@
             ,updated_at
         )
         VALUES (
-            #{data.parentMenuId}
-            ,#{data.menuCd}
-            ,#{data.menuNm}
-            ,COALESCE(#{data.menuType}, 'MENU')
-            ,#{data.path}
-            ,#{data.component}
-            ,#{data.icon}
-            ,COALESCE(#{data.depth}, 1)
-            ,COALESCE(#{data.sortSeq}, 0)
-            ,COALESCE(#{data.visibleYn}, 'Y')
-            ,COALESCE(#{data.useYn}, 'Y')
-            ,#{data.remark}
-            ,#{data.createdBy}
+            #{request.data.parentMenuId}
+            ,#{request.data.menuCd}
+            ,#{request.data.menuNm}
+            ,COALESCE(#{request.data.menuType}, 'MENU')
+            ,#{request.data.path}
+            ,#{request.data.component}
+            ,#{request.data.icon}
+            ,COALESCE(#{request.data.depth}, 1)
+            ,COALESCE(#{request.data.sortSeq}, 0)
+            ,COALESCE(#{request.data.visibleYn}, 'Y')
+            ,COALESCE(#{request.data.useYn}, 'Y')
+            ,#{request.data.remark}
+            ,#{createdBy}
             ,current_timestamp
-            ,#{data.createdBy}
+            ,#{createdBy}
             ,current_timestamp
         )
         ]]>
@@ -173,7 +173,7 @@
             ,visible_yn = COALESCE(#{request.data.visibleYn}, visible_yn)
             ,use_yn = COALESCE(#{request.data.useYn}, use_yn)
             ,remark = #{request.data.remark}
-            ,updated_by = #{request.data.createdBy}
+            ,updated_by = #{updatedBy}
             ,updated_at = current_timestamp
         WHERE menu_id = #{menuId}
         ]]>

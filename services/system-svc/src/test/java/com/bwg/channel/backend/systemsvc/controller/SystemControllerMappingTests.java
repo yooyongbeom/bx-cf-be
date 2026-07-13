@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -52,15 +51,13 @@ class SystemControllerMappingTests {
 
     @Test
     void menuDeleteUsesPathVariablePostMapping() throws NoSuchMethodException {
-        Method method = MenuController.class.getDeclaredMethod("deleteMenu", Long.class, String.class);
+        Method method = MenuController.class.getDeclaredMethod("deleteMenu", Long.class);
         PostMapping mapping = method.getAnnotation(PostMapping.class);
-        RequestHeader requestHeader = method.getParameters()[1].getAnnotation(RequestHeader.class);
 
         assertThat(mapping.value()).containsExactly("/{menuId}/delete");
         assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
-        assertThat(method.getParameters()[1].isAnnotationPresent(RequestBody.class)).isFalse();
-        assertThat(requestHeader).isNotNull();
-        assertThat(requestHeader.value()).isEqualTo("X-Auth-User");
+        assertThat(method.getParameterCount()).isEqualTo(1);
+        assertThat(method.getParameters()[0].isAnnotationPresent(RequestBody.class)).isFalse();
     }
 
     @Test

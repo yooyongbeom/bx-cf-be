@@ -1,6 +1,6 @@
 # Menu CRUD DTO Split and Hierarchical Delete Implementation Plan
 
-> **Superseded delete actor contract (2026-07-13):** The executed plan below originally used `ApiRequest<MenuDeleteReqDto>`. The final implementation removes that DTO and reads the authenticated actor from the Gateway-provided `X-Auth-User` header. The design spec reflects the current contract.
+> **Superseded actor contracts (2026-07-13):** The executed plan below originally used request DTO fields and later `X-Auth-User` for delete. The current temporary policy removes menu audit actors from payloads and headers, and uses the Service constant `admin` for create, update, delete, and role-menu save. The design spec reflects the current contract.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -17,8 +17,8 @@
 - Delete physically removes the selected menu and every descendant.
 - Delete association order is `role_menus`, `menu_actions`, then `menus`.
 - Create, update, and delete return `ApiResponse<Void>`; create does not return the generated key.
-- Update actor field remains `createdBy` for compatibility.
-- `MenuActionResDto` and `RoleMenuSaveReqDto` remain unchanged; role-menu list responses reuse `MenuListResDto` without changing JSON fields.
+- Menu command DTOs do not expose an audit actor; the Service uses the temporary `admin` constant.
+- `MenuActionResDto` remains unchanged; `RoleMenuSaveReqDto` keeps only menu IDs. Role-menu list responses reuse `MenuListResDto` without changing JSON fields.
 - Every behavior change follows RED → GREEN → REFACTOR.
 
 ---
