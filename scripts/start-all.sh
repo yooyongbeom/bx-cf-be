@@ -32,6 +32,9 @@ start_svc product-svc $BASE/product-svc/product-svc-0.0.1-SNAPSHOT.jar
 
 echo "Starting system-svc..."
 start_svc system-svc $BASE/system-svc/system-svc-0.0.1-SNAPSHOT.jar
+
+echo "Starting integration-svc..."
+start_svc integration-svc $BASE/integration-svc/integration-svc-0.0.1-SNAPSHOT.jar
 sleep 20
 
 echo "Starting api-gateway..."

@@ -31,6 +31,7 @@ libs:session-context-common
 infra:api-gateway
 infra:discovery-svc
 services:auth-svc
+services:integration-svc
 services:product-svc
 services:system-svc
 ```
@@ -42,6 +43,7 @@ services:system-svc
 | `infra:api-gateway` | `common`, `security-common`, `session-context-common` | 외부 요청 진입점, JWT 검증, 내부 인증 헤더 생성, Eureka 기반 라우팅        |
 | `infra:discovery-svc` | - | 서비스 인스턴스 등록/탐색용 Eureka 서버                            |
 | `services:auth-svc` | `common`, `business-common`, `security-common`, `session-context-common` | 사용자 인증, access/refresh token 발급, Redis 세션 컨텍스트 저장/삭제 |
+| `services:integration-svc` | `common`, `business-common` | 대외계 연동. GitHub webhook 수신, GitHub 서명 검증, Notion 할일 DB row 생성 |
 | `services:product-svc` | `common`, `business-common`, `session-context-common` | 상품 API, 필요 시 내부 인증 헤더/sessionId 기반 세션 컨텍스트 조회          |
 | `services:system-svc` | `common`, `business-common`, `session-context-common` | 메뉴/공통코드 API, 필요 시 내부 인증 헤더/sessionId 기반 세션 컨텍스트 조회     |
 | `libs:security-common` | `common`, Spring Security, JJWT | JWT와 인증 실패 응답 공통화                                    |
@@ -55,7 +57,8 @@ services:system-svc
 2. `services:auth-svc`
 3. `services:product-svc`
 4. `services:system-svc`
-5. `infra:api-gateway`
+5. `services:integration-svc`
+6. `infra:api-gateway`
 
 Gateway는 Eureka에 등록된 서비스 이름으로 `lb://...` 라우팅. Gateway보다 하위 서비스와 Discovery를 먼저 기동하는 흐름이 이해하기 쉬움.
 
@@ -66,6 +69,7 @@ Gateway는 Eureka에 등록된 서비스 이름으로 `lb://...` 라우팅. Gate
 | discovery-svc | 18761 | - | - |
 | api-gateway | 18081 | - | - |
 | auth-svc | 18082 | `/auth` | `/channel/backend/api/v1/auth/**` |
+| integration-svc | 18085 | `/integration` | `/channel/backend/api/v1/integration/**` |
 | product-svc | 18083 | `/product` | `/channel/backend/api/v1/product/**` |
 | system-svc | 18084 | `/system` | `/channel/backend/api/v1/system/**` |
 
@@ -102,6 +106,7 @@ PGPASSWORD=1111 psql -h 192.168.110.217 -p 5432 -U bxcf -d bxcfdb
 | 서비스 | local 설정 | dev 설정 | datasource |
 | --- | --- | --- | --- |
 | `auth-svc` | `src/main/resources/config/auth-svc/local/application-local.yml` | `src/main/resources/config/auth-svc/dev/application-dev.yml` | `jpa-main`, `mybatis-main` |
+| `integration-svc` | `src/main/resources/config/integration-svc/local/application-local.yml` | `src/main/resources/config/integration-svc/dev/application-dev.yml` | 외부 API 연동 전용 |
 | `product-svc` | `src/main/resources/config/product-svc/local/application-local.yml` | `src/main/resources/config/product-svc/dev/application-dev.yml` | `jpa-main`, `mybatis-main` |
 | `system-svc` | `src/main/resources/config/system-svc/local/application-local.yml` | `src/main/resources/config/system-svc/dev/application-dev.yml` | `mybatis-main` |
 
@@ -114,6 +119,7 @@ Gateway 라우팅 설정 위치: `src/main/resources/config/api-gateway/applicat
 | route id | 대상 서비스 | 조건 | 처리 |
 | --- | --- | --- | --- |
 | `auth-svc` | `lb://BWG-CHANNEL-BACKEND-AUTH-SVC` | `/channel/backend/api/v1/auth/**` | `StripPrefix=4` 후 auth-svc로 전달 |
+| `integration-svc` | `lb://BWG-CHANNEL-BACKEND-INTEGRATION-SVC` | `/channel/backend/api/v1/integration/**` | `StripPrefix=4` 후 integration-svc로 전달 |
 | `product-svc` | `lb://BWG-CHANNEL-BACKEND-PRODUCT-SVC` | `/channel/backend/api/v1/product/**` | `StripPrefix=4` 후 product-svc로 전달 |
 | `system-svc` | `lb://BWG-CHANNEL-BACKEND-SYSTEM-SVC` | `/channel/backend/api/v1/system/**` | `StripPrefix=4` 후 system-svc로 전달 |
 | `*-api-docs` | 각 서비스 | `/{service}/v3/api-docs` | 각 서비스 context-path 기준 `/v3/api-docs`로 변환 |
@@ -201,10 +207,30 @@ Gateway `SecurityConfig`의 `PERMIT_URL_ARRAY` 기준. JWT 없이 접근 가능�
 /channel/backend/api/v1/auth/password/find
 /channel/backend/api/v1/auth/password/reset-request
 /channel/backend/api/v1/auth/password/reset
+/channel/backend/api/v1/integration/github/webhook
 /swagger-ui/**
 /v3/api-docs/**
 /actuator/health
 /actuator/info
+```
+
+### Integration
+
+```text
+POST /channel/backend/api/v1/integration/github/webhook
+```
+
+GitHub issue webhook을 수신해 Notion 할일 DB에 row를 생성한다. 이 endpoint는 사용자 JWT 대신 GitHub의 `X-Hub-Signature-256` HMAC-SHA256 서명을 검증한다.
+
+필요 환경변수.
+
+```text
+GITHUB_WEBHOOK_SECRET
+NOTION_ENABLED=true
+NOTION_TOKEN
+NOTION_DATABASE_ID
+NOTION_VERSION=2022-06-28
+NOTION_BASE_URL=https://api.notion.com
 ```
 
 `/logout`은 인증된 access token 필요. Gateway가 검증한 내부 헤더의 `userId`, `sessionId` 기준으로 DB refresh token과 Redis 세션 삭제.
@@ -411,6 +437,7 @@ src/main/resources/config/
 │  ├─ local/application-local.yml
 │  └─ dev/application-dev.yml
 ├─ auth-svc/
+├─ integration-svc/
 ├─ product-svc/
 ├─ system-svc/
 ├─ discovery-svc/
@@ -432,7 +459,7 @@ profile 기본값: `local`
 전체 주요 서비스 bootJar.
 
 ```bash
-./gradlew :infra:discovery-svc:bootJar :infra:api-gateway:bootJar :services:auth-svc:bootJar :services:product-svc:bootJar :services:system-svc:bootJar -Pprofile=local
+./gradlew :infra:discovery-svc:bootJar :infra:api-gateway:bootJar :services:auth-svc:bootJar :services:integration-svc:bootJar :services:product-svc:bootJar :services:system-svc:bootJar -Pprofile=local
 ```
 
 빌드 결과.
@@ -445,6 +472,7 @@ build/dist/bx-cf-be/*.jar
 
 ```bash
 ./gradlew :services:auth-svc:bootJar -Pprofile=local
+./gradlew :services:integration-svc:bootJar -Pprofile=local
 ./gradlew :infra:api-gateway:bootJar -Pprofile=local
 ```
 
@@ -463,6 +491,7 @@ Gradle bootRun 사용 예.
 ```bash
 ./gradlew :infra:discovery-svc:bootRun -Pprofile=local
 ./gradlew :services:auth-svc:bootRun -Pprofile=local
+./gradlew :services:integration-svc:bootRun -Pprofile=local
 ./gradlew :services:product-svc:bootRun -Pprofile=local
 ./gradlew :services:system-svc:bootRun -Pprofile=local
 ./gradlew :infra:api-gateway:bootRun -Pprofile=local
@@ -474,6 +503,7 @@ Gradle bootRun 사용 예.
 
 ```bash
 ./gradlew :services:auth-svc:test
+./gradlew :services:integration-svc:test
 ./gradlew :libs:security-common:test
 ./gradlew :libs:session-context-common:test
 ./gradlew :infra:api-gateway:test
@@ -509,6 +539,7 @@ Gradle bootRun 사용 예.
 | 변경 경로 | 배포 대상 |
 | --- | --- |
 | `services/auth-svc/**` | auth-svc |
+| `services/integration-svc/**`, `src/main/resources/config/integration-svc/**` | integration-svc |
 | `services/product-svc/**` | product-svc |
 | `services/system-svc/**`, `src/main/resources/config/system-svc/**` | system-svc |
 | `libs/**`, `infra/**`, `scripts/**`, `.github/workflows/**` | 전체 서비스 |

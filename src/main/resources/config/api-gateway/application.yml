@@ -42,6 +42,12 @@ spring:
             - Path=/system-svc/v3/api-docs
           filters:
             - SetPath=/system/v3/api-docs # system-svc context-path(/system) 기준
+        - id: integration-svc-api-docs
+          uri: lb://BWG-CHANNEL-BACKEND-INTEGRATION-SVC
+          predicates:
+            - Path=/integration-svc/v3/api-docs
+          filters:
+            - SetPath=/integration/v3/api-docs
         #인증서비스, 로그인/토큰 발급, 권한관리
         - id: auth-svc
           uri: lb://BWG-CHANNEL-BACKEND-AUTH-SVC
@@ -65,6 +71,13 @@ spring:
             - Path=/channel/backend/api/v1/system/**
           filters:
             - StripPrefix=4
+        #대외계서비스
+        - id: integration-svc
+          uri: lb://BWG-CHANNEL-BACKEND-INTEGRATION-SVC
+          predicates:
+            - Path=/channel/backend/api/v1/integration/**
+          filters:
+            - StripPrefix=4
   devtools:
     livereload:
       enabled: false
@@ -86,6 +99,8 @@ springdoc:
         url: /product-svc/v3/api-docs
       - name: system-svc
         url: /system-svc/v3/api-docs
+      - name: integration-svc
+        url: /integration-svc/v3/api-docs
 # actuator
 management:
   endpoints:
