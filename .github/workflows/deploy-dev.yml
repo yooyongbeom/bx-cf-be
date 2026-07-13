@@ -90,6 +90,36 @@ jobs:
               ]
             }"
 
+      - name: Notify Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BXCFBE }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "DISCORD_WEBHOOK_BXCFBE is not configured. Skipping Discord notification."
+            exit 0
+          fi
+          if [ "${{ job.status }}" = "success" ]; then
+            TITLE="✅ 배포 성공 - auth-svc"
+            COLOR=51004
+          else
+            TITLE="❌ 배포 실패 - auth-svc"
+            COLOR=16272203
+          fi
+          curl -sS -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"$TITLE\",
+                \"color\": $COLOR,
+                \"fields\": [
+                  {\"name\": \"브랜치\", \"value\": \"${{ github.ref_name }}\", \"inline\": true},
+                  {\"name\": \"커밋\", \"value\": \"${{ github.event.head_commit.message }}\", \"inline\": false},
+                  {\"name\": \"작업자\", \"value\": \"${{ github.actor }}\", \"inline\": true}
+                ]
+              }]
+            }" || true
+
   deploy-integration:
     needs: detect
     if: needs.detect.outputs.all != 'true' && needs.detect.outputs.integration == 'true'
@@ -127,10 +157,10 @@ jobs:
         run: |
           if [ "${{ job.status }}" = "success" ]; then
             COLOR="#00C73C"
-            TITLE="Deploy success - integration-svc"
+            TITLE="✅ 배포 성공 - integration-svc"
           else
             COLOR="#F84B4B"
-            TITLE="Deploy failed - integration-svc"
+            TITLE="❌ 배포 실패 - integration-svc"
           fi
           curl -s -X POST "${{ secrets.JANDI_HOOK }}" \
             -H "Content-Type: application/json" \
@@ -138,11 +168,41 @@ jobs:
               \"body\": \"$TITLE\",
               \"connectColor\": \"$COLOR\",
               \"connectInfo\": [
-                {\"title\": \"Branch\", \"description\": \"${{ github.ref_name }}\"},
-                {\"title\": \"Commit\", \"description\": \"${{ github.event.head_commit.message }}\"},
-                {\"title\": \"Actor\", \"description\": \"${{ github.actor }}\"}
+                {\"title\": \"브랜치\", \"description\": \"${{ github.ref_name }}\"},
+                {\"title\": \"커밋\", \"description\": \"${{ github.event.head_commit.message }}\"},
+                {\"title\": \"작업자\", \"description\": \"${{ github.actor }}\"}
               ]
             }"
+
+      - name: Notify Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BXCFBE }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "DISCORD_WEBHOOK_BXCFBE is not configured. Skipping Discord notification."
+            exit 0
+          fi
+          if [ "${{ job.status }}" = "success" ]; then
+            TITLE="✅ 배포 성공 - integration-svc"
+            COLOR=51004
+          else
+            TITLE="❌ 배포 실패 - integration-svc"
+            COLOR=16272203
+          fi
+          curl -sS -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"$TITLE\",
+                \"color\": $COLOR,
+                \"fields\": [
+                  {\"name\": \"브랜치\", \"value\": \"${{ github.ref_name }}\", \"inline\": true},
+                  {\"name\": \"커밋\", \"value\": \"${{ github.event.head_commit.message }}\", \"inline\": false},
+                  {\"name\": \"작업자\", \"value\": \"${{ github.actor }}\", \"inline\": true}
+                ]
+              }]
+            }" || true
 
   deploy-product:
     needs: detect
@@ -198,6 +258,36 @@ jobs:
               ]
             }"
 
+      - name: Notify Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BXCFBE }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "DISCORD_WEBHOOK_BXCFBE is not configured. Skipping Discord notification."
+            exit 0
+          fi
+          if [ "${{ job.status }}" = "success" ]; then
+            TITLE="✅ 배포 성공 - product-svc"
+            COLOR=51004
+          else
+            TITLE="❌ 배포 실패 - product-svc"
+            COLOR=16272203
+          fi
+          curl -sS -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"$TITLE\",
+                \"color\": $COLOR,
+                \"fields\": [
+                  {\"name\": \"브랜치\", \"value\": \"${{ github.ref_name }}\", \"inline\": true},
+                  {\"name\": \"커밋\", \"value\": \"${{ github.event.head_commit.message }}\", \"inline\": false},
+                  {\"name\": \"작업자\", \"value\": \"${{ github.actor }}\", \"inline\": true}
+                ]
+              }]
+            }" || true
+
   deploy-system:
     needs: detect
     if: needs.detect.outputs.all != 'true' && needs.detect.outputs.system == 'true'
@@ -235,10 +325,10 @@ jobs:
         run: |
           if [ "${{ job.status }}" = "success" ]; then
             COLOR="#00C73C"
-            TITLE="Deploy success - system-svc"
+            TITLE="✅ 배포 성공 - system-svc"
           else
             COLOR="#F84B4B"
-            TITLE="Deploy failed - system-svc"
+            TITLE="❌ 배포 실패 - system-svc"
           fi
           curl -s -X POST "${{ secrets.JANDI_HOOK }}" \
             -H "Content-Type: application/json" \
@@ -246,11 +336,41 @@ jobs:
               \"body\": \"$TITLE\",
               \"connectColor\": \"$COLOR\",
               \"connectInfo\": [
-                {\"title\": \"Branch\", \"description\": \"${{ github.ref_name }}\"},
-                {\"title\": \"Commit\", \"description\": \"${{ github.event.head_commit.message }}\"},
-                {\"title\": \"Actor\", \"description\": \"${{ github.actor }}\"}
+                {\"title\": \"브랜치\", \"description\": \"${{ github.ref_name }}\"},
+                {\"title\": \"커밋\", \"description\": \"${{ github.event.head_commit.message }}\"},
+                {\"title\": \"작업자\", \"description\": \"${{ github.actor }}\"}
               ]
             }"
+
+      - name: Notify Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BXCFBE }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "DISCORD_WEBHOOK_BXCFBE is not configured. Skipping Discord notification."
+            exit 0
+          fi
+          if [ "${{ job.status }}" = "success" ]; then
+            TITLE="✅ 배포 성공 - system-svc"
+            COLOR=51004
+          else
+            TITLE="❌ 배포 실패 - system-svc"
+            COLOR=16272203
+          fi
+          curl -sS -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"$TITLE\",
+                \"color\": $COLOR,
+                \"fields\": [
+                  {\"name\": \"브랜치\", \"value\": \"${{ github.ref_name }}\", \"inline\": true},
+                  {\"name\": \"커밋\", \"value\": \"${{ github.event.head_commit.message }}\", \"inline\": false},
+                  {\"name\": \"작업자\", \"value\": \"${{ github.actor }}\", \"inline\": true}
+                ]
+              }]
+            }" || true
 
   deploy-all:
     needs: detect
@@ -312,3 +432,33 @@ jobs:
                 {\"title\": \"작업자\", \"description\": \"${{ github.actor }}\"}
               ]
             }"
+
+      - name: Notify Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BXCFBE }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "DISCORD_WEBHOOK_BXCFBE is not configured. Skipping Discord notification."
+            exit 0
+          fi
+          if [ "${{ job.status }}" = "success" ]; then
+            TITLE="✅ 배포 성공 - 전체 서비스"
+            COLOR=51004
+          else
+            TITLE="❌ 배포 실패 - 전체 서비스"
+            COLOR=16272203
+          fi
+          curl -sS -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"$TITLE\",
+                \"color\": $COLOR,
+                \"fields\": [
+                  {\"name\": \"브랜치\", \"value\": \"${{ github.ref_name }}\", \"inline\": true},
+                  {\"name\": \"커밋\", \"value\": \"${{ github.event.head_commit.message }}\", \"inline\": false},
+                  {\"name\": \"작업자\", \"value\": \"${{ github.actor }}\", \"inline\": true}
+                ]
+              }]
+            }" || true
