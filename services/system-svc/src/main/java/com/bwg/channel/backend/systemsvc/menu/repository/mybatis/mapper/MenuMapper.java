@@ -30,14 +30,18 @@ public interface MenuMapper {
     /**
      * 메뉴 등록 SQL 매핑
      */
-    int insertMenu(ApiRequest<MenuCreateReqDto> paramDto);
+    int insertMenu(
+            @Param("request") ApiRequest<MenuCreateReqDto> paramDto,
+            @Param("createdBy") String createdBy
+    );
 
     /**
      * 메뉴 수정 SQL 매핑
      */
     int updateMenu(
             @Param("menuId") Long menuId,
-            @Param("request") ApiRequest<MenuUpdateReqDto> paramDto
+            @Param("request") ApiRequest<MenuUpdateReqDto> paramDto,
+            @Param("updatedBy") String updatedBy
     );
 
     /**

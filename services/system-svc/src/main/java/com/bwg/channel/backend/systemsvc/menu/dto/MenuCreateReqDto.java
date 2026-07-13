@@ -48,6 +48,4 @@ public class MenuCreateReqDto {
     @ApiField(description = "비고", optional = {"create"})
     private String remark;
 
-    @ApiField(description = "요청자 ID", example = "admin", optional = {"create"})
-    private String createdBy;
 }

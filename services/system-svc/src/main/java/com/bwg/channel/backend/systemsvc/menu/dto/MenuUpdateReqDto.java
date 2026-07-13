@@ -45,6 +45,4 @@ public class MenuUpdateReqDto {
     @ApiField(description = "비고", optional = {"update"})
     private String remark;
 
-    @ApiField(description = "요청자 ID", example = "admin", optional = {"update"})
-    private String createdBy;
 }
