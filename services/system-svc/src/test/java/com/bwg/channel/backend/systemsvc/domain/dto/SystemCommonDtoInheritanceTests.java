@@ -6,14 +6,17 @@ import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuReqDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class SystemCommonDtoInheritanceTests {
 
@@ -22,7 +25,8 @@ class SystemCommonDtoInheritanceTests {
         assertThat(List.of(
                 CommonCodeGroupReqDto.class,
                 CommonCodeReqDto.class,
-                MenuReqDto.class,
+                MenuCreateReqDto.class,
+                MenuUpdateReqDto.class,
                 RoleMenuSaveReqDto.class
         )).allSatisfy(dtoType -> {
             assertApiField(dtoType, "createdBy");
@@ -35,7 +39,8 @@ class SystemCommonDtoInheritanceTests {
         assertThat(List.of(
                 CommonCodeGroupResDto.class,
                 CommonCodeResDto.class,
-                MenuResDto.class,
+                MenuListResDto.class,
+                MenuDetailResDto.class,
                 MenuActionResDto.class
         )).allSatisfy(dtoType -> {
             assertApiField(dtoType, "createdBy");
@@ -44,6 +49,16 @@ class SystemCommonDtoInheritanceTests {
             assertApiField(dtoType, "updatedAt");
             assertThat(dtoType.getSuperclass()).isEqualTo(Object.class);
         });
+    }
+
+    @Test
+    void legacySharedMenuDtosAreRemoved() {
+        assertThatThrownBy(() -> Class.forName(
+                "com.bwg.channel.backend.systemsvc.menu.dto.MenuReqDto"
+        )).isInstanceOf(ClassNotFoundException.class);
+        assertThatThrownBy(() -> Class.forName(
+                "com.bwg.channel.backend.systemsvc.menu.dto.MenuResDto"
+        )).isInstanceOf(ClassNotFoundException.class);
     }
 
     private static void assertApiField(Class<?> dtoType, String fieldName) {
