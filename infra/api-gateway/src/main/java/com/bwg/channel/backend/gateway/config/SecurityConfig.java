@@ -46,6 +46,7 @@ public class SecurityConfig {
             "/auth-svc/v3/api-docs",
             "/product-svc/v3/api-docs",
             "/system-svc/v3/api-docs",
+            "/integration-svc/v3/api-docs",
             "/swagger-theme.css",
             "/favicon.ico",
             "/actuator/info",
@@ -56,7 +57,8 @@ public class SecurityConfig {
             "/channel/backend/api/v1/auth/signup",
             "/channel/backend/api/v1/auth/password/find",
             "/channel/backend/api/v1/auth/password/reset-request",
-            "/channel/backend/api/v1/auth/password/reset"
+            "/channel/backend/api/v1/auth/password/reset",
+            "/channel/backend/api/v1/integration/github/webhook"
     };
 
     /**

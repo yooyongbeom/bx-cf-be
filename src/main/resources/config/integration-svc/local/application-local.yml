@@ -1,0 +1,23 @@
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 35s
+
+server:
+  port: 18085
+  shutdown: graceful
+
+eureka:
+  instance:
+    prefer-ip-address: false
+    hostname: localhost
+    ip-address: localhost
+  client:
+    service-url:
+      defaultZone: "http://localhost:18761/eureka"
+    register-with-eureka: true
+    fetch-registry: true
+
+app:
+  log-path: ./logs
+  notion:
+    enabled: false

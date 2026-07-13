@@ -49,6 +49,17 @@ class SecurityConfigTest {
     }
 
     @Test
+    void permitsGithubWebhookWithoutJwtBecauseItUsesGithubSignature() throws Exception {
+        Field field = SecurityConfig.class.getDeclaredField("PERMIT_URL_ARRAY");
+        field.setAccessible(true);
+
+        String[] permitUrls = (String[]) field.get(null);
+
+        assertThat(Arrays.asList(permitUrls))
+                .contains("/channel/backend/api/v1/integration/github/webhook");
+    }
+
+    @Test
     void corsConfigurationUsesConfiguredOrigins() {
         GatewayCorsProperties properties = new GatewayCorsProperties();
         properties.setAllowedOriginPatterns(List.of("http://localhost:8000", "http://127.0.0.1:8000"));

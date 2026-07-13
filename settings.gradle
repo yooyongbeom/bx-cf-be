@@ -7,6 +7,7 @@ include(
     "infra:api-gateway",
     "infra:discovery-svc",
     "services:auth-svc",
+    "services:integration-svc",
     "services:product-svc",
     "services:system-svc"
 )

@@ -1,0 +1,86 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
+  application:
+    name: bwg-channel-backend-integration-svc
+  devtools:
+    livereload:
+      enabled: false
+    restart:
+      log-condition-evaluation-delta: false
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  web:
+    resources:
+      add-mappings: false
+  main:
+    allow-bean-definition-overriding: true
+
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+      force-response: true
+    context-path: /integration
+
+management:
+  security:
+    enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never
+  info:
+    git:
+      mode: simple
+    java:
+      enabled: true
+    os:
+      enabled: true
+    env:
+      enabled: true
+
+info:
+  app:
+    name: channel-backend-integration
+    version: 0.0.1
+    company: BankwareGlobal
+
+app:
+  github:
+    webhook:
+      secret: ${GITHUB_WEBHOOK_SECRET:}
+  notion:
+    enabled: ${NOTION_ENABLED:false}
+    base-url: ${NOTION_BASE_URL:https://api.notion.com}
+    version: ${NOTION_VERSION:2022-06-28}
+    token: ${NOTION_TOKEN:}
+    database-id: ${NOTION_DATABASE_ID:}
+
+logging:
+  file:
+    name: ${app.log-path}/${spring.application.name}.log
+  logback:
+    rollingpolicy:
+      file-name-pattern: ${app.log-path}/${spring.application.name}-%d{yyyy-MM-dd}.%i.log.gz
+      max-file-size: 100MB
+      max-history: 30
+      total-size-cap: 3GB
