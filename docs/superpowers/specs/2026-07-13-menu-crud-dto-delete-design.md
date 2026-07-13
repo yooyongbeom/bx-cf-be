@@ -10,7 +10,8 @@
 - 메뉴 목록 응답 DTO와 상세 응답 DTO를 분리한다.
 - 메뉴 삭제 요청 DTO를 추가한다.
 - 생성, 수정, 삭제 응답은 기존과 동일하게 `ApiResponse<Void>`를 사용한다.
-- 메뉴 기능 조회와 역할별 메뉴 저장 DTO는 변경하지 않는다.
+- 메뉴 기능 조회 DTO와 역할별 메뉴 저장 요청 DTO는 변경하지 않는다.
+- 역할별 메뉴 목록 응답은 메뉴 목록과 동일한 `MenuListResDto`를 사용한다. JSON 필드 계약은 변경하지 않는다.
 - 공통코드 등 다른 도메인은 변경하지 않는다.
 
 ## API 계약
@@ -44,6 +45,12 @@
 - 요청 본문: 없음
 - 응답: `ApiResponse<MenuDetailResDto>`
 - 메뉴가 없으면 `BUSINESS_DATA_NOT_FOUND`를 발생시킨다.
+
+### 역할별 메뉴 목록
+
+- 경로: `POST /menus/roles/{roleId}/list`
+- 응답: `ApiResponse<List<MenuListResDto>>`
+- 기존 메뉴 목록 필드를 그대로 유지하며 구형 `MenuResDto` 의존성만 제거한다.
 
 ### 삭제
 
