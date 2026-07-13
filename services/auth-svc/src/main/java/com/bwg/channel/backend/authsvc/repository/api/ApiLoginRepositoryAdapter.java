@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
@@ -32,11 +33,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Primary
 public class ApiLoginRepositoryAdapter implements LoginRepository {
+    private static final String EXTERNAL_API_CIRCUIT_BREAKER = "externalApi";
+
     /** ERP 로그인 API 호출을 담당하는 공통 HTTP 유틸리티. */
     private final ApiCallUtil apiCallUtil;
 
     /** ERP 응답 JSON 문자열을 Map 구조로 변환하는 ObjectMapper. */
     private final ObjectMapper objectMapper;
+
+    private final CircuitBreakerFactory<?, ?> circuitBreakerFactory;
 
     /** ERP 인증 API 엔드포인트 URL. */
     @Value("${app.erp-login-url}")
@@ -57,7 +62,11 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
         header.put("Content-type", contentType);
 
         // ERP 인증 API 호출
-        ResponseEntity<String> response = apiCallUtil.postSync(erpLoginUrl, dto, header, new ParameterizedTypeReference<String>() {});
+        ResponseEntity<String> response = circuitBreakerFactory.create(EXTERNAL_API_CIRCUIT_BREAKER)
+                .run(
+                        () -> apiCallUtil.postSync(erpLoginUrl, dto, header, new ParameterizedTypeReference<String>() {}),
+                        this::erpLoginFallback
+                );
 
         log.info("response code : {}", response.getStatusCode());
         log.info("response : {}", response);
@@ -161,5 +170,14 @@ public class ApiLoginRepositoryAdapter implements LoginRepository {
         dto.setSSMAUTH00101In(rqstData);
 
         return dto;
+    }
+
+    private ResponseEntity<String> erpLoginFallback(Throwable throwable) {
+        log.warn("ERP login API fallback called by circuit breaker", throwable);
+        throw new BwgAuthException.Builder()
+                .code(CommonErrorCode.SERVER_ERROR)
+                .message("ERP login API is temporarily unavailable")
+                .cause(throwable)
+                .build();
     }
 }

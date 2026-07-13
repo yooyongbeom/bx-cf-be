@@ -48,6 +48,12 @@ spring:
             - Path=/integration-svc/v3/api-docs
           filters:
             - SetPath=/integration/v3/api-docs
+        - id: mci-svc-api-docs
+          uri: lb://BWG-CHANNEL-BACKEND-MCI-SVC
+          predicates:
+            - Path=/mci-svc/v3/api-docs
+          filters:
+            - SetPath=/mci/v3/api-docs
         #인증서비스, 로그인/토큰 발급, 권한관리
         - id: auth-svc
           uri: lb://BWG-CHANNEL-BACKEND-AUTH-SVC
@@ -78,6 +84,13 @@ spring:
             - Path=/channel/backend/api/v1/integration/**
           filters:
             - StripPrefix=4
+        # MCI 서비스: 채널 표준 거래 요청을 mci-svc의 /mci context-path로 전달
+        - id: mci-svc
+          uri: lb://BWG-CHANNEL-BACKEND-MCI-SVC
+          predicates:
+            - Path=/channel/backend/api/v1/mci/**
+          filters:
+            - StripPrefix=4
   devtools:
     livereload:
       enabled: false
@@ -101,6 +114,8 @@ springdoc:
         url: /system-svc/v3/api-docs
       - name: integration-svc
         url: /integration-svc/v3/api-docs
+      - name: mci-svc
+        url: /mci-svc/v3/api-docs
 # actuator
 management:
   endpoints:

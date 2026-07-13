@@ -2,12 +2,14 @@ rootProject.name = 'bx-cf-be'
 include(
     "libs:common",
     "libs:business-common",
+    "libs:mci-common",
     "libs:security-common",
     "libs:session-context-common",
     "infra:api-gateway",
     "infra:discovery-svc",
     "services:auth-svc",
     "services:integration-svc",
+    "services:mci-svc",
     "services:product-svc",
     "services:system-svc"
 )

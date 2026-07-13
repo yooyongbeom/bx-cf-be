@@ -41,7 +41,9 @@ class ApiGatewayApplicationTests {
         org.assertj.core.api.Assertions.assertThat(body)
                 .contains("/auth-svc/v3/api-docs")
                 .contains("/product-svc/v3/api-docs")
-                .contains("/system-svc/v3/api-docs");
+                .contains("/system-svc/v3/api-docs")
+                .contains("/integration-svc/v3/api-docs")
+                .contains("/mci-svc/v3/api-docs");
     }
 
     @Test
@@ -57,7 +59,9 @@ class ApiGatewayApplicationTests {
                 .doesNotContain("configUrl")
                 .contains("/auth-svc/v3/api-docs")
                 .contains("/product-svc/v3/api-docs")
-                .contains("/system-svc/v3/api-docs");
+                .contains("/system-svc/v3/api-docs")
+                .contains("/integration-svc/v3/api-docs")
+                .contains("/mci-svc/v3/api-docs");
     }
 
     @Test

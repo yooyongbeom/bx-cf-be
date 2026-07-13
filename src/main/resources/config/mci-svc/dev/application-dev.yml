@@ -1,0 +1,19 @@
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 35s
+
+server:
+  port: 18086
+  shutdown: graceful
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:18761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+
+app:
+  log-path: ${APP_LOG_PATH:./logs}

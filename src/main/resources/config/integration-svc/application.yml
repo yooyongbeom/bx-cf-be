@@ -64,6 +64,37 @@ info:
     version: 0.0.1
     company: BankwareGlobal
 
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 2s
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        maxWaitDurationInHalfOpenState: 5s
+        automaticTransitionFromOpenToHalfOpenEnabled: false
+    instances:
+      internalService:
+        baseConfig: default
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        slowCallDurationThreshold: 1s
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+      externalApi:
+        baseConfig: default
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        slowCallDurationThreshold: 3s
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 2
+
 app:
   github:
     webhook:

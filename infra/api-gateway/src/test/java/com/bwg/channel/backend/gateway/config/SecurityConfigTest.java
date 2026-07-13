@@ -24,7 +24,9 @@ class SecurityConfigTest {
                 .contains(
                         "/auth-svc/v3/api-docs",
                         "/product-svc/v3/api-docs",
-                        "/system-svc/v3/api-docs"
+                        "/system-svc/v3/api-docs",
+                        "/integration-svc/v3/api-docs",
+                        "/mci-svc/v3/api-docs"
                 );
     }
 

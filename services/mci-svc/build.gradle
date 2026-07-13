@@ -1,0 +1,68 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+group = 'com.bwg.channel.backend'
+version = '0.0.1-SNAPSHOT'
+description = 'bankwareglobal channel backend mci service'
+
+bootJar.enabled = true
+jar.enabled = false
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:3.3.4"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.1"
+    }
+}
+
+dependencies {
+    // mci-svc는 실행 서비스이고, MCI 표준 계약은 libs:mci-common에서 가져온다.
+    implementation project(':libs:common')
+    implementation project(':libs:business-common')
+    implementation project(':libs:mci-common')
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+def activeProfile = project.hasProperty('profile') ? project.property('profile') : 'local'
+processResources {
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from(sourceSets.main.resources.srcDirs)
+
+    // 루트 공통 banner를 각 서비스 JAR에 포함해 기존 서비스 패키징 규칙과 맞춘다.
+    from(rootProject.file("src/main/resources")) {
+        include "banner.txt"
+        into "."
+    }
+
+    // 서비스별 공통 application.yml을 먼저 넣고, profile별 설정이 뒤에서 덮어쓸 수 있게 한다.
+    def moduleYml = rootProject.file("src/main/resources/config/${project.name}/application.yml")
+    if (moduleYml.exists()) {
+        from(moduleYml) { into "." }
+    }
+
+    // -Pprofile=local/dev 값에 맞는 설정만 JAR에 포함한다.
+    def profileDir = rootProject.file("src/main/resources/config/${project.name}/${activeProfile}")
+    if (profileDir.exists()) {
+        from(profileDir) { into "." }
+    }
+}

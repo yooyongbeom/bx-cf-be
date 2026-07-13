@@ -33,6 +33,10 @@ start_svc product-svc $BASE/product-svc/product-svc-0.0.1-SNAPSHOT.jar
 echo "Starting system-svc..."
 start_svc system-svc $BASE/system-svc/system-svc-0.0.1-SNAPSHOT.jar
 
+# MCI는 Gateway 뒤에서 호출되는 업무 서비스이므로 Gateway보다 먼저 Eureka에 등록한다.
+echo "Starting mci-svc..."
+start_svc mci-svc $BASE/mci-svc/mci-svc-0.0.1-SNAPSHOT.jar
+
 echo "Starting integration-svc..."
 start_svc integration-svc $BASE/integration-svc/integration-svc-0.0.1-SNAPSHOT.jar
 sleep 20

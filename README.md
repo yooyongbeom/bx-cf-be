@@ -9,6 +9,7 @@ bx-cf-be/
 ├─ libs/
 │  ├─ common/                  공통 응답, 예외 처리, OpenAPI TypeBridge, JPA/MyBatis 기반 설정
 │  ├─ business-common/         업무 공통 검증, 업무 예외, 업무 값 객체
+│  ├─ mci-common/              MCI 표준 요청/응답, 거래 registry, Adapter/Mapper SPI, Router
 │  ├─ security-common/         JWT 발급/검증, 인증 필터, 인증 에러 코드, 내부 인증 헤더
 │  └─ session-context-common/  Redis/Valkey 기반 세션 컨텍스트 모델과 저장소
 ├─ infra/
@@ -16,8 +17,9 @@ bx-cf-be/
 │  └─ api-gateway/             Spring Cloud Gateway, JWT 검증, 서비스 라우팅
 ├─ services/
 │  ├─ auth-svc/                로그인, 토큰 발급/재발급, 로그아웃, Redis 세션 저장
+│  ├─ mci-svc/                 금융 채널 MCI 라우팅, YAML 거래 정의, 샘플 Adapter/Mapper
 │  ├─ product-svc/             상품 조회
-│  └─ system-svc/              메뉴, 역할별 메뉴, 공통코드 관리
+│  └─ system-svc/              메뉴, 역할별 메뉴, 공통코드, MCI 관리 API 설계
 └─ src/main/resources/config/  모듈별 공통 설정과 profile별 설정
 ```
 
@@ -26,12 +28,14 @@ bx-cf-be/
 ```gradle
 libs:common
 libs:business-common
+libs:mci-common
 libs:security-common
 libs:session-context-common
 infra:api-gateway
 infra:discovery-svc
 services:auth-svc
 services:integration-svc
+services:mci-svc
 services:product-svc
 services:system-svc
 ```
@@ -44,8 +48,10 @@ services:system-svc
 | `infra:discovery-svc` | - | 서비스 인스턴스 등록/탐색용 Eureka 서버                            |
 | `services:auth-svc` | `common`, `business-common`, `security-common`, `session-context-common` | 사용자 인증, access/refresh token 발급, Redis 세션 컨텍스트 저장/삭제 |
 | `services:integration-svc` | `common`, `business-common` | 대외계 연동. GitHub webhook 수신, GitHub 서명 검증, Notion 할일 DB row 생성 |
+| `services:mci-svc` | `common`, `business-common`, `mci-common` | 금융 채널 MCI 라우팅, YAML 거래 registry, 고객사 Adapter/Mapper 실행 |
 | `services:product-svc` | `common`, `business-common`, `session-context-common` | 상품 API, 필요 시 내부 인증 헤더/sessionId 기반 세션 컨텍스트 조회          |
-| `services:system-svc` | `common`, `business-common`, `session-context-common` | 메뉴/공통코드 API, 필요 시 내부 인증 헤더/sessionId 기반 세션 컨텍스트 조회     |
+| `services:system-svc` | `common`, `business-common`, `session-context-common` | 메뉴/공통코드 API, MCI 관리 API 설계, 필요 시 내부 인증 헤더/sessionId 기반 세션 컨텍스트 조회 |
+| `libs:mci-common` | `common` | MCI 표준 모델, 거래 정의, Adapter/Mapper SPI, Router 공통 모듈 |
 | `libs:security-common` | `common`, Spring Security, JJWT | JWT와 인증 실패 응답 공통화                                    |
 | `libs:session-context-common` | `common`, Spring Data Redis | `session:{sessionId}` 규칙의 Redis 세션 컨텍스트 공통화          |
 
@@ -57,8 +63,9 @@ services:system-svc
 2. `services:auth-svc`
 3. `services:product-svc`
 4. `services:system-svc`
-5. `services:integration-svc`
-6. `infra:api-gateway`
+5. `services:mci-svc`
+6. `services:integration-svc`
+7. `infra:api-gateway`
 
 Gateway는 Eureka에 등록된 서비스 이름으로 `lb://...` 라우팅. Gateway보다 하위 서비스와 Discovery를 먼저 기동하는 흐름이 이해하기 쉬움.
 
@@ -70,6 +77,7 @@ Gateway는 Eureka에 등록된 서비스 이름으로 `lb://...` 라우팅. Gate
 | api-gateway | 18081 | - | - |
 | auth-svc | 18082 | `/auth` | `/channel/backend/api/v1/auth/**` |
 | integration-svc | 18085 | `/integration` | `/channel/backend/api/v1/integration/**` |
+| mci-svc | 18086 | `/mci` | `/channel/backend/api/v1/mci/**` |
 | product-svc | 18083 | `/product` | `/channel/backend/api/v1/product/**` |
 | system-svc | 18084 | `/system` | `/channel/backend/api/v1/system/**` |
 
@@ -107,6 +115,7 @@ PGPASSWORD=1111 psql -h 192.168.110.217 -p 5432 -U bxcf -d bxcfdb
 | --- | --- | --- | --- |
 | `auth-svc` | `src/main/resources/config/auth-svc/local/application-local.yml` | `src/main/resources/config/auth-svc/dev/application-dev.yml` | `jpa-main`, `mybatis-main` |
 | `integration-svc` | `src/main/resources/config/integration-svc/local/application-local.yml` | `src/main/resources/config/integration-svc/dev/application-dev.yml` | 외부 API 연동 전용 |
+| `mci-svc` | `src/main/resources/config/mci-svc/local/application-local.yml` | `src/main/resources/config/mci-svc/dev/application-dev.yml` | YAML 거래 registry, 외부 DB 미사용 |
 | `product-svc` | `src/main/resources/config/product-svc/local/application-local.yml` | `src/main/resources/config/product-svc/dev/application-dev.yml` | `jpa-main`, `mybatis-main` |
 | `system-svc` | `src/main/resources/config/system-svc/local/application-local.yml` | `src/main/resources/config/system-svc/dev/application-dev.yml` | `mybatis-main` |
 
@@ -120,6 +129,7 @@ Gateway 라우팅 설정 위치: `src/main/resources/config/api-gateway/applicat
 | --- | --- | --- | --- |
 | `auth-svc` | `lb://BWG-CHANNEL-BACKEND-AUTH-SVC` | `/channel/backend/api/v1/auth/**` | `StripPrefix=4` 후 auth-svc로 전달 |
 | `integration-svc` | `lb://BWG-CHANNEL-BACKEND-INTEGRATION-SVC` | `/channel/backend/api/v1/integration/**` | `StripPrefix=4` 후 integration-svc로 전달 |
+| `mci-svc` | `lb://BWG-CHANNEL-BACKEND-MCI-SVC` | `/channel/backend/api/v1/mci/**` | `StripPrefix=4` 후 mci-svc로 전달 |
 | `product-svc` | `lb://BWG-CHANNEL-BACKEND-PRODUCT-SVC` | `/channel/backend/api/v1/product/**` | `StripPrefix=4` 후 product-svc로 전달 |
 | `system-svc` | `lb://BWG-CHANNEL-BACKEND-SYSTEM-SVC` | `/channel/backend/api/v1/system/**` | `StripPrefix=4` 후 system-svc로 전달 |
 | `*-api-docs` | 각 서비스 | `/{service}/v3/api-docs` | 각 서비스 context-path 기준 `/v3/api-docs`로 변환 |
@@ -303,6 +313,23 @@ POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/codes/{code}/u
 POST /channel/backend/api/v1/system/reference-data/versions/latest
 ```
 
+### System - MCI Management
+
+```text
+POST /channel/backend/api/v1/system/mci/transactions/list
+POST /channel/backend/api/v1/system/mci/transactions/{transactionCode}/detail
+POST /channel/backend/api/v1/system/mci/transactions/create
+POST /channel/backend/api/v1/system/mci/transactions/{transactionCode}/update
+```
+
+### MCI
+
+```text
+POST /channel/backend/api/v1/mci/execute
+```
+
+MCI 요청은 `MciRequest` 표준 형식을 사용한다. 현재 거래 설정은 `src/main/resources/config/mci-svc/application.yml`의 `mci.transactions`에 YAML로 관리한다.
+
 ## Swagger
 
 Gateway에서 각 서비스 OpenAPI 문서를 모아서 제공.
@@ -318,6 +345,8 @@ Swagger UI definition 목록.
 | auth-svc | `/auth-svc/v3/api-docs` |
 | product-svc | `/product-svc/v3/api-docs` |
 | system-svc | `/system-svc/v3/api-docs` |
+| integration-svc | `/integration-svc/v3/api-docs` |
+| mci-svc | `/mci-svc/v3/api-docs` |
 
 Swagger에서 인증 API 호출 순서.
 
@@ -439,6 +468,7 @@ src/main/resources/config/
 │  └─ dev/application-dev.yml
 ├─ auth-svc/
 ├─ integration-svc/
+├─ mci-svc/
 ├─ product-svc/
 ├─ system-svc/
 ├─ discovery-svc/
@@ -460,7 +490,7 @@ profile 기본값: `local`
 전체 주요 서비스 bootJar.
 
 ```bash
-./gradlew :infra:discovery-svc:bootJar :infra:api-gateway:bootJar :services:auth-svc:bootJar :services:integration-svc:bootJar :services:product-svc:bootJar :services:system-svc:bootJar -Pprofile=local
+./gradlew :infra:discovery-svc:bootJar :infra:api-gateway:bootJar :services:auth-svc:bootJar :services:integration-svc:bootJar :services:mci-svc:bootJar :services:product-svc:bootJar :services:system-svc:bootJar -Pprofile=local
 ```
 
 빌드 결과.
@@ -474,6 +504,7 @@ build/dist/bx-cf-be/*.jar
 ```bash
 ./gradlew :services:auth-svc:bootJar -Pprofile=local
 ./gradlew :services:integration-svc:bootJar -Pprofile=local
+./gradlew :services:mci-svc:bootJar -Pprofile=local
 ./gradlew :infra:api-gateway:bootJar -Pprofile=local
 ```
 
@@ -493,6 +524,7 @@ Gradle bootRun 사용 예.
 ./gradlew :infra:discovery-svc:bootRun -Pprofile=local
 ./gradlew :services:auth-svc:bootRun -Pprofile=local
 ./gradlew :services:integration-svc:bootRun -Pprofile=local
+./gradlew :services:mci-svc:bootRun -Pprofile=local
 ./gradlew :services:product-svc:bootRun -Pprofile=local
 ./gradlew :services:system-svc:bootRun -Pprofile=local
 ./gradlew :infra:api-gateway:bootRun -Pprofile=local
@@ -505,6 +537,8 @@ Gradle bootRun 사용 예.
 ```bash
 ./gradlew :services:auth-svc:test
 ./gradlew :services:integration-svc:test
+./gradlew :services:mci-svc:test
+./gradlew :libs:mci-common:test
 ./gradlew :libs:security-common:test
 ./gradlew :libs:session-context-common:test
 ./gradlew :infra:api-gateway:test
@@ -541,6 +575,7 @@ Gradle bootRun 사용 예.
 | --- | --- |
 | `services/auth-svc/**` | auth-svc |
 | `services/integration-svc/**`, `src/main/resources/config/integration-svc/**` | integration-svc |
+| `services/mci-svc/**`, `libs/mci-common/**`, `src/main/resources/config/mci-svc/**` | mci-svc |
 | `services/product-svc/**` | product-svc |
 | `services/system-svc/**`, `src/main/resources/config/system-svc/**` | system-svc |
 | `libs/**`, `infra/**`, `scripts/**`, `.github/workflows/**` | 전체 서비스 |

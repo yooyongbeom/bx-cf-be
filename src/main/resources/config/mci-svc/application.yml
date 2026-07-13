@@ -1,0 +1,100 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
+  application:
+    name: bwg-channel-backend-mci-svc
+  devtools:
+    livereload:
+      enabled: false
+    restart:
+      log-condition-evaluation-delta: false
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  web:
+    resources:
+      add-mappings: false
+  main:
+    allow-bean-definition-overriding: true
+
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+      force-response: true
+    context-path: /mci
+
+management:
+  security:
+    enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never
+  info:
+    git:
+      mode: simple
+    java:
+      enabled: true
+    os:
+      enabled: true
+    env:
+      enabled: true
+
+info:
+  app:
+    name: channel-backend-mci
+    version: 0.0.1
+    company: BankwareGlobal
+
+mci:
+  # 초기 제품 스타터킷 단계에서는 거래 정의를 YAML로 관리한다.
+  # 추후 system-svc 관리자 화면/DB registry로 이동해도 아래 필드 구조를 기준 계약으로 유지한다.
+  transactions:
+    - code: CIF001
+      name: 고객 기본정보 조회
+      description: 샘플 계정계 고객 기본정보 조회 거래
+      enabled: true
+      # channels가 비어 있으면 모든 채널 허용, 값이 있으면 해당 채널만 호출 가능하다.
+      channels:
+        - WEB
+        - MOBILE
+      target-system: CORE_BANKING
+      # adapter/request-mapper/response-mapper 값은 Spring Bean이 반환하는 이름과 정확히 일치해야 한다.
+      adapter: sampleCoreBankingAdapter
+      request-mapper: sampleCustomerRequestMapper
+      response-mapper: sampleCustomerResponseMapper
+      timeout-ms: 3000
+      retry: false
+      # payload 로그를 남길 때 민감정보 필드는 mask-fields 기준으로 숨긴다.
+      log-payload: true
+      mask-fields:
+        - residentNo
+        - phoneNo
+
+logging:
+  file:
+    name: ${app.log-path}/${spring.application.name}.log
+  logback:
+    rollingpolicy:
+      file-name-pattern: ${app.log-path}/${spring.application.name}-%d{yyyy-MM-dd}.%i.log.gz
+      max-file-size: 100MB
+      max-history: 30
+      total-size-cap: 3GB

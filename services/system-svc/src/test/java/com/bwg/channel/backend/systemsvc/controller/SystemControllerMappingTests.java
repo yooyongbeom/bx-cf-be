@@ -8,9 +8,13 @@ import com.bwg.channel.backend.systemsvc.menu.controller.MenuController;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
+import com.bwg.channel.backend.systemsvc.mci.controller.MciManagementController;
+import com.bwg.channel.backend.systemsvc.mci.dto.MciTransactionReqDto;
 import com.bwg.channel.backend.systemsvc.referencedata.controller.ReferenceDataVersionController;
 import com.bwg.channel.backend.systemsvc.referencedata.dto.ReferenceDataVersionReqDto;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -69,6 +73,18 @@ class SystemControllerMappingTests {
     }
 
     @Test
+    void mciManagementControllerUsesPostMappingsOnly() {
+        assertPostOnly(MciManagementController.class);
+    }
+
+    @Test
+    void mciManagementControllerIsHiddenFromSwaggerUntilPersistenceIsImplemented() {
+        assertThat(MciManagementController.class.isAnnotationPresent(Hidden.class))
+                .as("MCI 관리 API는 아직 YAML 설계 단계라 Swagger에 실제 구현 API처럼 노출하면 안 된다")
+                .isTrue();
+    }
+
+    @Test
     void commonCodeControllerRequestBodiesUseApiRequestWrapper() throws NoSuchMethodException {
         assertRequestBodyType(
                 CommonCodeController.class.getDeclaredMethod("createCommonCodeGroup", ApiRequest.class),
@@ -116,6 +132,26 @@ class SystemControllerMappingTests {
         );
     }
 
+    @Test
+    void mciManagementControllerRequestBodiesUseApiRequestWrapper() throws NoSuchMethodException {
+        assertRequestBodyType(
+                MciManagementController.class.getDeclaredMethod("getMciTransactions", ApiRequest.class),
+                MciTransactionReqDto.class
+        );
+        assertRequestBodyType(
+                MciManagementController.class.getDeclaredMethod("getMciTransaction", String.class, ApiRequest.class),
+                MciTransactionReqDto.class
+        );
+        assertRequestBodyType(
+                MciManagementController.class.getDeclaredMethod("saveMciTransaction", ApiRequest.class),
+                MciTransactionReqDto.class
+        );
+        assertRequestBodyType(
+                MciManagementController.class.getDeclaredMethod("updateMciTransaction", String.class, ApiRequest.class),
+                MciTransactionReqDto.class
+        );
+    }
+
     private void assertPostOnly(Class<?> controllerType) {
         for (Method method : controllerType.getDeclaredMethods()) {
             assertThat(method.isAnnotationPresent(GetMapping.class))
@@ -123,6 +159,9 @@ class SystemControllerMappingTests {
                     .isFalse();
             assertThat(method.isAnnotationPresent(PutMapping.class))
                     .as("%s.%s must not use PUT", controllerType.getSimpleName(), method.getName())
+                    .isFalse();
+            assertThat(method.isAnnotationPresent(DeleteMapping.class))
+                    .as("%s.%s must not use DELETE", controllerType.getSimpleName(), method.getName())
                     .isFalse();
             assertThat(method.isAnnotationPresent(PostMapping.class))
                     .as("%s.%s must use POST", controllerType.getSimpleName(), method.getName())

@@ -47,6 +47,7 @@ public class SecurityConfig {
             "/product-svc/v3/api-docs",
             "/system-svc/v3/api-docs",
             "/integration-svc/v3/api-docs",
+            "/mci-svc/v3/api-docs",
             "/swagger-theme.css",
             "/favicon.ico",
             "/actuator/info",
