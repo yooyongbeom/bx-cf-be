@@ -8,11 +8,15 @@ import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuReqDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,11 +30,27 @@ class SystemDtoOpenApiMetadataTests {
             CommonCodeGroupDetailResDto.class,
             CommonCodeReqDto.class,
             CommonCodeResDto.class,
-            MenuReqDto.class,
-            MenuResDto.class,
+            MenuCreateReqDto.class,
+            MenuUpdateReqDto.class,
+            MenuListResDto.class,
+            MenuDetailResDto.class,
+            MenuDeleteReqDto.class,
             MenuActionResDto.class,
             RoleMenuSaveReqDto.class
     );
+
+    @Test
+    void menuCommandDtosExposeOnlyTheirOperationFields() {
+        assertThat(MenuCreateReqDto.class.getDeclaredFields())
+                .extracting(Field::getName)
+                .doesNotContain("menuId");
+        assertThat(MenuUpdateReqDto.class.getDeclaredFields())
+                .extracting(Field::getName)
+                .doesNotContain("menuId", "menuCd");
+        assertThat(MenuDeleteReqDto.class.getDeclaredFields())
+                .extracting(Field::getName)
+                .containsExactly("deletedBy");
+    }
 
     @Test
     void allSystemDtosHaveOpenApiMetadata() {
