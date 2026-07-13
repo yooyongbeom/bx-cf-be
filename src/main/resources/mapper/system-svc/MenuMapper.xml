@@ -3,7 +3,28 @@
 <mapper namespace="com.bwg.channel.backend.systemsvc.menu.repository.mybatis.mapper.MenuMapper">
 
     <!-- 메뉴 DTO 매핑 정보 -->
-    <resultMap id="menuResult" type="MenuResDto">
+    <resultMap id="menuListResult" type="MenuListResDto">
+        <id     property="menuId"       column="menu_id"/>
+        <result property="parentMenuId" column="parent_menu_id"/>
+        <result property="menuCd"       column="menu_cd"/>
+        <result property="menuNm"       column="menu_nm"/>
+        <result property="menuType"     column="menu_type"/>
+        <result property="path"         column="path"/>
+        <result property="component"    column="component"/>
+        <result property="icon"         column="icon"/>
+        <result property="depth"        column="depth"/>
+        <result property="sortSeq"      column="sort_seq"/>
+        <result property="visibleYn"    column="visible_yn"/>
+        <result property="useYn"        column="use_yn"/>
+        <result property="remark"       column="remark"/>
+        <result property="createdBy"    column="created_by"/>
+        <result property="updatedBy"    column="updated_by"/>
+        <result property="createdAt"    column="created_at"/>
+        <result property="updatedAt"    column="updated_at"/>
+    </resultMap>
+
+    <!-- 메뉴 상세 DTO 매핑 정보 -->
+    <resultMap id="menuDetailResult" type="MenuDetailResDto">
         <id     property="menuId"       column="menu_id"/>
         <result property="parentMenuId" column="parent_menu_id"/>
         <result property="menuCd"       column="menu_cd"/>
@@ -40,7 +61,7 @@
     </resultMap>
 
     <!-- 전체 메뉴 목록 조회 -->
-    <select id="findMenus" resultMap="menuResult">
+    <select id="findMenus" resultMap="menuListResult">
         <![CDATA[
         /* systemsvc.MenuMapper.findMenus(메뉴 목록 조회) */
         SELECT
@@ -67,7 +88,7 @@
     </select>
 
     <!-- 메뉴 상세 조회 -->
-    <select id="findMenu" resultMap="menuResult">
+    <select id="findMenu" resultMap="menuDetailResult">
         <![CDATA[
         /* systemsvc.MenuMapper.findMenu(메뉴 상세 조회) */
         SELECT
@@ -137,24 +158,24 @@
     </insert>
 
     <!-- 메뉴 정보 수정 -->
-    <update id="updateMenu" parameterType="ApiRequest">
+    <update id="updateMenu">
         <![CDATA[
         /* systemsvc.MenuMapper.updateMenu(메뉴 수정) */
         UPDATE menus
-        SET parent_menu_id = #{data.parentMenuId}
-            ,menu_nm = #{data.menuNm}
-            ,menu_type = COALESCE(#{data.menuType}, menu_type)
-            ,path = #{data.path}
-            ,component = #{data.component}
-            ,icon = #{data.icon}
-            ,depth = COALESCE(#{data.depth}, depth)
-            ,sort_seq = COALESCE(#{data.sortSeq}, sort_seq)
-            ,visible_yn = COALESCE(#{data.visibleYn}, visible_yn)
-            ,use_yn = COALESCE(#{data.useYn}, use_yn)
-            ,remark = #{data.remark}
-            ,updated_by = #{data.createdBy}
+        SET parent_menu_id = #{request.data.parentMenuId}
+            ,menu_nm = #{request.data.menuNm}
+            ,menu_type = COALESCE(#{request.data.menuType}, menu_type)
+            ,path = #{request.data.path}
+            ,component = #{request.data.component}
+            ,icon = #{request.data.icon}
+            ,depth = COALESCE(#{request.data.depth}, depth)
+            ,sort_seq = COALESCE(#{request.data.sortSeq}, sort_seq)
+            ,visible_yn = COALESCE(#{request.data.visibleYn}, visible_yn)
+            ,use_yn = COALESCE(#{request.data.useYn}, use_yn)
+            ,remark = #{request.data.remark}
+            ,updated_by = #{request.data.createdBy}
             ,updated_at = current_timestamp
-        WHERE menu_id = #{data.menuId}
+        WHERE menu_id = #{menuId}
         ]]>
     </update>
 
@@ -182,7 +203,7 @@
     </select>
 
     <!-- 역할별 메뉴 목록 조회 -->
-    <select id="findMenusByRoleId" resultMap="menuResult">
+    <select id="findMenusByRoleId" resultMap="menuListResult">
         <![CDATA[
         /* systemsvc.MenuMapper.findMenusByRoleId(역할별 메뉴 목록 조회) */
         SELECT

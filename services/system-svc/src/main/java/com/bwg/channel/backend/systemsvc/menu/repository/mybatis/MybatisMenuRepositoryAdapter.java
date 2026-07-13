@@ -2,8 +2,10 @@ package com.bwg.channel.backend.systemsvc.menu.repository.mybatis;
 
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuReqDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.repository.MenuRepository;
 import com.bwg.channel.backend.systemsvc.menu.repository.mybatis.mapper.MenuMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,27 +23,27 @@ public class MybatisMenuRepositoryAdapter implements MenuRepository {
     private final MenuMapper menuMapper;
 
     @Override
-    public List<MenuResDto> findMenus() {
+    public List<MenuListResDto> findMenus() {
         // MyBatis Mapper를 통해 전체 메뉴 목록 조회
         return menuMapper.findMenus();
     }
 
     @Override
-    public MenuResDto findMenu(Long menuId) {
+    public MenuDetailResDto findMenu(Long menuId) {
         // MyBatis Mapper를 통해 메뉴 상세 조회
         return menuMapper.findMenu(menuId);
     }
 
     @Override
-    public int insertMenu(ApiRequest<MenuReqDto> paramDto) {
+    public int insertMenu(ApiRequest<MenuCreateReqDto> paramDto) {
         // MyBatis Mapper를 통해 메뉴 등록
         return menuMapper.insertMenu(paramDto);
     }
 
     @Override
-    public int updateMenu(ApiRequest<MenuReqDto> paramDto) {
+    public int updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto) {
         // MyBatis Mapper를 통해 메뉴 수정
-        return menuMapper.updateMenu(paramDto);
+        return menuMapper.updateMenu(menuId, paramDto);
     }
 
     @Override
@@ -51,7 +53,7 @@ public class MybatisMenuRepositoryAdapter implements MenuRepository {
     }
 
     @Override
-    public List<MenuResDto> findMenusByRoleId(Long roleId) {
+    public List<MenuListResDto> findMenusByRoleId(Long roleId) {
         // MyBatis Mapper를 통해 역할별 메뉴 목록 조회
         return menuMapper.findMenusByRoleId(roleId);
     }

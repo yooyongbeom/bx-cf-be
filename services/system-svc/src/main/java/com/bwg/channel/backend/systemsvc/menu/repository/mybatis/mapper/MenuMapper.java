@@ -2,8 +2,10 @@ package com.bwg.channel.backend.systemsvc.menu.repository.mybatis.mapper;
 
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuReqDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -18,22 +20,25 @@ public interface MenuMapper {
     /**
      * 전체 메뉴 목록 조회 SQL 매핑
      */
-    List<MenuResDto> findMenus();
+    List<MenuListResDto> findMenus();
 
     /**
      * 메뉴 ID 기준 상세 조회 SQL 매핑
      */
-    MenuResDto findMenu(@Param("menuId") Long menuId);
+    MenuDetailResDto findMenu(@Param("menuId") Long menuId);
 
     /**
      * 메뉴 등록 SQL 매핑
      */
-    int insertMenu(ApiRequest<MenuReqDto> paramDto);
+    int insertMenu(ApiRequest<MenuCreateReqDto> paramDto);
 
     /**
      * 메뉴 수정 SQL 매핑
      */
-    int updateMenu(ApiRequest<MenuReqDto> paramDto);
+    int updateMenu(
+            @Param("menuId") Long menuId,
+            @Param("request") ApiRequest<MenuUpdateReqDto> paramDto
+    );
 
     /**
      * 메뉴 ID 기준 기능 목록 조회 SQL 매핑
@@ -43,7 +48,7 @@ public interface MenuMapper {
     /**
      * 역할 ID 기준 메뉴 목록 조회 SQL 매핑
      */
-    List<MenuResDto> findMenusByRoleId(@Param("roleId") Long roleId);
+    List<MenuListResDto> findMenusByRoleId(@Param("roleId") Long roleId);
 
     /**
      * 역할별 메뉴 권한 삭제 SQL 매핑
