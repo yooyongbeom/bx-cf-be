@@ -35,6 +35,26 @@ public interface MenuRepository {
     int updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto);
 
     /**
+     * 루트 메뉴와 모든 하위 메뉴 ID 조회
+     */
+    List<Long> findMenuHierarchyIds(Long menuId);
+
+    /**
+     * 메뉴 ID 목록에 연결된 역할별 메뉴 권한 삭제
+     */
+    int deleteRoleMenusByMenuIds(List<Long> menuIds);
+
+    /**
+     * 메뉴 ID 목록에 연결된 메뉴 기능 삭제
+     */
+    int deleteMenuActionsByMenuIds(List<Long> menuIds);
+
+    /**
+     * 메뉴 ID 목록 물리 삭제
+     */
+    int deleteMenus(List<Long> menuIds);
+
+    /**
      * 메뉴 ID 기준 기능 목록 조회
      */
     List<MenuActionResDto> findMenuActions(Long menuId);

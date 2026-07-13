@@ -6,6 +6,7 @@ import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.menu.controller.MenuController;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
 import com.bwg.channel.backend.systemsvc.referencedata.controller.ReferenceDataVersionController;
@@ -47,6 +48,16 @@ class SystemControllerMappingTests {
         assertThat(mapping.value()).containsExactly("/{menuId}/detail");
         assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
         assertThat(method.getParameters()[0].isAnnotationPresent(RequestBody.class)).isFalse();
+    }
+
+    @Test
+    void menuDeleteUsesPathVariablePostMapping() throws NoSuchMethodException {
+        Method method = MenuController.class.getDeclaredMethod("deleteMenu", Long.class, ApiRequest.class);
+        PostMapping mapping = method.getAnnotation(PostMapping.class);
+
+        assertThat(mapping.value()).containsExactly("/{menuId}/delete");
+        assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
+        assertRequestBodyType(method, MenuDeleteReqDto.class);
     }
 
     @Test

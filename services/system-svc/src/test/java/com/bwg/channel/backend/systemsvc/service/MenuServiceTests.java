@@ -5,6 +5,7 @@ import com.bwg.channel.backend.businesscommon.exception.BwgBusinessException;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
@@ -13,13 +14,18 @@ import com.bwg.channel.backend.systemsvc.menu.repository.MenuRepository;
 import com.bwg.channel.backend.systemsvc.menu.service.MenuService;
 import com.bwg.channel.backend.systemsvc.menu.service.MenuServiceImpl;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -135,6 +141,60 @@ class MenuServiceTests {
         verify(menuRepository).insertReferenceDataVersionHistory(
                 "MENU", "UPDATE", "menus", "7", "메뉴 수정", "admin");
         verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 수정", "admin");
+    }
+
+    @Test
+    void deletesMenuHierarchyAssociationsAndVersionInOrder() {
+        MenuDeleteReqDto data = new MenuDeleteReqDto();
+        data.setDeletedBy("admin");
+        ApiRequest<MenuDeleteReqDto> request = new ApiRequest<>();
+        request.setData(data);
+        List<Long> menuIds = List.of(10L, 11L, 12L);
+        when(menuRepository.findMenuHierarchyIds(10L)).thenReturn(menuIds);
+
+        ApiResponse<Void> response = menuService.deleteMenu(10L, request);
+
+        assertThat(response.isSuccess()).isTrue();
+        InOrder inOrder = inOrder(menuRepository);
+        inOrder.verify(menuRepository).findMenuHierarchyIds(10L);
+        inOrder.verify(menuRepository).deleteRoleMenusByMenuIds(menuIds);
+        inOrder.verify(menuRepository).deleteMenuActionsByMenuIds(menuIds);
+        inOrder.verify(menuRepository).deleteMenus(menuIds);
+        inOrder.verify(menuRepository).insertReferenceDataVersionHistory(
+                "MENU", "DELETE", "menus", "10", "메뉴 삭제", "admin");
+        inOrder.verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 삭제", "admin");
+    }
+
+    @Test
+    void rejectsMissingMenuHierarchyBeforeDelete() {
+        MenuDeleteReqDto data = new MenuDeleteReqDto();
+        data.setDeletedBy("admin");
+        ApiRequest<MenuDeleteReqDto> request = new ApiRequest<>();
+        request.setData(data);
+        when(menuRepository.findMenuHierarchyIds(99L)).thenReturn(List.of());
+
+        assertThatThrownBy(() -> menuService.deleteMenu(99L, request))
+                .isInstanceOf(BwgBusinessException.class)
+                .extracting("code")
+                .isEqualTo(BusinessErrorCode.BUSINESS_DATA_NOT_FOUND);
+
+        verify(menuRepository, never()).deleteRoleMenusByMenuIds(anyList());
+        verify(menuRepository, never()).deleteMenuActionsByMenuIds(anyList());
+        verify(menuRepository, never()).deleteMenus(anyList());
+    }
+
+    @Test
+    void rejectsDeleteWithoutDeletedBy() {
+        MenuDeleteReqDto data = new MenuDeleteReqDto();
+        ApiRequest<MenuDeleteReqDto> request = new ApiRequest<>();
+        request.setData(data);
+
+        assertThatThrownBy(() -> menuService.deleteMenu(10L, request))
+                .isInstanceOf(BwgBusinessException.class)
+                .extracting("code")
+                .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);
+
+        verifyNoInteractions(menuRepository);
     }
 
     @Test

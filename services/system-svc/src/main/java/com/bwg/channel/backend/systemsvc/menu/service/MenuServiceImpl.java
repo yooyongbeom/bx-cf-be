@@ -6,6 +6,7 @@ import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.common.domain.dto.PaginationResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
@@ -80,6 +81,33 @@ public class MenuServiceImpl implements MenuService {
                 String.valueOf(requiredMenuId),
                 "메뉴 수정",
                 data.getCreatedBy()
+        );
+        return ApiResponse.success(null);
+    }
+
+    @Override
+    @Transactional(transactionManager = "mybatisMainTransactionManager")
+    public ApiResponse<Void> deleteMenu(Long menuId, ApiRequest<MenuDeleteReqDto> paramDto) {
+        // 삭제 대상과 작업자 필수값 검증
+        Long requiredMenuId = BusinessValidator.requireNonNull(menuId, "menuId");
+        MenuDeleteReqDto data = requireData(paramDto);
+        String deletedBy = BusinessValidator.requireNonBlank(data.getDeletedBy(), "deletedBy");
+        // 루트 메뉴와 모든 하위 메뉴 ID를 한 번에 조회하고 미존재 여부 검증
+        List<Long> menuIds = menuRepository.findMenuHierarchyIds(requiredMenuId);
+        List<Long> requiredMenuIds = BusinessValidator.requireFound(
+                menuIds == null || menuIds.isEmpty() ? null : menuIds,
+                "menu"
+        );
+        // 외래키 연결 데이터를 먼저 제거한 뒤 메뉴 계층 전체 삭제
+        menuRepository.deleteRoleMenusByMenuIds(requiredMenuIds);
+        menuRepository.deleteMenuActionsByMenuIds(requiredMenuIds);
+        menuRepository.deleteMenus(requiredMenuIds);
+        recordMenuVersionChange(
+                "DELETE",
+                "menus",
+                String.valueOf(requiredMenuId),
+                "메뉴 삭제",
+                deletedBy
         );
         return ApiResponse.success(null);
     }

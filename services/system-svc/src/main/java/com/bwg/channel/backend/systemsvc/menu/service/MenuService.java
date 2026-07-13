@@ -4,6 +4,7 @@ import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
@@ -35,6 +36,11 @@ public interface MenuService {
      * 메뉴 수정
      */
     ApiResponse<Void> updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto);
+
+    /**
+     * 메뉴와 모든 하위 메뉴 물리 삭제
+     */
+    ApiResponse<Void> deleteMenu(Long menuId, ApiRequest<MenuDeleteReqDto> paramDto);
 
     /**
      * 메뉴 ID 기준 기능 목록 조회

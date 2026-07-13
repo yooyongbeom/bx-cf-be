@@ -41,6 +41,26 @@ public interface MenuMapper {
     );
 
     /**
+     * 루트 메뉴와 모든 하위 메뉴 ID 조회 SQL 매핑
+     */
+    List<Long> findMenuHierarchyIds(@Param("menuId") Long menuId);
+
+    /**
+     * 메뉴 ID 목록에 연결된 역할별 메뉴 권한 삭제 SQL 매핑
+     */
+    int deleteRoleMenusByMenuIds(@Param("menuIds") List<Long> menuIds);
+
+    /**
+     * 메뉴 ID 목록에 연결된 메뉴 기능 삭제 SQL 매핑
+     */
+    int deleteMenuActionsByMenuIds(@Param("menuIds") List<Long> menuIds);
+
+    /**
+     * 메뉴 ID 목록 물리 삭제 SQL 매핑
+     */
+    int deleteMenus(@Param("menuIds") List<Long> menuIds);
+
+    /**
      * 메뉴 ID 기준 기능 목록 조회 SQL 매핑
      */
     List<MenuActionResDto> findMenuActions(@Param("menuId") Long menuId);

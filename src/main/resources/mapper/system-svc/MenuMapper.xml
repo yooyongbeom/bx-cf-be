@@ -179,6 +179,55 @@
         ]]>
     </update>
 
+    <!-- 루트 메뉴와 모든 하위 메뉴 ID 조회 -->
+    <select id="findMenuHierarchyIds" resultType="long">
+        <![CDATA[
+        /* systemsvc.MenuMapper.findMenuHierarchyIds(메뉴 계층 ID 조회) */
+        WITH RECURSIVE menu_tree AS (
+            SELECT menu_id
+            FROM menus
+            WHERE menu_id = #{menuId}
+            UNION
+            SELECT child.menu_id
+            FROM menus child
+            INNER JOIN menu_tree parent
+               ON child.parent_menu_id = parent.menu_id
+        )
+        SELECT menu_id
+        FROM menu_tree
+        ]]>
+    </select>
+
+    <!-- 메뉴 ID 목록에 연결된 역할별 메뉴 권한 삭제 -->
+    <delete id="deleteRoleMenusByMenuIds">
+        /* systemsvc.MenuMapper.deleteRoleMenusByMenuIds(메뉴별 역할 권한 삭제) */
+        DELETE FROM role_menus
+        WHERE menu_id IN
+        <foreach collection="menuIds" item="menuId" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+    </delete>
+
+    <!-- 메뉴 ID 목록에 연결된 메뉴 기능 삭제 -->
+    <delete id="deleteMenuActionsByMenuIds">
+        /* systemsvc.MenuMapper.deleteMenuActionsByMenuIds(메뉴 기능 삭제) */
+        DELETE FROM menu_actions
+        WHERE menu_id IN
+        <foreach collection="menuIds" item="menuId" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+    </delete>
+
+    <!-- 메뉴 ID 목록 물리 삭제 -->
+    <delete id="deleteMenus">
+        /* systemsvc.MenuMapper.deleteMenus(메뉴 계층 삭제) */
+        DELETE FROM menus
+        WHERE menu_id IN
+        <foreach collection="menuIds" item="menuId" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+    </delete>
+
     <!-- 메뉴 기능 목록 조회 -->
     <select id="findMenuActions" resultMap="menuActionResult">
         <![CDATA[

@@ -4,6 +4,7 @@ import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
@@ -57,6 +58,16 @@ public class MenuController {
     public ApiResponse<Void> updateMenu(@PathVariable Long menuId, @RequestBody ApiRequest<MenuUpdateReqDto> req) {
         // 메뉴 ID와 요청 본문을 함께 서비스에 전달
         return menuService.updateMenu(menuId, req);
+    }
+
+    @Operation(summary = "메뉴 삭제")
+    @PostMapping("/{menuId}/delete")
+    public ApiResponse<Void> deleteMenu(
+            @PathVariable Long menuId,
+            @RequestBody ApiRequest<MenuDeleteReqDto> req
+    ) {
+        // 메뉴와 모든 하위 메뉴 삭제 요청을 서비스에 전달
+        return menuService.deleteMenu(menuId, req);
     }
 
     @Operation(summary = "메뉴 기능 목록 조회")

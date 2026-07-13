@@ -47,6 +47,30 @@ public class MybatisMenuRepositoryAdapter implements MenuRepository {
     }
 
     @Override
+    public List<Long> findMenuHierarchyIds(Long menuId) {
+        // MyBatis Mapper를 통해 루트 메뉴와 모든 하위 메뉴 ID 조회
+        return menuMapper.findMenuHierarchyIds(menuId);
+    }
+
+    @Override
+    public int deleteRoleMenusByMenuIds(List<Long> menuIds) {
+        // MyBatis Mapper를 통해 메뉴별 역할 권한 일괄 삭제
+        return menuMapper.deleteRoleMenusByMenuIds(menuIds);
+    }
+
+    @Override
+    public int deleteMenuActionsByMenuIds(List<Long> menuIds) {
+        // MyBatis Mapper를 통해 메뉴 기능 일괄 삭제
+        return menuMapper.deleteMenuActionsByMenuIds(menuIds);
+    }
+
+    @Override
+    public int deleteMenus(List<Long> menuIds) {
+        // MyBatis Mapper를 통해 메뉴 계층 일괄 삭제
+        return menuMapper.deleteMenus(menuIds);
+    }
+
+    @Override
     public List<MenuActionResDto> findMenuActions(Long menuId) {
         // MyBatis Mapper를 통해 메뉴 기능 목록 조회
         return menuMapper.findMenuActions(menuId);
