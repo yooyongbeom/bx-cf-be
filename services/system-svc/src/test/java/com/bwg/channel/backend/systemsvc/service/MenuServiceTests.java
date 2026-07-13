@@ -5,7 +5,6 @@ import com.bwg.channel.backend.businesscommon.exception.BwgBusinessException;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
@@ -145,14 +144,10 @@ class MenuServiceTests {
 
     @Test
     void deletesMenuHierarchyAssociationsAndVersionInOrder() {
-        MenuDeleteReqDto data = new MenuDeleteReqDto();
-        data.setDeletedBy("admin");
-        ApiRequest<MenuDeleteReqDto> request = new ApiRequest<>();
-        request.setData(data);
         List<Long> menuIds = List.of(10L, 11L, 12L);
         when(menuRepository.findMenuHierarchyIds(10L)).thenReturn(menuIds);
 
-        ApiResponse<Void> response = menuService.deleteMenu(10L, request);
+        ApiResponse<Void> response = menuService.deleteMenu(10L, "admin");
 
         assertThat(response.isSuccess()).isTrue();
         InOrder inOrder = inOrder(menuRepository);
@@ -167,13 +162,9 @@ class MenuServiceTests {
 
     @Test
     void rejectsMissingMenuHierarchyBeforeDelete() {
-        MenuDeleteReqDto data = new MenuDeleteReqDto();
-        data.setDeletedBy("admin");
-        ApiRequest<MenuDeleteReqDto> request = new ApiRequest<>();
-        request.setData(data);
         when(menuRepository.findMenuHierarchyIds(99L)).thenReturn(List.of());
 
-        assertThatThrownBy(() -> menuService.deleteMenu(99L, request))
+        assertThatThrownBy(() -> menuService.deleteMenu(99L, "admin"))
                 .isInstanceOf(BwgBusinessException.class)
                 .extracting("code")
                 .isEqualTo(BusinessErrorCode.BUSINESS_DATA_NOT_FOUND);
@@ -184,12 +175,8 @@ class MenuServiceTests {
     }
 
     @Test
-    void rejectsDeleteWithoutDeletedBy() {
-        MenuDeleteReqDto data = new MenuDeleteReqDto();
-        ApiRequest<MenuDeleteReqDto> request = new ApiRequest<>();
-        request.setData(data);
-
-        assertThatThrownBy(() -> menuService.deleteMenu(10L, request))
+    void rejectsDeleteWithoutAuthenticatedUser() {
+        assertThatThrownBy(() -> menuService.deleteMenu(10L, " "))
                 .isInstanceOf(BwgBusinessException.class)
                 .extracting("code")
                 .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);

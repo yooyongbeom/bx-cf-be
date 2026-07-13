@@ -9,7 +9,7 @@ import org.apache.ibatis.type.Alias;
 /** 메뉴 수정 요청 모델 */
 @Alias("MenuUpdateReqDto")
 @Data
-@ApiDto(type = ApiType.REQUEST, name = "MenuUpdate", endpoints = {"update"})
+@ApiDto(type = ApiType.REQUEST, name = "Menu", endpoints = {"update"})
 public class MenuUpdateReqDto {
 
     @ApiField(description = "상위 메뉴 ID", optional = {"update"})

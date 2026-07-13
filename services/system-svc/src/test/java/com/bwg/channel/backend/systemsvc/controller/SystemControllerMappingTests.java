@@ -6,7 +6,6 @@ import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.menu.controller.MenuController;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
 import com.bwg.channel.backend.systemsvc.referencedata.controller.ReferenceDataVersionController;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -52,12 +52,15 @@ class SystemControllerMappingTests {
 
     @Test
     void menuDeleteUsesPathVariablePostMapping() throws NoSuchMethodException {
-        Method method = MenuController.class.getDeclaredMethod("deleteMenu", Long.class, ApiRequest.class);
+        Method method = MenuController.class.getDeclaredMethod("deleteMenu", Long.class, String.class);
         PostMapping mapping = method.getAnnotation(PostMapping.class);
+        RequestHeader requestHeader = method.getParameters()[1].getAnnotation(RequestHeader.class);
 
         assertThat(mapping.value()).containsExactly("/{menuId}/delete");
         assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
-        assertRequestBodyType(method, MenuDeleteReqDto.class);
+        assertThat(method.getParameters()[1].isAnnotationPresent(RequestBody.class)).isFalse();
+        assertThat(requestHeader).isNotNull();
+        assertThat(requestHeader.value()).isEqualTo("X-Auth-User");
     }
 
     @Test

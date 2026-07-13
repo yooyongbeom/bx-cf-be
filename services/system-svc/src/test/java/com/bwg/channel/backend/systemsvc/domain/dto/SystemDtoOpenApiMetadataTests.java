@@ -9,7 +9,6 @@ import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
@@ -34,7 +33,6 @@ class SystemDtoOpenApiMetadataTests {
             MenuUpdateReqDto.class,
             MenuListResDto.class,
             MenuDetailResDto.class,
-            MenuDeleteReqDto.class,
             MenuActionResDto.class,
             RoleMenuSaveReqDto.class
     );
@@ -47,9 +45,18 @@ class SystemDtoOpenApiMetadataTests {
         assertThat(MenuUpdateReqDto.class.getDeclaredFields())
                 .extracting(Field::getName)
                 .doesNotContain("menuId", "menuCd");
-        assertThat(MenuDeleteReqDto.class.getDeclaredFields())
-                .extracting(Field::getName)
-                .containsExactly("deletedBy");
+    }
+
+    @Test
+    void menuCrudDtosUseMenuAsOpenApiBaseName() {
+        assertThat(List.of(
+                MenuCreateReqDto.class,
+                MenuUpdateReqDto.class,
+                MenuListResDto.class,
+                MenuDetailResDto.class
+        )).allSatisfy(dtoType -> assertThat(dtoType.getAnnotation(ApiDto.class).name())
+                .as("%s OpenAPI base name", dtoType.getSimpleName())
+                .isEqualTo("Menu"));
     }
 
     @Test

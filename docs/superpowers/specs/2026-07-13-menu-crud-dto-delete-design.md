@@ -8,7 +8,7 @@
 
 - 메뉴 등록 요청 DTO와 수정 요청 DTO를 분리한다.
 - 메뉴 목록 응답 DTO와 상세 응답 DTO를 분리한다.
-- 메뉴 삭제 요청 DTO를 추가한다.
+- 메뉴 삭제 작업자는 요청 payload가 아니라 Gateway가 검증해 전달하는 `X-Auth-User` 헤더를 사용한다.
 - 생성, 수정, 삭제 응답은 기존과 동일하게 `ApiResponse<Void>`를 사용한다.
 - 메뉴 기능 조회 DTO와 역할별 메뉴 저장 요청 DTO는 변경하지 않는다.
 - 역할별 메뉴 목록 응답은 메뉴 목록과 동일한 `MenuListResDto`를 사용한다. JSON 필드 계약은 변경하지 않는다.
@@ -55,9 +55,9 @@
 ### 삭제
 
 - 경로: `POST /menus/{menuId}/delete`
-- 요청: `ApiRequest<MenuDeleteReqDto>`
+- 요청 본문: 없음
 - 응답: `ApiResponse<Void>`
-- 필수값: PathVariable `menuId`, `data.deletedBy`
+- 필수값: PathVariable `menuId`, 내부 인증 헤더 `X-Auth-User`
 - 대상 메뉴가 없으면 `BUSINESS_DATA_NOT_FOUND`를 발생시킨다.
 
 Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system/menus/**`를 사용한다. 프로젝트 규칙에 맞춰 모든 엔드포인트는 `POST`로 유지한다.
@@ -112,17 +112,11 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 
 현재 메뉴 상세 응답의 모든 메뉴 필드와 감사 필드를 유지한다. 초기 필드 구성은 `MenuListResDto`와 같지만, 향후 목록과 상세 계약이 독립적으로 변경될 수 있도록 별도 타입으로 둔다.
 
-### MenuDeleteReqDto
-
-- `deletedBy`: 삭제 작업자 ID
-
-삭제할 `menuId`는 PathVariable로 전달하므로 DTO에 중복 저장하지 않는다.
-
 ## 계층 및 데이터 흐름
 
 기존 계층 구조를 유지한다.
 
-1. `MenuController`가 URL, PathVariable, `ApiRequest<T>`를 받는다.
+1. `MenuController`가 URL, PathVariable, 요청 DTO 또는 내부 인증 헤더를 받는다.
 2. `MenuService`와 `MenuServiceImpl`이 입력 검증, 트랜잭션, 기준정보 버전 변경을 담당한다.
 3. `MenuRepository`가 메뉴 데이터 접근 계약을 정의한다.
 4. `MybatisMenuRepositoryAdapter`가 저장소 계약을 `MenuMapper`로 연결한다.
@@ -132,7 +126,7 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 
 삭제는 `mybatisMainTransactionManager` 트랜잭션 하나에서 처리한다.
 
-1. `menuId`와 `deletedBy`를 검증한다.
+1. `menuId`와 Gateway가 전달한 `X-Auth-User`를 검증한다.
 2. PostgreSQL `WITH RECURSIVE`를 사용해 루트 메뉴와 모든 하위 메뉴 ID를 조회한다.
 3. 조회 결과가 비어 있으면 `BUSINESS_DATA_NOT_FOUND`를 발생시킨다.
 4. 조회된 메뉴 ID에 연결된 `role_menus`를 일괄 삭제한다.
@@ -154,7 +148,7 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 
 ## 오류 처리
 
-- 누락된 `data`, `menuId`, `menuCd`, `menuNm`, `deletedBy`는 기존 `BusinessValidator`의 `REQUIRED_VALUE_MISSING`을 사용한다.
+- 누락된 `data`, `menuId`, `menuCd`, `menuNm`, `X-Auth-User`는 기존 `BusinessValidator`의 `REQUIRED_VALUE_MISSING`을 사용한다.
 - 상세 또는 삭제 대상 메뉴가 없으면 `BUSINESS_DATA_NOT_FOUND`를 사용한다.
 - SQL 실행 중 외래키나 데이터베이스 오류가 발생하면 트랜잭션 전체를 롤백하여 일부 데이터만 삭제되는 상태를 방지한다.
 
@@ -165,8 +159,8 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 - 모든 메뉴 API가 계속 `POST`만 사용하는지 검증한다.
 - 등록 요청이 `ApiRequest<MenuCreateReqDto>`인지 검증한다.
 - 수정 요청이 `ApiRequest<MenuUpdateReqDto>`인지 검증한다.
-- 삭제 요청이 `ApiRequest<MenuDeleteReqDto>`인지 검증한다.
 - 삭제 경로가 `/{menuId}/delete`이고 `menuId`가 PathVariable인지 검증한다.
+- 삭제 작업자가 request body가 아닌 `X-Auth-User` 헤더로 전달되는지 검증한다.
 
 ### 서비스
 
@@ -177,7 +171,7 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 - 삭제 시 루트와 하위 메뉴 ID를 확보한 후 역할 메뉴, 메뉴 기능, 메뉴 순서로 삭제하는지 검증한다.
 - 삭제 후 `DELETE` 버전 이력과 최신 버전 갱신이 실행되는지 검증한다.
 - 삭제 대상이 없을 때 어떤 삭제 SQL이나 버전 변경도 실행하지 않는지 검증한다.
-- `deletedBy`가 없을 때 필수값 예외를 발생시키는지 검증한다.
+- 인증 사용자 ID가 없을 때 필수값 예외를 발생시키는지 검증한다.
 - 기존 메뉴 기능 조회와 역할별 메뉴 저장 테스트가 계속 통과하는지 확인한다.
 
 ### 회귀 검증

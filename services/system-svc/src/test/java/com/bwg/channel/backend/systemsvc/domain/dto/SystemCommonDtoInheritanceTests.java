@@ -59,6 +59,9 @@ class SystemCommonDtoInheritanceTests {
         assertThatThrownBy(() -> Class.forName(
                 "com.bwg.channel.backend.systemsvc.menu.dto.MenuResDto"
         )).isInstanceOf(ClassNotFoundException.class);
+        assertThatThrownBy(() -> Class.forName(
+                "com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto"
+        )).isInstanceOf(ClassNotFoundException.class);
     }
 
     private static void assertApiField(Class<?> dtoType, String fieldName) {

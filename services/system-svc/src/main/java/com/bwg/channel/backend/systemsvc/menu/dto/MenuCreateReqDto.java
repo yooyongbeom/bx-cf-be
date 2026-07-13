@@ -9,7 +9,7 @@ import org.apache.ibatis.type.Alias;
 /** 메뉴 등록 요청 모델 */
 @Alias("MenuCreateReqDto")
 @Data
-@ApiDto(type = ApiType.REQUEST, name = "MenuCreate", endpoints = {"create"})
+@ApiDto(type = ApiType.REQUEST, name = "Menu", endpoints = {"create"})
 public class MenuCreateReqDto {
 
     @ApiField(description = "상위 메뉴 ID", optional = {"create"})

@@ -11,7 +11,7 @@ import java.time.OffsetDateTime;
 /** 메뉴 상세 응답 모델 */
 @Alias("MenuDetailResDto")
 @Data
-@ApiDto(type = ApiType.RESPONSE, name = "MenuDetail", endpoints = {"detail"})
+@ApiDto(type = ApiType.RESPONSE, name = "Menu", endpoints = {"detail"})
 public class MenuDetailResDto {
 
     @ApiField(description = "메뉴 ID", optional = {"detail"})

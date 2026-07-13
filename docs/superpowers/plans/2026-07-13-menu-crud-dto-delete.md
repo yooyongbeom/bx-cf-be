@@ -1,5 +1,7 @@
 # Menu CRUD DTO Split and Hierarchical Delete Implementation Plan
 
+> **Superseded delete actor contract (2026-07-13):** The executed plan below originally used `ApiRequest<MenuDeleteReqDto>`. The final implementation removes that DTO and reads the authenticated actor from the Gateway-provided `X-Auth-User` header. The design spec reflects the current contract.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Split menu CRUD boundary DTOs by operation and add a transactional physical delete that removes a menu subtree and its role/action associations.

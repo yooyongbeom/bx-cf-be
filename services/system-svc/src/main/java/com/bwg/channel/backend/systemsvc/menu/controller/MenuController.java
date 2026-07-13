@@ -4,7 +4,6 @@ import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
@@ -16,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -64,10 +64,10 @@ public class MenuController {
     @PostMapping("/{menuId}/delete")
     public ApiResponse<Void> deleteMenu(
             @PathVariable Long menuId,
-            @RequestBody ApiRequest<MenuDeleteReqDto> req
+            @RequestHeader("X-Auth-User") String userId
     ) {
         // 메뉴와 모든 하위 메뉴 삭제 요청을 서비스에 전달
-        return menuService.deleteMenu(menuId, req);
+        return menuService.deleteMenu(menuId, userId);
     }
 
     @Operation(summary = "메뉴 기능 목록 조회")
