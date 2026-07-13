@@ -36,6 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 
+### Git worktrees ###
+.worktrees/
+
 ### Logs ###
 logs/
 *.log
