@@ -5,8 +5,11 @@ import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.common.domain.dto.PaginationResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuReqDto;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuListResDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
 import com.bwg.channel.backend.systemsvc.menu.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,26 +30,26 @@ public class MenuServiceImpl implements MenuService {
     private final MenuRepository menuRepository;
 
     @Override
-    public ApiResponse<List<MenuResDto>> getMenus() {
+    public ApiResponse<List<MenuListResDto>> getMenus() {
         // 저장소에서 전체 메뉴 목록 조회
-        List<MenuResDto> result = menuRepository.findMenus();
+        List<MenuListResDto> result = menuRepository.findMenus();
         // 조회 결과에 목록 메타데이터를 포함하여 응답 생성
         return ApiResponse.success(result, toPagination(result));
     }
 
     @Override
-    public ApiResponse<MenuResDto> getMenu(Long menuId) {
+    public ApiResponse<MenuDetailResDto> getMenu(Long menuId) {
         // 메뉴 ID 검증 후 단건 메뉴 상세 조회, 미존재 시 404 응답
         Long requiredMenuId = BusinessValidator.requireNonNull(menuId, "menuId");
-        MenuResDto result = BusinessValidator.requireFound(menuRepository.findMenu(requiredMenuId), "menu");
+        MenuDetailResDto result = BusinessValidator.requireFound(menuRepository.findMenu(requiredMenuId), "menu");
         return ApiResponse.success(result);
     }
 
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
-    public ApiResponse<Void> createMenu(ApiRequest<MenuReqDto> paramDto) {
+    public ApiResponse<Void> createMenu(ApiRequest<MenuCreateReqDto> paramDto) {
         // 요청 본문 데이터 필수 여부 검증
-        MenuReqDto data = requireData(paramDto);
+        MenuCreateReqDto data = requireData(paramDto);
         // 등록 필수값 검증
         data.setMenuCd(BusinessValidator.requireNonBlank(data.getMenuCd(), "menuCd"));
         data.setMenuNm(BusinessValidator.requireNonBlank(data.getMenuNm(), "menuNm"));
@@ -64,20 +67,47 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
-    public ApiResponse<Void> updateMenu(Long menuId, ApiRequest<MenuReqDto> paramDto) {
+    public ApiResponse<Void> updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto) {
         // 요청 본문 데이터 필수 여부 검증
-        MenuReqDto data = requireData(paramDto);
+        MenuUpdateReqDto data = requireData(paramDto);
         // 경로 변수와 수정 필수값 검증
-        data.setMenuId(BusinessValidator.requireNonNull(menuId, "menuId"));
+        Long requiredMenuId = BusinessValidator.requireNonNull(menuId, "menuId");
         data.setMenuNm(BusinessValidator.requireNonBlank(data.getMenuNm(), "menuNm"));
         // 메뉴 수정 처리
-        menuRepository.updateMenu(paramDto);
+        menuRepository.updateMenu(requiredMenuId, paramDto);
         recordMenuVersionChange(
                 "UPDATE",
                 "menus",
-                String.valueOf(data.getMenuId()),
+                String.valueOf(requiredMenuId),
                 "메뉴 수정",
                 data.getCreatedBy()
+        );
+        return ApiResponse.success(null);
+    }
+
+    @Override
+    @Transactional(transactionManager = "mybatisMainTransactionManager")
+    public ApiResponse<Void> deleteMenu(Long menuId, ApiRequest<MenuDeleteReqDto> paramDto) {
+        // 삭제 대상과 작업자 필수값 검증
+        Long requiredMenuId = BusinessValidator.requireNonNull(menuId, "menuId");
+        MenuDeleteReqDto data = requireData(paramDto);
+        String deletedBy = BusinessValidator.requireNonBlank(data.getDeletedBy(), "deletedBy");
+        // 루트 메뉴와 모든 하위 메뉴 ID를 한 번에 조회하고 미존재 여부 검증
+        List<Long> menuIds = menuRepository.findMenuHierarchyIds(requiredMenuId);
+        List<Long> requiredMenuIds = BusinessValidator.requireFound(
+                menuIds == null || menuIds.isEmpty() ? null : menuIds,
+                "menu"
+        );
+        // 외래키 연결 데이터를 먼저 제거한 뒤 메뉴 계층 전체 삭제
+        menuRepository.deleteRoleMenusByMenuIds(requiredMenuIds);
+        menuRepository.deleteMenuActionsByMenuIds(requiredMenuIds);
+        menuRepository.deleteMenus(requiredMenuIds);
+        recordMenuVersionChange(
+                "DELETE",
+                "menus",
+                String.valueOf(requiredMenuId),
+                "메뉴 삭제",
+                deletedBy
         );
         return ApiResponse.success(null);
     }
@@ -91,9 +121,9 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public ApiResponse<List<MenuResDto>> getMenusByRoleId(Long roleId) {
+    public ApiResponse<List<MenuListResDto>> getMenusByRoleId(Long roleId) {
         // 역할 ID 검증 후 역할별 메뉴 목록 조회
-        List<MenuResDto> result = menuRepository.findMenusByRoleId(BusinessValidator.requireNonNull(roleId, "roleId"));
+        List<MenuListResDto> result = menuRepository.findMenusByRoleId(BusinessValidator.requireNonNull(roleId, "roleId"));
         // 조회 결과에 목록 메타데이터를 포함하여 응답 생성
         return ApiResponse.success(result, toPagination(result));
     }

@@ -5,7 +5,9 @@ import com.bwg.channel.backend.systemsvc.commoncode.controller.CommonCodeControl
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.menu.controller.MenuController;
-import com.bwg.channel.backend.systemsvc.menu.dto.MenuReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuDeleteReqDto;
+import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
 import com.bwg.channel.backend.systemsvc.referencedata.controller.ReferenceDataVersionController;
 import com.bwg.channel.backend.systemsvc.referencedata.dto.ReferenceDataVersionReqDto;
@@ -49,6 +51,16 @@ class SystemControllerMappingTests {
     }
 
     @Test
+    void menuDeleteUsesPathVariablePostMapping() throws NoSuchMethodException {
+        Method method = MenuController.class.getDeclaredMethod("deleteMenu", Long.class, ApiRequest.class);
+        PostMapping mapping = method.getAnnotation(PostMapping.class);
+
+        assertThat(mapping.value()).containsExactly("/{menuId}/delete");
+        assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
+        assertRequestBodyType(method, MenuDeleteReqDto.class);
+    }
+
+    @Test
     void referenceDataVersionControllerUsesPostMappingsOnly() {
         assertPostOnly(ReferenceDataVersionController.class);
     }
@@ -81,11 +93,11 @@ class SystemControllerMappingTests {
     void menuControllerRequestBodiesUseApiRequestWrapper() throws NoSuchMethodException {
         assertRequestBodyType(
                 MenuController.class.getDeclaredMethod("createMenu", ApiRequest.class),
-                MenuReqDto.class
+                MenuCreateReqDto.class
         );
         assertRequestBodyType(
                 MenuController.class.getDeclaredMethod("updateMenu", Long.class, ApiRequest.class),
-                MenuReqDto.class
+                MenuUpdateReqDto.class
         );
         assertRequestBodyType(
                 MenuController.class.getDeclaredMethod("saveRoleMenus", Long.class, ApiRequest.class),
