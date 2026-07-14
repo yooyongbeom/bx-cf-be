@@ -25,8 +25,6 @@ import java.util.List;
 public class MenuServiceImpl implements MenuService {
 
     private static final String REF_TYPE_MENU = "MENU";
-    private static final String DEFAULT_ACTOR = "admin";
-
     private final MenuRepository menuRepository;
 
     @Override
@@ -47,49 +45,52 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
-    public ApiResponse<Void> createMenu(ApiRequest<MenuCreateReqDto> paramDto) {
+    public ApiResponse<Void> createMenu(ApiRequest<MenuCreateReqDto> paramDto, String userId) {
         // 요청 본문 데이터 필수 여부 검증
         MenuCreateReqDto data = requireData(paramDto);
+        String changedBy = requireActor(userId);
         // 등록 필수값 검증
         data.setMenuCd(BusinessValidator.requireNonBlank(data.getMenuCd(), "menuCd"));
         data.setMenuNm(BusinessValidator.requireNonBlank(data.getMenuNm(), "menuNm"));
         // 메뉴 등록 처리
-        menuRepository.insertMenu(paramDto, DEFAULT_ACTOR);
+        menuRepository.insertMenu(paramDto, changedBy);
         recordMenuVersionChange(
                 "CREATE",
                 "menus",
                 data.getMenuCd(),
                 "메뉴 등록",
-                DEFAULT_ACTOR
+                changedBy
         );
         return ApiResponse.success(null);
     }
 
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
-    public ApiResponse<Void> updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto) {
+    public ApiResponse<Void> updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto, String userId) {
         // 요청 본문 데이터 필수 여부 검증
         MenuUpdateReqDto data = requireData(paramDto);
+        String changedBy = requireActor(userId);
         // 경로 변수와 수정 필수값 검증
         Long requiredMenuId = BusinessValidator.requireNonNull(menuId, "menuId");
         data.setMenuNm(BusinessValidator.requireNonBlank(data.getMenuNm(), "menuNm"));
         // 메뉴 수정 처리
-        menuRepository.updateMenu(requiredMenuId, paramDto, DEFAULT_ACTOR);
+        menuRepository.updateMenu(requiredMenuId, paramDto, changedBy);
         recordMenuVersionChange(
                 "UPDATE",
                 "menus",
                 String.valueOf(requiredMenuId),
                 "메뉴 수정",
-                DEFAULT_ACTOR
+                changedBy
         );
         return ApiResponse.success(null);
     }
 
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
-    public ApiResponse<Void> deleteMenu(Long menuId) {
-        // 삭제 대상 필수값 검증
+    public ApiResponse<Void> deleteMenu(Long menuId, String userId) {
+        // 삭제 대상과 작업자 필수값 검증
         Long requiredMenuId = BusinessValidator.requireNonNull(menuId, "menuId");
+        String changedBy = requireActor(userId);
         // 루트 메뉴와 모든 하위 메뉴 ID를 한 번에 조회하고 미존재 여부 검증
         List<Long> menuIds = menuRepository.findMenuHierarchyIds(requiredMenuId);
         List<Long> requiredMenuIds = BusinessValidator.requireFound(
@@ -105,7 +106,7 @@ public class MenuServiceImpl implements MenuService {
                 "menus",
                 String.valueOf(requiredMenuId),
                 "메뉴 삭제",
-                DEFAULT_ACTOR
+                changedBy
         );
         return ApiResponse.success(null);
     }
@@ -128,22 +129,23 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
-    public ApiResponse<Void> saveRoleMenus(Long roleId, ApiRequest<RoleMenuSaveReqDto> paramDto) {
+    public ApiResponse<Void> saveRoleMenus(Long roleId, ApiRequest<RoleMenuSaveReqDto> paramDto, String userId) {
         // 역할 ID와 요청 본문 데이터 필수 여부 검증
         Long requiredRoleId = BusinessValidator.requireNonNull(roleId, "roleId");
         RoleMenuSaveReqDto data = requireData(paramDto);
+        String changedBy = requireActor(userId);
         // 기존 역할별 메뉴 권한 삭제
         menuRepository.deleteRoleMenus(requiredRoleId);
         // 요청된 메뉴 ID 기준으로 역할별 메뉴 권한 재등록
         for (Long menuId : data.getMenuIds()) {
-            menuRepository.insertRoleMenu(requiredRoleId, BusinessValidator.requireNonNull(menuId, "menuId"), DEFAULT_ACTOR);
+            menuRepository.insertRoleMenu(requiredRoleId, BusinessValidator.requireNonNull(menuId, "menuId"), changedBy);
         }
         recordMenuVersionChange(
                 "SAVE",
                 "role_menus",
                 String.valueOf(requiredRoleId),
                 "역할별 메뉴 권한 저장",
-                DEFAULT_ACTOR
+                changedBy
         );
         return ApiResponse.success(null);
     }
@@ -170,6 +172,11 @@ public class MenuServiceImpl implements MenuService {
     private <T> T requireData(ApiRequest<T> request) {
         // 공통 요청 래퍼의 data 블록 검증
         return BusinessValidator.requireNonNull(request == null ? null : request.getData(), "data");
+    }
+
+    private String requireActor(String userId) {
+        // Gateway가 전달한 인증 사용자 ID 검증
+        return BusinessValidator.requireNonBlank(userId, "userId");
     }
 
     private PaginationResDto toPagination(List<?> result) {

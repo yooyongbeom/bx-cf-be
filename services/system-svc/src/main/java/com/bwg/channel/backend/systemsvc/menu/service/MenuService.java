@@ -29,17 +29,17 @@ public interface MenuService {
     /**
      * 메뉴 등록
      */
-    ApiResponse<Void> createMenu(ApiRequest<MenuCreateReqDto> paramDto);
+    ApiResponse<Void> createMenu(ApiRequest<MenuCreateReqDto> paramDto, String userId);
 
     /**
      * 메뉴 수정
      */
-    ApiResponse<Void> updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto);
+    ApiResponse<Void> updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto, String userId);
 
     /**
      * 메뉴와 모든 하위 메뉴 물리 삭제
      */
-    ApiResponse<Void> deleteMenu(Long menuId);
+    ApiResponse<Void> deleteMenu(Long menuId, String userId);
 
     /**
      * 메뉴 ID 기준 기능 목록 조회
@@ -54,5 +54,5 @@ public interface MenuService {
     /**
      * 역할별 메뉴 권한 저장
      */
-    ApiResponse<Void> saveRoleMenus(Long roleId, ApiRequest<RoleMenuSaveReqDto> paramDto);
+    ApiResponse<Void> saveRoleMenus(Long roleId, ApiRequest<RoleMenuSaveReqDto> paramDto, String userId);
 }
