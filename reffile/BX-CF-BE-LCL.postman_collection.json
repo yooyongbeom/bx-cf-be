@@ -2,14 +2,43 @@
 	"info": {
 		"_postman_id": "0fc016ae-0ad7-4f04-8e82-adb610c4126d",
 		"name": "BX-CF-BE-LCL",
+		"description": "bx-cf-be 로컬(api-gateway :18081) 테스트 컬렉션.\n\n- 모든 요청은 게이트웨이(`{{baseUrl}}`) 경유이며 공통 prefix `/channel/backend/api/v1` 를 사용한다.\n- 게이트웨이가 prefix 4세그먼트(`channel/backend/api/v1`)를 StripPrefix 하고 각 서비스 context-path(`/auth`, `/product`, `/system`, `/integration`, `/mci`)로 라우팅한다.\n- `Auth > 일반 로그인` 을 먼저 호출하면 응답의 `payload.accessToken` 이 컬렉션 변수 `accessToken` 에 자동 저장되어 이후 요청에 Bearer 로 적용된다.\n- refresh token 은 HttpOnly 쿠키로 내려가므로 `토큰 재발급` 은 Postman 쿠키 자동 전송으로 동작한다(별도 바디 없음).",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
 	},
 	"item": [
 		{
 			"name": "Auth",
 			"item": [
 				{
-					"name": "Login",
+					"name": "일반 로그인",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// 로그인 성공 시 accessToken 을 컬렉션 변수에 저장해 이후 요청에 Bearer 로 재사용",
+									"const body = pm.response.json();",
+									"if (body && body.payload && body.payload.accessToken) {",
+									"    pm.collectionVariables.set(\"accessToken\", body.payload.accessToken);",
+									"    console.log(\"accessToken saved\");",
+									"} else {",
+									"    console.log(\"login failed or no accessToken\", body);",
+									"}"
+								]
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -18,7 +47,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"usrId\": \"yongbeom.yoo\",\n    \"usrPwd\": \"796d52c40104fd4e867cddeafee7a6efb62a0d1120510c816ca8f26ad6fba5ab\"\n}",
+							"raw": "{\n    \"data\": {\n        \"usrId\": \"yongbeom.yoo\",\n        \"usrPwd\": \"796d52c40104fd4e867cddeafee7a6efb62a0d1120510c816ca8f26ad6fba5ab\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -26,23 +55,25 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:18081/channel/backend/api/v1/auth/login",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "18081",
+							"raw": "{{baseUrl}}/channel/backend/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
 							"path": ["channel", "backend", "api", "v1", "auth", "login"]
-						}
+						},
+						"description": "사용자 ID/비밀번호로 로그인. 요청 바디는 공통 ApiRequest 로 감싼 `{ data: { usrId, usrPwd } }` 형식이다. 성공 시 accessToken 을 컬렉션 변수에 저장한다."
 					},
 					"response": []
 				},
 				{
-					"name": "Refresh 요청",
+					"name": "ERP 로그인",
 					"request": {
+						"auth": {
+							"type": "noauth"
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"refreshToken\": \"\"\n}",
+							"raw": "{\n    \"data\": {\n        \"usrId\": \"hong.gildong\",\n        \"usrPwd\": \"password\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -50,37 +81,42 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:18081/channel/backend/api/v1/auth/refresh-token",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "18081",
-							"path": ["channel", "backend", "api", "v1", "auth", "refresh-token"]
-						}
+							"raw": "{{baseUrl}}/channel/backend/api/v1/auth/erp-login",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "auth", "erp-login"]
+						},
+						"description": "ERP 연동 계정 로그인. 바디 구조는 일반 로그인과 동일하다."
 					},
 					"response": []
 				},
 				{
-					"name": "로그인성공테스트",
+					"name": "토큰 재발급",
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:18081/te/home",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "18081",
-							"path": ["te", "home"]
-						}
+							"raw": "{{baseUrl}}/channel/backend/api/v1/auth/refresh-token",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "auth", "refresh-token"]
+						},
+						"description": "refresh token 은 로그인 시 내려온 HttpOnly 쿠키에서 서버가 직접 읽는다. 별도 요청 바디가 없으며 Postman 이 쿠키를 자동 전송한다."
+					},
+					"response": []
+				},
+				{
+					"name": "로그아웃",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "auth", "logout"]
+						},
+						"description": "Bearer accessToken 필요. 게이트웨이가 JWT 검증 후 내부 인증 헤더(userId/sessionId)를 주입하며, 서버는 refresh token 과 Redis 세션을 제거한다."
 					},
 					"response": []
 				}
@@ -92,65 +128,546 @@
 				{
 					"name": "상품 목록 조회",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
+						"method": "POST",
 						"header": [],
-						"url": {
-							"raw": "http://localhost:18081/channel/backend/api/v1/product/list?useYn=Y",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "18081",
-							"path": ["channel", "backend", "api", "v1", "product", "list"],
-							"query": [
-								{
-									"key": "useYn",
-									"value": "Y"
-								},
-								{
-									"key": "productNm",
-									"value": "",
-									"disabled": true
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"productNm\": \"\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
 								}
-							]
-						}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/product/list",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "product", "list"]
+						},
+						"description": "조건에 맞는 상품 목록 조회. data.productNm 은 선택값이며 빈 문자열이면 전체 조회."
 					},
 					"response": []
 				},
 				{
 					"name": "상품 단건 조회",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
+						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:18081/channel/backend/api/v1/product/1",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "18081",
-							"path": ["channel", "backend", "api", "v1", "product", "1"]
-						}
+							"raw": "{{baseUrl}}/channel/backend/api/v1/product/detail/1001",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "product", "detail", "1001"]
+						},
+						"description": "상품 ID(path variable)로 단건 조회. 경로의 1001 을 조회할 상품 ID 로 교체한다."
 					},
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "System - 메뉴",
+			"item": [
+				{
+					"name": "메뉴 목록 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/menus/list",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "menus", "list"]
+						},
+						"description": "전체 메뉴 목록 조회. 요청 바디 없음."
+					},
+					"response": []
+				},
+				{
+					"name": "메뉴 상세 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/menus/1/detail",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "menus", "1", "detail"]
+						},
+						"description": "메뉴 ID(path variable) 기준 상세 조회."
+					},
+					"response": []
+				},
+				{
+					"name": "메뉴 등록",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"parentMenuId\": null,\n        \"menuCd\": \"DASHBOARD\",\n        \"menuNm\": \"대시보드\",\n        \"menuType\": \"MENU\",\n        \"path\": \"/dashboard\",\n        \"component\": \"DashboardView\",\n        \"icon\": \"LayoutDashboard\",\n        \"depth\": 1,\n        \"sortSeq\": 1,\n        \"visibleYn\": \"Y\",\n        \"useYn\": \"Y\",\n        \"remark\": \"\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/menus/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "menus", "create"]
+						},
+						"description": "메뉴 등록. menuCd, menuNm 필수. 최상위 메뉴는 parentMenuId=null."
+					},
+					"response": []
+				},
+				{
+					"name": "메뉴 수정",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"parentMenuId\": null,\n        \"menuNm\": \"대시보드\",\n        \"menuType\": \"MENU\",\n        \"path\": \"/dashboard\",\n        \"component\": \"DashboardView\",\n        \"icon\": \"LayoutDashboard\",\n        \"depth\": 1,\n        \"sortSeq\": 1,\n        \"visibleYn\": \"Y\",\n        \"useYn\": \"Y\",\n        \"remark\": \"\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/menus/1/update",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "menus", "1", "update"]
+						},
+						"description": "메뉴 ID(path variable) 기준 수정. menuNm 필수."
+					},
+					"response": []
+				},
+				{
+					"name": "메뉴 삭제",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/menus/1/delete",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "menus", "1", "delete"]
+						},
+						"description": "메뉴 ID 기준 메뉴와 모든 하위 메뉴 삭제."
+					},
+					"response": []
+				},
+				{
+					"name": "메뉴 기능 목록 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/menus/1/actions/list",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "menus", "1", "actions", "list"]
+						},
+						"description": "메뉴 ID 기준 기능(action) 목록 조회."
+					},
+					"response": []
+				},
+				{
+					"name": "역할별 메뉴 목록 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/menus/roles/1/list",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "menus", "roles", "1", "list"]
+						},
+						"description": "역할 ID(path variable) 기준 메뉴 목록 조회."
+					},
+					"response": []
+				},
+				{
+					"name": "역할별 메뉴 권한 저장",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"menuIds\": [1, 2, 3]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/menus/roles/1/save",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "menus", "roles", "1", "save"]
+						},
+						"description": "역할 ID 에 부여할 메뉴 ID 목록 저장."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "System - 공통코드",
+			"item": [
+				{
+					"name": "공통코드 그룹 목록 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/list",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "common-codes", "groups", "list"]
+						},
+						"description": "공통코드 그룹 목록 조회. 요청 바디 없음."
+					},
+					"response": []
+				},
+				{
+					"name": "공통코드 그룹 상세/코드 목록 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"groupCd\": \"ALL\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/detail",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "common-codes", "groups", "detail"]
+						},
+						"description": "data.groupCd 가 ALL 이면 전체 그룹+하위 공통코드, 그 외에는 해당 그룹만 조회."
+					},
+					"response": []
+				},
+				{
+					"name": "공통코드 그룹 등록",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"groupCd\": \"USE_YN\",\n        \"groupNm\": \"사용 여부\",\n        \"groupDesc\": \"\",\n        \"systemYn\": \"N\",\n        \"useYn\": \"Y\",\n        \"sortSeq\": 1,\n        \"createdBy\": \"admin\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "common-codes", "groups", "create"]
+						},
+						"description": "공통코드 그룹 등록. groupCd, groupNm 필수."
+					},
+					"response": []
+				},
+				{
+					"name": "공통코드 그룹 수정",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"groupNm\": \"사용 여부\",\n        \"groupDesc\": \"\",\n        \"systemYn\": \"N\",\n        \"useYn\": \"Y\",\n        \"sortSeq\": 1,\n        \"createdBy\": \"admin\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/USE_YN/update",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "common-codes", "groups", "USE_YN", "update"]
+						},
+						"description": "그룹 코드(path variable) 기준 수정. groupNm 필수."
+					},
+					"response": []
+				},
+				{
+					"name": "공통코드 목록 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/USE_YN/codes/list",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "common-codes", "groups", "USE_YN", "codes", "list"]
+						},
+						"description": "그룹 코드(path variable) 기준 공통코드 목록 조회."
+					},
+					"response": []
+				},
+				{
+					"name": "공통코드 등록",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"code\": \"Y\",\n        \"codeNm\": \"사용\",\n        \"codeDesc\": \"\",\n        \"parentCodeId\": null,\n        \"sortSeq\": 1,\n        \"useYn\": \"Y\",\n        \"validFrom\": \"2026-01-01\",\n        \"validTo\": \"2026-12-31\",\n        \"extraData\": \"{}\",\n        \"createdBy\": \"admin\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/USE_YN/codes/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "common-codes", "groups", "USE_YN", "codes", "create"]
+						},
+						"description": "그룹 코드(path variable) 하위 공통코드 등록. code, codeNm 필수. groupCd 는 경로에서 주입되므로 바디에 넣지 않는다."
+					},
+					"response": []
+				},
+				{
+					"name": "공통코드 수정",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"codeNm\": \"사용\",\n        \"codeDesc\": \"\",\n        \"parentCodeId\": null,\n        \"sortSeq\": 1,\n        \"useYn\": \"Y\",\n        \"validFrom\": \"2026-01-01\",\n        \"validTo\": \"2026-12-31\",\n        \"extraData\": \"{}\",\n        \"createdBy\": \"admin\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/USE_YN/codes/Y/update",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "common-codes", "groups", "USE_YN", "codes", "Y", "update"]
+						},
+						"description": "그룹 코드/공통코드(path variable) 기준 수정. codeNm 필수."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "System - 기준정보 버전",
+			"item": [
+				{
+					"name": "기준정보 최신 버전 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"refType\": \"ALL\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/reference-data/versions/latest",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "reference-data", "versions", "latest"]
+						},
+						"description": "data.refType 이 ALL 이면 전체 기준정보 최신 버전, 그 외에는 해당 유형만 조회."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "System - MCI 거래관리",
+			"item": [
+				{
+					"name": "MCI 거래 목록 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"code\": \"\",\n        \"name\": \"\",\n        \"enabled\": null,\n        \"targetSystem\": \"\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/mci/transactions/list",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "mci", "transactions", "list"]
+						},
+						"description": "MCI 거래 정의 목록 조회(관리자용). 컨트롤러는 @Hidden 이라 Swagger 에는 노출되지 않는다."
+					},
+					"response": []
+				},
+				{
+					"name": "MCI 거래 상세 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/mci/transactions/TX0001/detail",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "mci", "transactions", "TX0001", "detail"]
+						},
+						"description": "거래 코드(path variable) 기준 MCI 거래 정의 상세 조회."
+					},
+					"response": []
+				},
+				{
+					"name": "MCI 거래 등록",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"code\": \"TX0001\",\n        \"name\": \"계좌조회\",\n        \"description\": \"계좌 잔액 조회 거래\",\n        \"enabled\": true,\n        \"channels\": [\"WEB\", \"MOBILE\"],\n        \"targetSystem\": \"ACCOUNT\",\n        \"adapter\": \"restAdapter\",\n        \"requestMapper\": \"tx0001RequestMapper\",\n        \"responseMapper\": \"tx0001ResponseMapper\",\n        \"timeoutMs\": 3000,\n        \"retry\": false,\n        \"logPayload\": true,\n        \"maskFields\": [\"acctNo\"]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/mci/transactions/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "mci", "transactions", "create"]
+						},
+						"description": "MCI 거래 정의 등록."
+					},
+					"response": []
+				},
+				{
+					"name": "MCI 거래 수정",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"name\": \"계좌조회\",\n        \"description\": \"계좌 잔액 조회 거래\",\n        \"enabled\": true,\n        \"channels\": [\"WEB\", \"MOBILE\"],\n        \"targetSystem\": \"ACCOUNT\",\n        \"adapter\": \"restAdapter\",\n        \"requestMapper\": \"tx0001RequestMapper\",\n        \"responseMapper\": \"tx0001ResponseMapper\",\n        \"timeoutMs\": 3000,\n        \"retry\": false,\n        \"logPayload\": true,\n        \"maskFields\": [\"acctNo\"]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/mci/transactions/TX0001/update",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "system", "mci", "transactions", "TX0001", "update"]
+						},
+						"description": "거래 코드(path variable) 기준 MCI 거래 정의 수정."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "MCI",
+			"item": [
+				{
+					"name": "MCI 거래 실행",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"header\": {\n        \"traceId\": \"trace-0001\",\n        \"channelCode\": \"WEB\",\n        \"transactionCode\": \"TX0001\",\n        \"userId\": \"yongbeom.yoo\",\n        \"sessionId\": \"\"\n    },\n    \"data\": {\n        \"acctNo\": \"1234567890\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/mci/execute",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "mci", "execute"]
+						},
+						"description": "표준 MciRequest(header + data)를 보내면 mci-svc 가 header.transactionCode 기준으로 mapper/adapter 를 선택해 고객사 시스템을 호출한다."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "대외계 (Integration)",
+			"item": [
+				{
+					"name": "GitHub Webhook 수신",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-GitHub-Event",
+								"value": "issues"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "00000000-0000-0000-0000-000000000000"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "sha256=<hmac>"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"opened\",\n    \"issue\": {\n        \"number\": 1,\n        \"title\": \"테스트 이슈\",\n        \"body\": \"본문\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/integration/github/webhook",
+							"host": ["{{baseUrl}}"],
+							"path": ["channel", "backend", "api", "v1", "integration", "github", "webhook"]
+						},
+						"description": "GitHub 서버 간 호출용 webhook. 브라우저 JWT 없이 게이트웨이에서 permit 되며 X-Hub-Signature-256 서명으로 검증한다. 실제 호출 시 GitHub 이 계산한 서명 값을 넣어야 처리된다."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:18081",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
 		}
 	]
 }
