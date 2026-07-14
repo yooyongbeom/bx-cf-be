@@ -422,6 +422,7 @@ JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
 | Auth | `-1001` ~ `-1005` | 토큰 오류, 인증 실패 |
 | Business Common | `-3001` ~ `-3999` | 업무 검증 오류, 업무 데이터 없음 |
 | Product | `-5001` ~ `-5999` | 상품 입력값 오류, 상품 없음, 상품 저장 오류 |
+| MCI | `-6001` ~ `-6999` | 요청 검증, 거래 라우팅, Adapter/Mapper 구성 오류 |
 | Gateway | `-9999` | Gateway 내부 오류 |
 
 ## OpenAPI TypeBridge
