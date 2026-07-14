@@ -1,5 +1,6 @@
 package com.bwg.channel.backend.mcicommon.router;
 
+import com.bwg.channel.backend.mcicommon.constants.MciErrorCode;
 import com.bwg.channel.backend.mcicommon.domain.MciHeader;
 import com.bwg.channel.backend.mcicommon.domain.MciRequest;
 import com.bwg.channel.backend.mcicommon.domain.MciResponse;
@@ -9,6 +10,7 @@ import com.bwg.channel.backend.mcicommon.registry.TransactionRegistry;
 import com.bwg.channel.backend.mcicommon.spi.MciAdapter;
 import com.bwg.channel.backend.mcicommon.spi.MciMapper;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -73,11 +75,11 @@ public class MciRouter {
 
     private MciHeader validateAndGetHeader(MciRequest<?> request) {
         if (request == null || request.getHeader() == null) {
-            throw new MciException("MCI request header is required.");
+            throw MciException.of(MciErrorCode.REQUEST_HEADER_REQUIRED);
         }
         MciHeader header = request.getHeader();
         if (!hasText(header.getTransactionCode())) {
-            throw new MciException("MCI transactionCode is required.");
+            throw MciException.of(MciErrorCode.TRANSACTION_CODE_REQUIRED);
         }
         return header;
     }
@@ -85,9 +87,15 @@ public class MciRouter {
     private TransactionDefinition findEnabledDefinition(MciHeader header) {
         // 비활성 거래도 설정에는 남겨둘 수 있지만, 실행 시점에는 명시적으로 차단한다.
         TransactionDefinition definition = transactionRegistry.findByCode(header.getTransactionCode())
-                .orElseThrow(() -> new MciException("MCI transaction is not registered: " + header.getTransactionCode()));
+                .orElseThrow(() -> MciException.of(
+                        MciErrorCode.TRANSACTION_NOT_REGISTERED,
+                        Collections.singletonMap("transactionCode", header.getTransactionCode())
+                ));
         if (!definition.isEnabled()) {
-            throw new MciException("MCI transaction is disabled: " + header.getTransactionCode());
+            throw MciException.of(
+                    MciErrorCode.TRANSACTION_DISABLED,
+                    Collections.singletonMap("transactionCode", header.getTransactionCode())
+            );
         }
         return definition;
     }
@@ -98,20 +106,29 @@ public class MciRouter {
             return;
         }
         if (!definition.getChannels().contains(header.getChannelCode())) {
-            throw new MciException("MCI channel is not allowed: " + header.getChannelCode());
+            throw MciException.of(
+                    MciErrorCode.CHANNEL_NOT_ALLOWED,
+                    Collections.singletonMap("channelCode", header.getChannelCode())
+            );
         }
     }
 
     private MciAdapter findAdapter(String adapterName) {
         if (!hasText(adapterName) || !adapters.containsKey(adapterName)) {
-            throw new MciException("MCI adapter is not registered: " + adapterName);
+            throw MciException.of(
+                    MciErrorCode.ADAPTER_NOT_REGISTERED,
+                    Collections.singletonMap("adapterName", adapterName)
+            );
         }
         return adapters.get(adapterName);
     }
 
     private MciMapper findMapper(String mapperName, String role) {
         if (!hasText(mapperName) || !mappers.containsKey(mapperName)) {
-            throw new MciException("MCI " + role + " is not registered: " + mapperName);
+            throw MciException.of(
+                    MciErrorCode.MAPPER_NOT_REGISTERED,
+                    Map.of("mapperName", String.valueOf(mapperName), "role", role)
+            );
         }
         return mappers.get(mapperName);
     }
