@@ -1,6 +1,7 @@
 package com.bwg.channel.backend.systemsvc.controller;
 
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
+import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
 import com.bwg.channel.backend.systemsvc.commoncode.controller.CommonCodeController;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -55,13 +57,13 @@ class SystemControllerMappingTests {
 
     @Test
     void menuDeleteUsesPathVariablePostMapping() throws NoSuchMethodException {
-        Method method = MenuController.class.getDeclaredMethod("deleteMenu", Long.class);
+        Method method = MenuController.class.getDeclaredMethod("deleteMenu", Long.class, String.class);
         PostMapping mapping = method.getAnnotation(PostMapping.class);
 
         assertThat(mapping.value()).containsExactly("/{menuId}/delete");
         assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
-        assertThat(method.getParameterCount()).isEqualTo(1);
         assertThat(method.getParameters()[0].isAnnotationPresent(RequestBody.class)).isFalse();
+        assertInternalAuthUserHeader(method);
     }
 
     @Test
@@ -108,16 +110,25 @@ class SystemControllerMappingTests {
     @Test
     void menuControllerRequestBodiesUseApiRequestWrapper() throws NoSuchMethodException {
         assertRequestBodyType(
-                MenuController.class.getDeclaredMethod("createMenu", ApiRequest.class),
+                MenuController.class.getDeclaredMethod("createMenu", ApiRequest.class, String.class),
                 MenuCreateReqDto.class
         );
-        assertRequestBodyType(
-                MenuController.class.getDeclaredMethod("updateMenu", Long.class, ApiRequest.class),
-                MenuUpdateReqDto.class
+        assertInternalAuthUserHeader(
+                MenuController.class.getDeclaredMethod("createMenu", ApiRequest.class, String.class)
         );
         assertRequestBodyType(
-                MenuController.class.getDeclaredMethod("saveRoleMenus", Long.class, ApiRequest.class),
+                MenuController.class.getDeclaredMethod("updateMenu", Long.class, ApiRequest.class, String.class),
+                MenuUpdateReqDto.class
+        );
+        assertInternalAuthUserHeader(
+                MenuController.class.getDeclaredMethod("updateMenu", Long.class, ApiRequest.class, String.class)
+        );
+        assertRequestBodyType(
+                MenuController.class.getDeclaredMethod("saveRoleMenus", Long.class, ApiRequest.class, String.class),
                 RoleMenuSaveReqDto.class
+        );
+        assertInternalAuthUserHeader(
+                MenuController.class.getDeclaredMethod("saveRoleMenus", Long.class, ApiRequest.class, String.class)
         );
     }
 
@@ -189,5 +200,13 @@ class SystemControllerMappingTests {
         ParameterizedType parameterizedType = (ParameterizedType) genericType;
         assertThat(parameterizedType.getRawType()).isEqualTo(ApiRequest.class);
         assertThat(parameterizedType.getActualTypeArguments()).containsExactly(dataType);
+    }
+
+    private void assertInternalAuthUserHeader(Method method) {
+        assertThat(method.getParameters())
+                .filteredOn(parameter -> parameter.isAnnotationPresent(RequestHeader.class))
+                .singleElement()
+                .satisfies(parameter -> assertThat(parameter.getAnnotation(RequestHeader.class).value())
+                        .isEqualTo(InternalAuthHeaders.USER));
     }
 }

@@ -8,7 +8,7 @@
 
 - 메뉴 등록 요청 DTO와 수정 요청 DTO를 분리한다.
 - 메뉴 목록 응답 DTO와 상세 응답 DTO를 분리한다.
-- 인증 정책 확정 전까지 메뉴 변경 작업자는 요청 payload나 헤더를 사용하지 않고 Service의 `admin` 상수를 사용한다.
+- 메뉴 변경 작업자는 요청 payload에 포함하지 않고 Gateway가 검증해 전달하는 `X-Auth-User` 헤더를 사용한다.
 - 생성, 수정, 삭제 응답은 기존과 동일하게 `ApiResponse<Void>`를 사용한다.
 - 메뉴 기능 조회 DTO는 변경하지 않는다. 역할별 메뉴 저장 요청 DTO에서는 작업자 필드를 제거한다.
 - 역할별 메뉴 목록 응답은 메뉴 목록과 동일한 `MenuListResDto`를 사용한다. JSON 필드 계약은 변경하지 않는다.
@@ -57,7 +57,7 @@
 - 경로: `POST /menus/{menuId}/delete`
 - 요청 본문: 없음
 - 응답: `ApiResponse<Void>`
-- 필수값: PathVariable `menuId`
+- 필수값: PathVariable `menuId`, 내부 인증 헤더 `X-Auth-User`
 - 대상 메뉴가 없으면 `BUSINESS_DATA_NOT_FOUND`를 발생시킨다.
 
 Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system/menus/**`를 사용한다. 프로젝트 규칙에 맞춰 모든 엔드포인트는 `POST`로 유지한다.
@@ -113,7 +113,7 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 
 기존 계층 구조를 유지한다.
 
-1. `MenuController`가 URL, PathVariable 또는 요청 DTO를 받는다.
+1. `MenuController`가 URL, PathVariable, 요청 DTO와 변경 API의 내부 인증 헤더를 받는다.
 2. `MenuService`와 `MenuServiceImpl`이 입력 검증, 트랜잭션, 기준정보 버전 변경을 담당한다.
 3. `MenuRepository`가 메뉴 데이터 접근 계약을 정의한다.
 4. `MybatisMenuRepositoryAdapter`가 저장소 계약을 `MenuMapper`로 연결한다.
@@ -123,7 +123,7 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 
 삭제는 `mybatisMainTransactionManager` 트랜잭션 하나에서 처리한다.
 
-1. `menuId`를 검증한다.
+1. `menuId`와 Gateway가 전달한 `X-Auth-User`를 검증한다.
 2. PostgreSQL `WITH RECURSIVE`를 사용해 루트 메뉴와 모든 하위 메뉴 ID를 조회한다.
 3. 조회 결과가 비어 있으면 `BUSINESS_DATA_NOT_FOUND`를 발생시킨다.
 4. 조회된 메뉴 ID에 연결된 `role_menus`를 일괄 삭제한다.
@@ -136,8 +136,8 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 
 ## SQL 및 매핑
 
-- 등록 SQL은 `ApiRequest<MenuCreateReqDto>`의 `data` 필드와 Service가 전달한 `admin` 작업자를 사용한다.
-- 수정 SQL은 별도 `menuId`, `admin` 작업자 Mapper 파라미터와 `ApiRequest<MenuUpdateReqDto>`를 사용한다. 수정 DTO에 식별자나 작업자를 주입하지 않는다.
+- 등록 SQL은 `ApiRequest<MenuCreateReqDto>`의 `data` 필드와 Service가 전달한 인증 작업자를 사용한다.
+- 수정 SQL은 별도 `menuId`, 인증 작업자 Mapper 파라미터와 `ApiRequest<MenuUpdateReqDto>`를 사용한다. 수정 DTO에 식별자나 작업자를 주입하지 않는다.
 - 목록과 상세은 각각 `MenuListResDto`, `MenuDetailResDto` 전용 resultMap을 사용한다.
 - 재귀 조회 결과는 `List<Long>`으로 반환한다.
 - 연관 데이터 및 메뉴 삭제는 `List<Long>`을 MyBatis `foreach`로 전달하여 일괄 처리한다.
@@ -145,7 +145,7 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 
 ## 오류 처리
 
-- 누락된 `data`, `menuId`, `menuCd`, `menuNm`은 기존 `BusinessValidator`의 `REQUIRED_VALUE_MISSING`을 사용한다.
+- 누락된 `data`, `menuId`, `menuCd`, `menuNm`, `X-Auth-User`는 기존 `BusinessValidator`의 `REQUIRED_VALUE_MISSING`을 사용한다.
 - 상세 또는 삭제 대상 메뉴가 없으면 `BUSINESS_DATA_NOT_FOUND`를 사용한다.
 - SQL 실행 중 외래키나 데이터베이스 오류가 발생하면 트랜잭션 전체를 롤백하여 일부 데이터만 삭제되는 상태를 방지한다.
 
@@ -157,7 +157,7 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 - 등록 요청이 `ApiRequest<MenuCreateReqDto>`인지 검증한다.
 - 수정 요청이 `ApiRequest<MenuUpdateReqDto>`인지 검증한다.
 - 삭제 경로가 `/{menuId}/delete`이고 `menuId`가 PathVariable인지 검증한다.
-- 삭제 요청에 request body나 작업자 헤더가 없는지 검증한다.
+- 등록·수정·삭제·역할 메뉴 저장이 `X-Auth-User`를 요구하며 삭제 요청에는 request body가 없는지 검증한다.
 
 ### 서비스
 
@@ -168,7 +168,7 @@ Gateway 외부 경로는 기존 규칙에 따라 `/channel/backend/api/v1/system
 - 삭제 시 루트와 하위 메뉴 ID를 확보한 후 역할 메뉴, 메뉴 기능, 메뉴 순서로 삭제하는지 검증한다.
 - 삭제 후 `DELETE` 버전 이력과 최신 버전 갱신이 실행되는지 검증한다.
 - 삭제 대상이 없을 때 어떤 삭제 SQL이나 버전 변경도 실행하지 않는지 검증한다.
-- 등록·수정·삭제·역할별 메뉴 저장과 버전 이력에 작업자 `admin`이 사용되는지 검증한다.
+- 등록·수정·삭제·역할별 메뉴 저장과 버전 이력에 인증 헤더의 작업자가 사용되는지 검증한다.
 - 기존 메뉴 기능 조회와 역할별 메뉴 저장 테스트가 계속 통과하는지 확인한다.
 
 ### 회귀 검증

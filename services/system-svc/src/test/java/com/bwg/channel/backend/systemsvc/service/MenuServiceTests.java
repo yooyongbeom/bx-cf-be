@@ -24,6 +24,7 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -111,15 +112,15 @@ class MenuServiceTests {
         ApiRequest<MenuCreateReqDto> request = new ApiRequest<>();
         request.setData(data);
 
-        ApiResponse<Void> response = menuService.createMenu(request);
+        ApiResponse<Void> response = menuService.createMenu(request, "hong.gildong");
 
         assertThat(response.isSuccess()).isTrue();
         assertThat(data.getMenuCd()).isEqualTo("DASHBOARD");
         assertThat(data.getMenuNm()).isEqualTo("대시보드");
-        verify(menuRepository).insertMenu(request, "admin");
+        verify(menuRepository).insertMenu(request, "hong.gildong");
         verify(menuRepository).insertReferenceDataVersionHistory(
-                "MENU", "CREATE", "menus", "DASHBOARD", "메뉴 등록", "admin");
-        verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 등록", "admin");
+                "MENU", "CREATE", "menus", "DASHBOARD", "메뉴 등록", "hong.gildong");
+        verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 등록", "hong.gildong");
     }
 
     @Test
@@ -129,14 +130,14 @@ class MenuServiceTests {
         ApiRequest<MenuUpdateReqDto> request = new ApiRequest<>();
         request.setData(data);
 
-        ApiResponse<Void> response = menuService.updateMenu(7L, request);
+        ApiResponse<Void> response = menuService.updateMenu(7L, request, "hong.gildong");
 
         assertThat(response.isSuccess()).isTrue();
         assertThat(data.getMenuNm()).isEqualTo("대시보드");
-        verify(menuRepository).updateMenu(7L, request, "admin");
+        verify(menuRepository).updateMenu(7L, request, "hong.gildong");
         verify(menuRepository).insertReferenceDataVersionHistory(
-                "MENU", "UPDATE", "menus", "7", "메뉴 수정", "admin");
-        verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 수정", "admin");
+                "MENU", "UPDATE", "menus", "7", "메뉴 수정", "hong.gildong");
+        verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 수정", "hong.gildong");
     }
 
     @Test
@@ -144,7 +145,7 @@ class MenuServiceTests {
         List<Long> menuIds = List.of(10L, 11L, 12L);
         when(menuRepository.findMenuHierarchyIds(10L)).thenReturn(menuIds);
 
-        ApiResponse<Void> response = menuService.deleteMenu(10L);
+        ApiResponse<Void> response = menuService.deleteMenu(10L, "hong.gildong");
 
         assertThat(response.isSuccess()).isTrue();
         InOrder inOrder = inOrder(menuRepository);
@@ -153,15 +154,15 @@ class MenuServiceTests {
         inOrder.verify(menuRepository).deleteMenuActionsByMenuIds(menuIds);
         inOrder.verify(menuRepository).deleteMenus(menuIds);
         inOrder.verify(menuRepository).insertReferenceDataVersionHistory(
-                "MENU", "DELETE", "menus", "10", "메뉴 삭제", "admin");
-        inOrder.verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 삭제", "admin");
+                "MENU", "DELETE", "menus", "10", "메뉴 삭제", "hong.gildong");
+        inOrder.verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 삭제", "hong.gildong");
     }
 
     @Test
     void rejectsMissingMenuHierarchyBeforeDelete() {
         when(menuRepository.findMenuHierarchyIds(99L)).thenReturn(List.of());
 
-        assertThatThrownBy(() -> menuService.deleteMenu(99L))
+        assertThatThrownBy(() -> menuService.deleteMenu(99L, "hong.gildong"))
                 .isInstanceOf(BwgBusinessException.class)
                 .extracting("code")
                 .isEqualTo(BusinessErrorCode.BUSINESS_DATA_NOT_FOUND);
@@ -178,14 +179,52 @@ class MenuServiceTests {
         ApiRequest<RoleMenuSaveReqDto> request = new ApiRequest<>();
         request.setData(paramDto);
 
-        ApiResponse<Void> response = menuService.saveRoleMenus(1L, request);
+        ApiResponse<Void> response = menuService.saveRoleMenus(1L, request, "hong.gildong");
 
         assertThat(response.isSuccess()).isTrue();
         verify(menuRepository).deleteRoleMenus(1L);
-        verify(menuRepository).insertRoleMenu(1L, 1L, "admin");
-        verify(menuRepository).insertRoleMenu(1L, 2L, "admin");
+        verify(menuRepository).insertRoleMenu(1L, 1L, "hong.gildong");
+        verify(menuRepository).insertRoleMenu(1L, 2L, "hong.gildong");
         verify(menuRepository).insertReferenceDataVersionHistory(
-                "MENU", "SAVE", "role_menus", "1", "역할별 메뉴 권한 저장", "admin");
-        verify(menuRepository).updateReferenceDataVersion("MENU", "역할별 메뉴 권한 저장", "admin");
+                "MENU", "SAVE", "role_menus", "1", "역할별 메뉴 권한 저장", "hong.gildong");
+        verify(menuRepository).updateReferenceDataVersion("MENU", "역할별 메뉴 권한 저장", "hong.gildong");
+    }
+
+    @Test
+    void rejectsBlankActorBeforeMenuWrites() {
+        MenuCreateReqDto createData = new MenuCreateReqDto();
+        createData.setMenuCd("DASHBOARD");
+        createData.setMenuNm("대시보드");
+        ApiRequest<MenuCreateReqDto> createRequest = new ApiRequest<>();
+        createRequest.setData(createData);
+
+        MenuUpdateReqDto updateData = new MenuUpdateReqDto();
+        updateData.setMenuNm("대시보드");
+        ApiRequest<MenuUpdateReqDto> updateRequest = new ApiRequest<>();
+        updateRequest.setData(updateData);
+
+        RoleMenuSaveReqDto roleMenuData = new RoleMenuSaveReqDto();
+        roleMenuData.setMenuIds(List.of(1L));
+        ApiRequest<RoleMenuSaveReqDto> roleMenuRequest = new ApiRequest<>();
+        roleMenuRequest.setData(roleMenuData);
+
+        assertThatThrownBy(() -> menuService.createMenu(createRequest, " "))
+                .isInstanceOf(BwgBusinessException.class)
+                .extracting("code")
+                .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);
+        assertThatThrownBy(() -> menuService.updateMenu(1L, updateRequest, " "))
+                .isInstanceOf(BwgBusinessException.class)
+                .extracting("code")
+                .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);
+        assertThatThrownBy(() -> menuService.deleteMenu(1L, " "))
+                .isInstanceOf(BwgBusinessException.class)
+                .extracting("code")
+                .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);
+        assertThatThrownBy(() -> menuService.saveRoleMenus(1L, roleMenuRequest, " "))
+                .isInstanceOf(BwgBusinessException.class)
+                .extracting("code")
+                .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);
+
+        verifyNoInteractions(menuRepository);
     }
 }
