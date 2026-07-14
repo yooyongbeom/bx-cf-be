@@ -2,6 +2,7 @@ package com.bwg.channel.backend.systemsvc.menu.controller;
 
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
+import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuDetailResDto;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,23 +49,33 @@ public class MenuController {
 
     @Operation(summary = "메뉴 등록")
     @PostMapping("/create")
-    public ApiResponse<Void> createMenu(@RequestBody ApiRequest<MenuCreateReqDto> req) {
+    public ApiResponse<Void> createMenu(
+            @RequestBody ApiRequest<MenuCreateReqDto> req,
+            @RequestHeader(InternalAuthHeaders.USER) String userId
+    ) {
         // 메뉴 등록 요청을 서비스에 위임
-        return menuService.createMenu(req);
+        return menuService.createMenu(req, userId);
     }
 
     @Operation(summary = "메뉴 수정")
     @PostMapping("/{menuId}/update")
-    public ApiResponse<Void> updateMenu(@PathVariable Long menuId, @RequestBody ApiRequest<MenuUpdateReqDto> req) {
+    public ApiResponse<Void> updateMenu(
+            @PathVariable Long menuId,
+            @RequestBody ApiRequest<MenuUpdateReqDto> req,
+            @RequestHeader(InternalAuthHeaders.USER) String userId
+    ) {
         // 메뉴 ID와 요청 본문을 함께 서비스에 전달
-        return menuService.updateMenu(menuId, req);
+        return menuService.updateMenu(menuId, req, userId);
     }
 
     @Operation(summary = "메뉴 삭제")
     @PostMapping("/{menuId}/delete")
-    public ApiResponse<Void> deleteMenu(@PathVariable Long menuId) {
+    public ApiResponse<Void> deleteMenu(
+            @PathVariable Long menuId,
+            @RequestHeader(InternalAuthHeaders.USER) String userId
+    ) {
         // 메뉴와 모든 하위 메뉴 삭제 요청을 서비스에 전달
-        return menuService.deleteMenu(menuId);
+        return menuService.deleteMenu(menuId, userId);
     }
 
     @Operation(summary = "메뉴 기능 목록 조회")
@@ -84,9 +96,10 @@ public class MenuController {
     @PostMapping("/roles/{roleId}/save")
     public ApiResponse<Void> saveRoleMenus(
             @PathVariable Long roleId,
-            @RequestBody ApiRequest<RoleMenuSaveReqDto> req
+            @RequestBody ApiRequest<RoleMenuSaveReqDto> req,
+            @RequestHeader(InternalAuthHeaders.USER) String userId
     ) {
         // 역할 ID와 메뉴 권한 저장 요청을 서비스에 전달
-        return menuService.saveRoleMenus(roleId, req);
+        return menuService.saveRoleMenus(roleId, req, userId);
     }
 }

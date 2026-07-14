@@ -21,6 +21,8 @@ dependencyManagement {
 dependencies {
     implementation project(':libs:common')
     implementation project(':libs:business-common')
+    compileOnly project(':libs:security-common')
+    testCompileOnly project(':libs:security-common')
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
