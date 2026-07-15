@@ -25,6 +25,14 @@ public interface SessionContextRepository {
     Optional<SessionContext> findBySessionId(String sessionId);
 
     /**
+     * sessionId에 해당하는 세션이 살아있는지만 확인한다.
+     *
+     * <p>값 역직렬화 없이 key 존재 여부만 보므로, 게이트웨이가 매 요청마다 호출하는
+     * 로그인 상태(access token 유효성) 검증 용도에 적합하다.</p>
+     */
+    boolean existsBySessionId(String sessionId);
+
+    /**
      * 로그아웃, 강제 만료 같은 이벤트에서 sessionId 기준 세션 컨텍스트를 제거한다.
      */
     void deleteBySessionId(String sessionId);

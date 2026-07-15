@@ -31,6 +31,7 @@ dependencyManagement {
 dependencies {
     implementation project(":libs:common")
     implementation project(":libs:security-common")
+    implementation project(":libs:session-context-common")   // 로그아웃 시 access token 무효화용 세션 존재 검증
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 

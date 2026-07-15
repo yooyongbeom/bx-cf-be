@@ -3,6 +3,12 @@ spring:
     import: "classpath:/application-securitycommon-local.yml"   # security-common 설정 import
   lifecycle:
     timeout-per-shutdown-phase: 35s
+  # valkey - 세션 존재 검증(로그아웃 시 access token 무효화)용. auth-svc와 동일 인스턴스.
+  data:
+    redis:
+      host: 192.168.110.217
+      port: 6379
+      timeout: 2s
   cloud:
     gateway:
       discovery:
@@ -28,6 +34,12 @@ app:
     allowed-origin-patterns:
       - http://localhost:8000
       - http://127.0.0.1:8000
+
+# 로그아웃 시 access token 즉시 무효화: 인증 필요 요청마다 sessionId가 Redis에 살아있는지 검증
+gateway:
+  session-check:
+    enabled: true        # 세션 존재 검증 on/off
+    fail-open: false      # Redis 조회 실패 시 정책. 기본 fail-closed(거부). valkey HA 미비 시에만 true
 
 logging:
   level:

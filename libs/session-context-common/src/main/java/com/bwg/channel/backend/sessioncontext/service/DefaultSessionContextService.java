@@ -30,6 +30,11 @@ public class DefaultSessionContextService implements SessionContextService {
     }
 
     @Override
+    public boolean existsBySessionId(String sessionId) {
+        return sessionContextRepository.existsBySessionId(sessionId);
+    }
+
+    @Override
     public void deleteBySessionId(String sessionId) {
         sessionContextRepository.deleteBySessionId(sessionId);
     }

@@ -5,7 +5,7 @@ spring:
   jwt:
     secret: enxYOm02NG0hOldNfVQpeXpsJnshS2gtO0B1RjZjemQ=
     # Access Token 만료 시간 (30분)
-    #access-token-validity-ms: 1800000
-    access-token-validity-ms: 60000
+    access-token-validity-ms: 1800000
+    #access-token-validity-ms: 60000
     # Refresh Token 만료 시간 (7일)
     refresh-token-validity-ms: 604800000

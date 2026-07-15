@@ -3,8 +3,11 @@ package com.bwg.channel.backend.gateway.config;
 import com.bwg.channel.backend.gateway.security.WebFluxCustomAccessDeniedHandler;
 import com.bwg.channel.backend.gateway.security.WebFluxCustomAuthEntryPoint;
 import com.bwg.channel.backend.securitycommon.filter.WebFluxJwtAuthFilter;
+import com.bwg.channel.backend.securitycommon.session.SessionValidator;
 import com.bwg.channel.backend.securitycommon.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +16,8 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -28,6 +33,20 @@ public class SecurityConfig {
     /** Gateway로 들어온 access token 검증에 사용할 JWT 유틸리티. */
     private final JwtUtil jwtUtil;
     private final GatewayCorsProperties corsProperties;
+
+    /**
+     * access token의 sessionId가 유효한 세션인지 확인하는 구현체(Redis 기반).
+     * 세션 인프라가 없는 환경에서도 게이트웨이가 뜨도록 Optional로 주입한다.
+     */
+    private final ObjectProvider<SessionValidator> sessionValidatorProvider;
+
+    /** 세션 존재 검증 활성화 여부. 기본 on (로그아웃 시 access token 즉시 무효화). */
+    @Value("${gateway.session-check.enabled:true}")
+    private boolean sessionCheckEnabled;
+
+    /** 세션 저장소 조회 실패 시 정책. 기본 fail-closed. valkey HA 미비 환경에서만 true로 임시 완화. */
+    @Value("${gateway.session-check.fail-open:false}")
+    private boolean sessionCheckFailOpen;
 
     /** 로그인/토큰 재발급/문서처럼 JWT 없이 접근 가능한 인증 전 API 화이트리스트. */
     private static final String[] PERMIT_URL_ARRAY = {
@@ -83,14 +102,6 @@ public class SecurityConfig {
     }
 
     /**
-     * JWT 인증을 수행하고 내부 인증 헤더를 생성하는 WebFlux 필터 Bean.
-     */
-    @Bean
-    public WebFluxJwtAuthFilter WebFlux() {
-        return new WebFluxJwtAuthFilter(jwtUtil);
-    }
-
-    /**
      * permitAll 경로와 JWT 인증 필터를 포함한 Gateway 보안 체인을 구성한다.
      */
     @Bean
@@ -114,8 +125,26 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new WebFluxCustomAuthEntryPoint())
                         .accessDeniedHandler(new WebFluxCustomAccessDeniedHandler())
                 )
-                // access token 검증 후 내부 서비스용 X-Auth-* 헤더 생성
-                .addFilterAt(new WebFluxJwtAuthFilter(jwtUtil), SecurityWebFiltersOrder.AUTHENTICATION)
+                // access token 검증 + 세션 존재 검증 후 내부 서비스용 X-Auth-* 헤더 생성
+                .addFilterAt(jwtAuthFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
+    }
+
+    /**
+     * JWT 인증 + 세션 존재 검증 필터를 구성한다.
+     *
+     * <p>permitAll 화이트리스트는 인가 규칙과 동일한 경로 배열로 매처를 만들어 필터와 공유하므로,
+     * 화이트리스트 경로는 필터에서도 토큰/세션 검증을 건너뛴다.</p>
+     */
+    private WebFluxJwtAuthFilter jwtAuthFilter() {
+        // 인가 규칙(permitAll)과 동일한 경로로 필터용 매처 구성 → 두 곳의 화이트리스트가 어긋나지 않는다.
+        ServerWebExchangeMatcher permitAllMatcher = ServerWebExchangeMatchers.pathMatchers(PERMIT_URL_ARRAY);
+        return new WebFluxJwtAuthFilter(
+                jwtUtil,
+                permitAllMatcher,
+                sessionValidatorProvider.getIfAvailable(),
+                sessionCheckEnabled,
+                sessionCheckFailOpen
+        );
     }
 }

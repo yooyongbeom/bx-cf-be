@@ -31,6 +31,12 @@ public class RedisSessionContextRepository implements SessionContextRepository {
     }
 
     @Override
+    public boolean existsBySessionId(String sessionId) {
+        // 값 역직렬화 없이 session:{sessionId} key 존재 여부만 확인 (매 요청 호출 대비 경량)
+        return Boolean.TRUE.equals(redisTemplate.hasKey(SessionContextKeys.sessionKey(sessionId)));
+    }
+
+    @Override
     public void deleteBySessionId(String sessionId) {
         // 로그아웃 시 access token claim에서 전달된 sessionId 기준 Redis key 제거
         redisTemplate.delete(SessionContextKeys.sessionKey(sessionId));
