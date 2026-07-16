@@ -28,6 +28,14 @@ subprojects {
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
 
+    // Boot BOM은 org.springframework.boot 플러그인이 자동 적용한다.
+    // Spring Cloud BOM만 별도로 전 모듈에 공통 적용해 모듈별 중복을 없앤다.
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${libs.versions.springCloud.get()}"
+        }
+    }
+
 //    configurations.all {
 //        resolutionStrategy {
 //            force 'org.springframework:spring-web:6.0.14'

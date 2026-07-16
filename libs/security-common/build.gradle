@@ -19,7 +19,6 @@ java {
 
 dependencies {
     implementation project(':libs:common')
-    implementation 'org.projectlombok:lombok:1.18.46'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     //    implementation 'org.springframework.boot:spring-boot-starter-oauth2-authorization-server'
@@ -27,16 +26,16 @@ dependencies {
 //    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     testImplementation 'org.springframework.security:spring-security-test'
-    api 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // jackson 기반
+    api libs.jjwt.api
+    runtimeOnly libs.jjwt.impl
+    runtimeOnly libs.jjwt.jackson // jackson 기반
     implementation 'org.springframework.boot:spring-boot-starter'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    compileOnly 'jakarta.servlet:jakarta.servlet-api'
 
-    implementation 'io.projectreactor:reactor-core:3.6.10'
+    implementation 'io.projectreactor:reactor-core'
 }
 
 //def activeProfile = project.hasProperty('profile') ? project.property('profile') : 'local'

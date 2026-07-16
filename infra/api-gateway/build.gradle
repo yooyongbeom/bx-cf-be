@@ -21,13 +21,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.boot:spring-boot-dependencies:3.3.4"
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.1"
-    }
-}
-
 dependencies {
     implementation project(":libs:common")
     implementation project(":libs:security-common")
@@ -45,7 +38,7 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
 
     // Swagger / OpenAPI 집계용 UI (Gateway는 WebFlux)
-    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0")
+    implementation(libs.springdoc.webflux.ui)
 
     testImplementation ("org.springframework.boot:spring-boot-starter-test")
     testImplementation ("org.springframework.security:spring-security-test")
