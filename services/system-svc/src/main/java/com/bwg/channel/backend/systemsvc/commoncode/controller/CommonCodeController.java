@@ -5,6 +5,7 @@ import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.service.CommonCodeService;
@@ -92,5 +93,15 @@ public class CommonCodeController {
     ) {
         // 그룹 코드와 공통코드 기준 수정 요청을 서비스에 위임
         return commonCodeService.updateCommonCode(groupCd, code, req);
+    }
+
+    @Operation(summary = "공통코드 일괄 교체")
+    @PostMapping("/groups/{groupCd}/codes/replace")
+    public ApiResponse<Void> replaceCommonCodes(
+            @PathVariable String groupCd,
+            @RequestBody ApiRequest<CommonCodeReplaceReqDto> req
+    ) {
+        // 경로의 그룹 코드와 교체할 전체 코드 목록을 서비스에 함께 전달한다.
+        return commonCodeService.replaceCommonCodes(groupCd, req);
     }
 }

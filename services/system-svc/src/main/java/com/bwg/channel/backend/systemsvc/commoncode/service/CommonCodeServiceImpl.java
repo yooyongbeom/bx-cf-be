@@ -1,5 +1,7 @@
 package com.bwg.channel.backend.systemsvc.commoncode.service;
 
+import com.bwg.channel.backend.businesscommon.constants.BusinessErrorCode;
+import com.bwg.channel.backend.businesscommon.exception.BwgBusinessException;
 import com.bwg.channel.backend.businesscommon.validation.BusinessValidator;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
@@ -7,6 +9,7 @@ import com.bwg.channel.backend.common.domain.dto.PaginationResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.repository.CommonCodeRepository;
@@ -14,9 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -155,6 +160,61 @@ public class CommonCodeServiceImpl implements CommonCodeService {
                 data.getCreatedBy()
         );
         return ApiResponse.success(null);
+    }
+
+    @Override
+    @Transactional(transactionManager = "mybatisMainTransactionManager")
+    public ApiResponse<Void> replaceCommonCodes(
+            String groupCd,
+            ApiRequest<CommonCodeReplaceReqDto> paramDto
+    ) {
+        // 경로의 그룹 코드를 먼저 정규화하고 실제 존재하는 공통코드 그룹인지 확인한다.
+        String requiredGroupCd = BusinessValidator.requireNonBlank(groupCd, "groupCd");
+        BusinessValidator.requireFound(
+                commonCodeRepository.findCommonCodeGroupDetail(requiredGroupCd),
+                "commonCodeGroup"
+        );
+
+        CommonCodeReplaceReqDto data = requireData(paramDto);
+        // 빈 목록은 전체 삭제 요청으로 해석하지 않고 필수값 누락으로 거부한다.
+        List<CommonCodeReqDto> requestedCodeList = data.getCodes();
+        List<CommonCodeReqDto> codes = BusinessValidator.requireNonNull(
+                requestedCodeList == null || requestedCodeList.isEmpty() ? null : requestedCodeList,
+                "codes"
+        );
+
+        // DELETE 전에 모든 항목을 검증하여 잘못된 요청이 기존 데이터를 변경하지 못하게 한다.
+        Set<String> requestedCodes = new HashSet<>();
+        for (CommonCodeReqDto code : codes) {
+            CommonCodeReqDto requiredCode = BusinessValidator.requireNonNull(code, "codes.item");
+            requiredCode.setCode(BusinessValidator.requireNonBlank(requiredCode.getCode(), "code"));
+            requiredCode.setCodeNm(BusinessValidator.requireNonBlank(requiredCode.getCodeNm(), "codeNm"));
+            requiredCode.setParentCodeId(null);
+            if (!requestedCodes.add(requiredCode.getCode())) {
+                throw duplicateCode(requiredCode.getCode());
+            }
+        }
+
+        // 검증 완료 후 기존 목록을 지우고, 같은 트랜잭션에서 새 목록을 한 번에 등록한다.
+        commonCodeRepository.deleteCommonCodesByGroupCd(requiredGroupCd);
+        commonCodeRepository.insertCommonCodes(requiredGroupCd, codes, data.getCreatedBy());
+        recordCommonCodeVersionChange(
+                "REPLACE",
+                "common_codes",
+                requiredGroupCd,
+                "공통코드 일괄 교체",
+                data.getCreatedBy()
+        );
+        return ApiResponse.success(null);
+    }
+
+    private BwgBusinessException duplicateCode(String code) {
+        // 동일 요청에 중복 코드가 있으면 DB 제약조건에 의존하지 않고 업무 오류로 반환한다.
+        return new BwgBusinessException.Builder()
+                .code(BusinessErrorCode.BUSINESS_RULE_VIOLATION)
+                .message(BusinessErrorCode.BUSINESS_RULE_VIOLATION.getMsg())
+                .details(Map.of("field", "codes.code", "value", code))
+                .build();
     }
 
     private void recordCommonCodeVersionChange(

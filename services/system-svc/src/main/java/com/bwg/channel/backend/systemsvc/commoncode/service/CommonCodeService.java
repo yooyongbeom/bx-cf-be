@@ -5,6 +5,7 @@ import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 
@@ -49,4 +50,9 @@ public interface CommonCodeService {
      * 공통코드 수정
      */
     ApiResponse<Void> updateCommonCode(String groupCd, String code, ApiRequest<CommonCodeReqDto> paramDto);
+
+    /**
+     * 그룹에 속한 공통코드 전체 교체
+     */
+    ApiResponse<Void> replaceCommonCodes(String groupCd, ApiRequest<CommonCodeReplaceReqDto> paramDto);
 }

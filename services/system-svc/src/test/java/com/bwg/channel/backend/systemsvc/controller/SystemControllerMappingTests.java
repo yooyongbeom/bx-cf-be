@@ -4,6 +4,7 @@ import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
 import com.bwg.channel.backend.systemsvc.commoncode.controller.CommonCodeController;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.menu.controller.MenuController;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
@@ -105,6 +106,23 @@ class SystemControllerMappingTests {
                 CommonCodeController.class.getDeclaredMethod("updateCommonCode", String.class, String.class, ApiRequest.class),
                 CommonCodeReqDto.class
         );
+        assertRequestBodyType(
+                CommonCodeController.class.getDeclaredMethod("replaceCommonCodes", String.class, ApiRequest.class),
+                CommonCodeReplaceReqDto.class
+        );
+    }
+
+    @Test
+    void commonCodeReplaceUsesGroupScopedPostMapping() throws NoSuchMethodException {
+        Method method = CommonCodeController.class.getDeclaredMethod(
+                "replaceCommonCodes",
+                String.class,
+                ApiRequest.class
+        );
+        PostMapping mapping = method.getAnnotation(PostMapping.class);
+
+        assertThat(mapping.value()).containsExactly("/groups/{groupCd}/codes/replace");
+        assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
     }
 
     @Test

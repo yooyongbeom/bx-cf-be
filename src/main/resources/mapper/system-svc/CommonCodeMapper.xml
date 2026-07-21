@@ -277,6 +277,74 @@
           AND c.code = #{data.code}
         ]]>
     </update>
+    <!-- 그룹 코드 기준 기존 공통코드 전체 삭제 -->
+    <delete id="deleteCommonCodesByGroupCd">
+        <![CDATA[
+        /* systemsvc.CommonCodeMapper.deleteCommonCodesByGroupCd(공통코드 일괄 교체 전 삭제) */
+        DELETE FROM common_codes c
+        USING common_code_groups g
+        WHERE c.group_id = g.group_id
+          AND g.group_cd = #{groupCd}
+        ]]>
+    </delete>
+
+    <!-- 그룹에 속할 공통코드 목록을 하나의 SQL로 일괄 등록 -->
+    <insert id="insertCommonCodes">
+        <![CDATA[
+        /* systemsvc.CommonCodeMapper.insertCommonCodes(공통코드 일괄 교체 등록) */
+        INSERT INTO common_codes (
+            group_id
+            ,code
+            ,code_nm
+            ,code_desc
+            ,parent_code_id
+            ,sort_seq
+            ,use_yn
+            ,valid_from
+            ,valid_to
+            ,extra_data
+            ,created_by
+            ,created_at
+            ,updated_by
+            ,updated_at
+        )
+        SELECT
+            g.group_id
+            ,v.code
+            ,v.code_nm
+            ,v.code_desc
+            ,NULL AS parent_code_id
+            ,COALESCE(v.sort_seq, 0)
+            ,COALESCE(v.use_yn, 'Y')
+            ,v.valid_from
+            ,v.valid_to
+            ,CAST(COALESCE(v.extra_data, '{}') AS jsonb)
+            ,#{createdBy}
+            ,current_timestamp
+            ,#{createdBy}
+            ,current_timestamp
+        FROM common_code_groups g
+        CROSS JOIN (
+            VALUES
+        ]]>
+        <foreach collection="codes" item="item" separator=",">
+            (
+                CAST(#{item.code} AS varchar)
+                ,CAST(#{item.codeNm} AS varchar)
+                ,CAST(#{item.codeDesc} AS varchar)
+                ,CAST(#{item.sortSeq} AS integer)
+                ,CAST(#{item.useYn} AS varchar)
+                ,CAST(#{item.validFrom} AS date)
+                ,CAST(#{item.validTo} AS date)
+                ,CAST(#{item.extraData} AS text)
+            )
+        </foreach>
+        <![CDATA[
+        ) AS v(code, code_nm, code_desc, sort_seq, use_yn, valid_from, valid_to, extra_data)
+        WHERE g.group_cd = #{groupCd}
+        ]]>
+    </insert>
+
     <!-- 기준정보 버전 변경 이력 등록 -->
     <insert id="insertReferenceDataVersionHistory">
         <![CDATA[

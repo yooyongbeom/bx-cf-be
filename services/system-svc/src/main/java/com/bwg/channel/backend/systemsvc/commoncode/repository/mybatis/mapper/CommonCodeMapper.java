@@ -63,6 +63,20 @@ public interface CommonCodeMapper {
     int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto);
 
     /**
+     * 그룹 코드 기준 기존 공통코드 전체 삭제 SQL 매핑
+     */
+    int deleteCommonCodesByGroupCd(@Param("groupCd") String groupCd);
+
+    /**
+     * 교체 대상 공통코드 목록 일괄 등록 SQL 매핑
+     */
+    int insertCommonCodes(
+            @Param("groupCd") String groupCd,
+            @Param("codes") List<CommonCodeReqDto> codes,
+            @Param("createdBy") String createdBy
+    );
+
+    /**
      * 기준정보 버전 변경 이력 등록 SQL 매핑
      */
     int insertReferenceDataVersionHistory(

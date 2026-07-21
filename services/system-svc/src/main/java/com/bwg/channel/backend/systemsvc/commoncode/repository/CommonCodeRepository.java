@@ -57,6 +57,16 @@ public interface CommonCodeRepository {
     int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto);
 
     /**
+     * 그룹 코드에 속한 기존 공통코드 전체 삭제
+     */
+    int deleteCommonCodesByGroupCd(String groupCd);
+
+    /**
+     * 그룹 코드에 속할 공통코드 목록 일괄 등록
+     */
+    int insertCommonCodes(String groupCd, List<CommonCodeReqDto> codes, String createdBy);
+
+    /**
      * 기준정보 버전 변경 이력 등록
      */
     int insertReferenceDataVersionHistory(

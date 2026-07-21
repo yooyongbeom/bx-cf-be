@@ -77,6 +77,18 @@ public class MybatisCommonCodeRepositoryAdapter implements CommonCodeRepository 
     }
 
     @Override
+    public int deleteCommonCodesByGroupCd(String groupCd) {
+        // 교체 등록 전에 해당 그룹의 기존 공통코드를 한 번에 삭제한다.
+        return commonCodeMapper.deleteCommonCodesByGroupCd(groupCd);
+    }
+
+    @Override
+    public int insertCommonCodes(String groupCd, List<CommonCodeReqDto> codes, String createdBy) {
+        // 검증된 전체 목록을 MyBatis 배치 INSERT SQL에 전달한다.
+        return commonCodeMapper.insertCommonCodes(groupCd, codes, createdBy);
+    }
+
+    @Override
     public int insertReferenceDataVersionHistory(
             String refType,
             String changeType,
