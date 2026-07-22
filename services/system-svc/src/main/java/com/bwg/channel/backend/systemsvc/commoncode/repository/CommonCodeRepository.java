@@ -22,12 +22,12 @@ public interface CommonCodeRepository {
     /**
      * 공통코드 그룹 등록
      */
-    int insertCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto);
+    int insertCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto, String createdBy);
 
     /**
      * 공통코드 그룹 수정
      */
-    int updateCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto);
+    int updateCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto, String updatedBy);
 
     /**
      * 그룹 코드 기준 공통코드 목록 조회
@@ -49,12 +49,12 @@ public interface CommonCodeRepository {
     /**
      * 공통코드 등록
      */
-    int insertCommonCode(ApiRequest<CommonCodeReqDto> paramDto);
+    int insertCommonCode(ApiRequest<CommonCodeReqDto> paramDto, String createdBy);
 
     /**
      * 공통코드 수정
      */
-    int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto);
+    int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto, String updatedBy);
 
     /**
      * 그룹 코드에 속한 기존 공통코드 전체 삭제

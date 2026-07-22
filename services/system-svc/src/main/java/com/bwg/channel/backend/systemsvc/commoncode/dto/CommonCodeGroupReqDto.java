@@ -30,6 +30,4 @@ public class CommonCodeGroupReqDto {
     @ApiField(description = "정렬 순서", example = "1", optional = {"create", "update"})
     private Integer sortSeq;
 
-    @ApiField(description = "요청자 ID", example = "admin", optional = {"create", "update", "save"})
-    private String createdBy;
 }

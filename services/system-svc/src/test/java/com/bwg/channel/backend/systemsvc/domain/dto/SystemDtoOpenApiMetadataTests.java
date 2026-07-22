@@ -3,8 +3,10 @@ package com.bwg.channel.backend.systemsvc.domain.dto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
@@ -25,8 +27,10 @@ class SystemDtoOpenApiMetadataTests {
     // API 경계 DTO(요청/응답)만 @ApiDto/@ApiField 메타데이터를 갖는다. (내부 도메인 DTO는 제외)
     private static final List<Class<?>> DTO_TYPES = List.of(
             CommonCodeGroupReqDto.class,
+            CommonCodeGroupReplaceReqDto.class,
             CommonCodeGroupResDto.class,
             CommonCodeGroupDetailResDto.class,
+            CommonCodeReplaceReqDto.class,
             CommonCodeReqDto.class,
             CommonCodeResDto.class,
             MenuCreateReqDto.class,
@@ -38,16 +42,25 @@ class SystemDtoOpenApiMetadataTests {
     );
 
     @Test
-    void menuCommandDtosExposeOnlyTheirOperationFields() {
+    void commandDtosDoNotExposeAuditFields() {
+        assertThat(List.of(
+                CommonCodeGroupReqDto.class,
+                CommonCodeGroupReplaceReqDto.class,
+                CommonCodeReplaceReqDto.class,
+                CommonCodeReqDto.class,
+                MenuCreateReqDto.class,
+                MenuUpdateReqDto.class,
+                RoleMenuSaveReqDto.class
+        )).allSatisfy(dtoType -> assertThat(dtoType.getDeclaredFields())
+                .extracting(Field::getName)
+                .doesNotContain("createdBy", "createdAt", "updatedBy", "updatedAt"));
+
         assertThat(MenuCreateReqDto.class.getDeclaredFields())
                 .extracting(Field::getName)
-                .doesNotContain("menuId", "createdBy");
+                .doesNotContain("menuId");
         assertThat(MenuUpdateReqDto.class.getDeclaredFields())
                 .extracting(Field::getName)
-                .doesNotContain("menuId", "menuCd", "createdBy");
-        assertThat(RoleMenuSaveReqDto.class.getDeclaredFields())
-                .extracting(Field::getName)
-                .doesNotContain("createdBy");
+                .doesNotContain("menuId", "menuCd");
     }
 
     @Test

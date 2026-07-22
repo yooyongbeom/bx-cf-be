@@ -72,7 +72,7 @@
     </select>
 
     <!-- 공통코드 그룹 등록 -->
-    <insert id="insertCommonCodeGroup" parameterType="ApiRequest">
+    <insert id="insertCommonCodeGroup">
         <![CDATA[
         /* systemsvc.CommonCodeMapper.insertCommonCodeGroup(공통코드 그룹 등록) */
         INSERT INTO common_code_groups (
@@ -88,33 +88,33 @@
             ,updated_at
         )
         VALUES (
-            #{data.groupCd}
-            ,#{data.groupNm}
-            ,#{data.groupDesc}
-            ,COALESCE(#{data.systemYn}, 'N')
-            ,COALESCE(#{data.useYn}, 'Y')
-            ,COALESCE(#{data.sortSeq}, 0)
-            ,#{data.createdBy}
+            #{request.data.groupCd}
+            ,#{request.data.groupNm}
+            ,#{request.data.groupDesc}
+            ,COALESCE(#{request.data.systemYn}, 'N')
+            ,COALESCE(#{request.data.useYn}, 'Y')
+            ,COALESCE(#{request.data.sortSeq}, 0)
+            ,#{createdBy}
             ,current_timestamp
-            ,#{data.createdBy}
+            ,#{createdBy}
             ,current_timestamp
         )
         ]]>
     </insert>
 
     <!-- 공통코드 그룹 수정 -->
-    <update id="updateCommonCodeGroup" parameterType="ApiRequest">
+    <update id="updateCommonCodeGroup">
         <![CDATA[
         /* systemsvc.CommonCodeMapper.updateCommonCodeGroup(공통코드 그룹 수정) */
         UPDATE common_code_groups
-        SET group_nm = #{data.groupNm}
-            ,group_desc = #{data.groupDesc}
-            ,system_yn = COALESCE(#{data.systemYn}, system_yn)
-            ,use_yn = COALESCE(#{data.useYn}, use_yn)
-            ,sort_seq = COALESCE(#{data.sortSeq}, sort_seq)
-            ,updated_by = #{data.createdBy}
+        SET group_nm = #{request.data.groupNm}
+            ,group_desc = #{request.data.groupDesc}
+            ,system_yn = COALESCE(#{request.data.systemYn}, system_yn)
+            ,use_yn = COALESCE(#{request.data.useYn}, use_yn)
+            ,sort_seq = COALESCE(#{request.data.sortSeq}, sort_seq)
+            ,updated_by = #{updatedBy}
             ,updated_at = current_timestamp
-        WHERE group_cd = #{data.groupCd}
+        WHERE group_cd = #{request.data.groupCd}
         ]]>
     </update>
 
@@ -217,7 +217,7 @@
     </select>
 
     <!-- 그룹별 공통코드 등록 -->
-    <insert id="insertCommonCode" parameterType="ApiRequest">
+    <insert id="insertCommonCode">
         <![CDATA[
         /* systemsvc.CommonCodeMapper.insertCommonCode(공통코드 등록) */
         INSERT INTO common_codes (
@@ -238,43 +238,43 @@
         )
         SELECT
             g.group_id
-            ,#{data.code}
-            ,#{data.codeNm}
-            ,#{data.codeDesc}
-            ,#{data.parentCodeId}
-            ,COALESCE(#{data.sortSeq}, 0)
-            ,COALESCE(#{data.useYn}, 'Y')
-            ,#{data.validFrom}
-            ,#{data.validTo}
-            ,CAST(COALESCE(#{data.extraData}, '{}') AS jsonb)
-            ,#{data.createdBy}
+            ,#{request.data.code}
+            ,#{request.data.codeNm}
+            ,#{request.data.codeDesc}
+            ,#{request.data.parentCodeId}
+            ,COALESCE(#{request.data.sortSeq}, 0)
+            ,COALESCE(#{request.data.useYn}, 'Y')
+            ,#{request.data.validFrom}
+            ,#{request.data.validTo}
+            ,CAST(COALESCE(#{request.data.extraData}, '{}') AS jsonb)
+            ,#{createdBy}
             ,current_timestamp
-            ,#{data.createdBy}
+            ,#{createdBy}
             ,current_timestamp
         FROM common_code_groups g
-        WHERE g.group_cd = #{data.groupCd}
+        WHERE g.group_cd = #{request.data.groupCd}
         ]]>
     </insert>
 
     <!-- 그룹별 공통코드 수정 -->
-    <update id="updateCommonCode" parameterType="ApiRequest">
+    <update id="updateCommonCode">
         <![CDATA[
         /* systemsvc.CommonCodeMapper.updateCommonCode(공통코드 수정) */
         UPDATE common_codes c
-        SET code_nm = #{data.codeNm}
-            ,code_desc = #{data.codeDesc}
-            ,parent_code_id = #{data.parentCodeId}
-            ,sort_seq = COALESCE(#{data.sortSeq}, c.sort_seq)
-            ,use_yn = COALESCE(#{data.useYn}, c.use_yn)
-            ,valid_from = #{data.validFrom}
-            ,valid_to = #{data.validTo}
-            ,extra_data = CAST(COALESCE(#{data.extraData}, c.extra_data::text) AS jsonb)
-            ,updated_by = #{data.createdBy}
+        SET code_nm = #{request.data.codeNm}
+            ,code_desc = #{request.data.codeDesc}
+            ,parent_code_id = #{request.data.parentCodeId}
+            ,sort_seq = COALESCE(#{request.data.sortSeq}, c.sort_seq)
+            ,use_yn = COALESCE(#{request.data.useYn}, c.use_yn)
+            ,valid_from = #{request.data.validFrom}
+            ,valid_to = #{request.data.validTo}
+            ,extra_data = CAST(COALESCE(#{request.data.extraData}, c.extra_data::text) AS jsonb)
+            ,updated_by = #{updatedBy}
             ,updated_at = current_timestamp
         FROM common_code_groups g
         WHERE c.group_id = g.group_id
-          AND g.group_cd = #{data.groupCd}
-          AND c.code = #{data.code}
+          AND g.group_cd = #{request.data.groupCd}
+          AND c.code = #{request.data.code}
         ]]>
     </update>
     <!-- 그룹 코드 기준 기존 공통코드 전체 삭제 -->

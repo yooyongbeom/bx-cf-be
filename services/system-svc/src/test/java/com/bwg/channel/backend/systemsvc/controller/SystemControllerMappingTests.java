@@ -87,41 +87,68 @@ class SystemControllerMappingTests {
     @Test
     void commonCodeControllerRequestBodiesUseApiRequestWrapper() throws NoSuchMethodException {
         assertRequestBodyType(
-                CommonCodeController.class.getDeclaredMethod("createCommonCodeGroup", ApiRequest.class),
+                CommonCodeController.class.getDeclaredMethod("createCommonCodeGroup", ApiRequest.class, String.class),
                 CommonCodeGroupReqDto.class
         );
+        assertInternalAuthUserHeader(
+                CommonCodeController.class.getDeclaredMethod("createCommonCodeGroup", ApiRequest.class, String.class)
+        );
         assertRequestBodyType(
-                CommonCodeController.class.getDeclaredMethod("updateCommonCodeGroup", String.class, ApiRequest.class),
+                CommonCodeController.class.getDeclaredMethod("updateCommonCodeGroup", String.class, ApiRequest.class, String.class),
                 CommonCodeGroupReqDto.class
+        );
+        assertInternalAuthUserHeader(
+                CommonCodeController.class.getDeclaredMethod("updateCommonCodeGroup", String.class, ApiRequest.class, String.class)
         );
         assertRequestBodyType(
                 CommonCodeController.class.getDeclaredMethod("getCommonCodeGroupDetails", ApiRequest.class),
                 CommonCodeGroupReqDto.class
         );
         assertRequestBodyType(
-                CommonCodeController.class.getDeclaredMethod("createCommonCode", String.class, ApiRequest.class),
+                CommonCodeController.class.getDeclaredMethod("createCommonCode", String.class, ApiRequest.class, String.class),
                 CommonCodeReqDto.class
         );
-        assertRequestBodyType(
-                CommonCodeController.class.getDeclaredMethod("updateCommonCode", String.class, String.class, ApiRequest.class),
-                CommonCodeReqDto.class
+        assertInternalAuthUserHeader(
+                CommonCodeController.class.getDeclaredMethod("createCommonCode", String.class, ApiRequest.class, String.class)
         );
         assertRequestBodyType(
-                CommonCodeController.class.getDeclaredMethod("replaceCommonCodes", String.class, ApiRequest.class),
+                CommonCodeController.class.getDeclaredMethod("updateCommonCode", String.class, String.class, ApiRequest.class, String.class),
+                CommonCodeReqDto.class
+        );
+        assertInternalAuthUserHeader(
+                CommonCodeController.class.getDeclaredMethod("updateCommonCode", String.class, String.class, ApiRequest.class, String.class)
+        );
+        assertRequestBodyType(
+                CommonCodeController.class.getDeclaredMethod("replaceCommonCodes", String.class, ApiRequest.class, String.class),
                 CommonCodeReplaceReqDto.class
+        );
+        assertInternalAuthUserHeader(
+                CommonCodeController.class.getDeclaredMethod("replaceCommonCodes", String.class, ApiRequest.class, String.class)
         );
     }
 
     @Test
-    void commonCodeReplaceUsesGroupScopedPostMapping() throws NoSuchMethodException {
+    void commonCodeCombinedListUsesRootListPostMapping() throws NoSuchMethodException {
         Method method = CommonCodeController.class.getDeclaredMethod(
-                "replaceCommonCodes",
-                String.class,
+                "getCommonCodeGroupDetails",
                 ApiRequest.class
         );
         PostMapping mapping = method.getAnnotation(PostMapping.class);
 
-        assertThat(mapping.value()).containsExactly("/groups/{groupCd}/codes/replace");
+        assertThat(mapping.value()).containsExactly("/list");
+    }
+
+    @Test
+    void commonCodeReplaceUsesRootGroupPostMapping() throws NoSuchMethodException {
+        Method method = CommonCodeController.class.getDeclaredMethod(
+                "replaceCommonCodes",
+                String.class,
+                ApiRequest.class,
+                String.class
+        );
+        PostMapping mapping = method.getAnnotation(PostMapping.class);
+
+        assertThat(mapping.value()).containsExactly("/{groupCd}/replace");
         assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
     }
 

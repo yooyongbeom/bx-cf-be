@@ -25,12 +25,18 @@ public interface CommonCodeMapper {
     /**
      * 공통코드 그룹 등록 SQL 매핑
      */
-    int insertCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto);
+    int insertCommonCodeGroup(
+            @Param("request") ApiRequest<CommonCodeGroupReqDto> paramDto,
+            @Param("createdBy") String createdBy
+    );
 
     /**
      * 공통코드 그룹 수정 SQL 매핑
      */
-    int updateCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto);
+    int updateCommonCodeGroup(
+            @Param("request") ApiRequest<CommonCodeGroupReqDto> paramDto,
+            @Param("updatedBy") String updatedBy
+    );
 
     /**
      * 그룹 코드 기준 공통코드 목록 조회 SQL 매핑
@@ -55,12 +61,18 @@ public interface CommonCodeMapper {
     /**
      * 공통코드 등록 SQL 매핑
      */
-    int insertCommonCode(ApiRequest<CommonCodeReqDto> paramDto);
+    int insertCommonCode(
+            @Param("request") ApiRequest<CommonCodeReqDto> paramDto,
+            @Param("createdBy") String createdBy
+    );
 
     /**
      * 공통코드 수정 SQL 매핑
      */
-    int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto);
+    int updateCommonCode(
+            @Param("request") ApiRequest<CommonCodeReqDto> paramDto,
+            @Param("updatedBy") String updatedBy
+    );
 
     /**
      * 그룹 코드 기준 기존 공통코드 전체 삭제 SQL 매핑

@@ -29,15 +29,15 @@ public class MybatisCommonCodeRepositoryAdapter implements CommonCodeRepository 
     }
 
     @Override
-    public int insertCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto) {
-        // MyBatis Mapper를 통해 공통코드 그룹 등록
-        return commonCodeMapper.insertCommonCodeGroup(paramDto);
+    public int insertCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto, String createdBy) {
+        // 요청 업무 데이터와 검증된 등록자를 분리하여 MyBatis Mapper에 전달한다.
+        return commonCodeMapper.insertCommonCodeGroup(paramDto, createdBy);
     }
 
     @Override
-    public int updateCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto) {
-        // MyBatis Mapper를 통해 공통코드 그룹 수정
-        return commonCodeMapper.updateCommonCodeGroup(paramDto);
+    public int updateCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto, String updatedBy) {
+        // 요청 업무 데이터와 검증된 수정자를 분리하여 MyBatis Mapper에 전달한다.
+        return commonCodeMapper.updateCommonCodeGroup(paramDto, updatedBy);
     }
 
     @Override
@@ -65,15 +65,15 @@ public class MybatisCommonCodeRepositoryAdapter implements CommonCodeRepository 
     }
 
     @Override
-    public int insertCommonCode(ApiRequest<CommonCodeReqDto> paramDto) {
-        // MyBatis Mapper를 통해 공통코드 등록
-        return commonCodeMapper.insertCommonCode(paramDto);
+    public int insertCommonCode(ApiRequest<CommonCodeReqDto> paramDto, String createdBy) {
+        // 요청 업무 데이터와 검증된 등록자를 분리하여 MyBatis Mapper에 전달한다.
+        return commonCodeMapper.insertCommonCode(paramDto, createdBy);
     }
 
     @Override
-    public int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto) {
-        // MyBatis Mapper를 통해 공통코드 수정
-        return commonCodeMapper.updateCommonCode(paramDto);
+    public int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto, String updatedBy) {
+        // 요청 업무 데이터와 검증된 수정자를 분리하여 MyBatis Mapper에 전달한다.
+        return commonCodeMapper.updateCommonCode(paramDto, updatedBy);
     }
 
     @Override

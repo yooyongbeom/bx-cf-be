@@ -32,6 +32,16 @@ class CommonCodeMapperSqlContractTests {
         assertThat(mapperXml).doesNotContain("${");
     }
 
+    @Test
+    void writesAuditFieldsFromExplicitUserParametersAndDatabaseTime() throws Exception {
+        String mapperXml = Files.readString(findCommonCodeMapperXml());
+
+        assertThat(mapperXml).doesNotContain("#{data.createdBy}");
+        assertThat(mapperXml).contains("#{createdBy}");
+        assertThat(mapperXml).contains("#{updatedBy}");
+        assertThat(mapperXml).contains("current_timestamp");
+    }
+
     private static Path findCommonCodeMapperXml() {
         Path current = Path.of(System.getProperty("user.dir")).toAbsolutePath();
         while (current != null) {

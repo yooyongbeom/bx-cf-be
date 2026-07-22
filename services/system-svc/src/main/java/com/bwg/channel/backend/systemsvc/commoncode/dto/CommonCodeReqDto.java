@@ -46,6 +46,4 @@ public class CommonCodeReqDto {
     @ApiField(description = "추가 데이터 JSON 문자열", example = "{}", optional = {"create", "update"})
     private String extraData;
 
-    @ApiField(description = "요청자 ID", example = "admin", optional = {"create", "update", "save"})
-    private String createdBy;
 }

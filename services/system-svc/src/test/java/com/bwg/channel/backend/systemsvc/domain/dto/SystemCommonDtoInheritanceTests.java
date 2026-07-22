@@ -1,8 +1,10 @@
 package com.bwg.channel.backend.systemsvc.domain.dto;
 
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuActionResDto;
@@ -13,6 +15,7 @@ import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,25 +24,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class SystemCommonDtoInheritanceTests {
 
     @Test
-    void writeDtosDeclareAuditWriterFieldsDirectly() {
+    void writeDtosDoNotExposeAuditFields() {
         assertThat(List.of(
                 CommonCodeGroupReqDto.class,
-                CommonCodeReqDto.class
-        )).allSatisfy(dtoType -> {
-            assertApiField(dtoType, "createdBy");
-            assertThat(dtoType.getSuperclass()).isEqualTo(Object.class);
-        });
-    }
-
-    @Test
-    void menuWriteDtosDoNotExposeAuditWriterFields() {
-        assertThat(List.of(
+                CommonCodeGroupReplaceReqDto.class,
+                CommonCodeReplaceReqDto.class,
+                CommonCodeReqDto.class,
                 MenuCreateReqDto.class,
                 MenuUpdateReqDto.class,
                 RoleMenuSaveReqDto.class
         )).allSatisfy(dtoType -> assertThat(dtoType.getDeclaredFields())
-                .extracting(java.lang.reflect.Field::getName)
-                .doesNotContain("createdBy"));
+                .extracting(Field::getName)
+                .doesNotContain("createdBy", "createdAt", "updatedBy", "updatedAt"));
     }
 
     @Test

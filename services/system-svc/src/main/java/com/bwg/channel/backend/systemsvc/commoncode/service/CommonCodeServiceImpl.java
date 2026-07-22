@@ -7,6 +7,7 @@ import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.common.domain.dto.PaginationResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
@@ -46,40 +47,51 @@ public class CommonCodeServiceImpl implements CommonCodeService {
 
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
-    public ApiResponse<Void> createCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto) {
+    public ApiResponse<Void> createCommonCodeGroup(
+            ApiRequest<CommonCodeGroupReqDto> paramDto,
+            String userId
+    ) {
+        // 감사 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
+        String changedBy = requireUserId(userId);
         // 요청 본문 데이터 필수 여부 검증
         CommonCodeGroupReqDto data = requireData(paramDto);
         // 등록 필수값 검증
         data.setGroupCd(BusinessValidator.requireNonBlank(data.getGroupCd(), "groupCd"));
         data.setGroupNm(BusinessValidator.requireNonBlank(data.getGroupNm(), "groupNm"));
         // 공통코드 그룹 등록 처리
-        commonCodeRepository.insertCommonCodeGroup(paramDto);
+        commonCodeRepository.insertCommonCodeGroup(paramDto, changedBy);
         recordCommonCodeVersionChange(
                 "CREATE",
                 "common_code_groups",
                 data.getGroupCd(),
                 "공통코드 그룹 등록",
-                data.getCreatedBy()
+                changedBy
         );
         return ApiResponse.success(null);
     }
 
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
-    public ApiResponse<Void> updateCommonCodeGroup(String groupCd, ApiRequest<CommonCodeGroupReqDto> paramDto) {
+    public ApiResponse<Void> updateCommonCodeGroup(
+            String groupCd,
+            ApiRequest<CommonCodeGroupReqDto> paramDto,
+            String userId
+    ) {
+        // 감사 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
+        String changedBy = requireUserId(userId);
         // 요청 본문 데이터 필수 여부 검증
         CommonCodeGroupReqDto data = requireData(paramDto);
         // 경로 변수와 수정 필수값 검증
         data.setGroupCd(BusinessValidator.requireNonBlank(groupCd, "groupCd"));
         data.setGroupNm(BusinessValidator.requireNonBlank(data.getGroupNm(), "groupNm"));
         // 공통코드 그룹 수정 처리
-        commonCodeRepository.updateCommonCodeGroup(paramDto);
+        commonCodeRepository.updateCommonCodeGroup(paramDto, changedBy);
         recordCommonCodeVersionChange(
                 "UPDATE",
                 "common_code_groups",
                 data.getGroupCd(),
                 "공통코드 그룹 수정",
-                data.getCreatedBy()
+                changedBy
         );
         return ApiResponse.success(null);
     }
@@ -122,7 +134,13 @@ public class CommonCodeServiceImpl implements CommonCodeService {
 
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
-    public ApiResponse<Void> createCommonCode(String groupCd, ApiRequest<CommonCodeReqDto> paramDto) {
+    public ApiResponse<Void> createCommonCode(
+            String groupCd,
+            ApiRequest<CommonCodeReqDto> paramDto,
+            String userId
+    ) {
+        // 감사 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
+        String changedBy = requireUserId(userId);
         // 요청 본문 데이터 필수 여부 검증
         CommonCodeReqDto data = requireData(paramDto);
         // 경로 변수와 등록 필수값 검증
@@ -130,20 +148,27 @@ public class CommonCodeServiceImpl implements CommonCodeService {
         data.setCode(BusinessValidator.requireNonBlank(data.getCode(), "code"));
         data.setCodeNm(BusinessValidator.requireNonBlank(data.getCodeNm(), "codeNm"));
         // 공통코드 등록 처리
-        commonCodeRepository.insertCommonCode(paramDto);
+        commonCodeRepository.insertCommonCode(paramDto, changedBy);
         recordCommonCodeVersionChange(
                 "CREATE",
                 "common_codes",
                 data.getGroupCd() + ":" + data.getCode(),
                 "공통코드 등록",
-                data.getCreatedBy()
+                changedBy
         );
         return ApiResponse.success(null);
     }
 
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
-    public ApiResponse<Void> updateCommonCode(String groupCd, String code, ApiRequest<CommonCodeReqDto> paramDto) {
+    public ApiResponse<Void> updateCommonCode(
+            String groupCd,
+            String code,
+            ApiRequest<CommonCodeReqDto> paramDto,
+            String userId
+    ) {
+        // 감사 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
+        String changedBy = requireUserId(userId);
         // 요청 본문 데이터 필수 여부 검증
         CommonCodeReqDto data = requireData(paramDto);
         // 경로 변수와 수정 필수값 검증
@@ -151,13 +176,13 @@ public class CommonCodeServiceImpl implements CommonCodeService {
         data.setCode(BusinessValidator.requireNonBlank(code, "code"));
         data.setCodeNm(BusinessValidator.requireNonBlank(data.getCodeNm(), "codeNm"));
         // 공통코드 수정 처리
-        commonCodeRepository.updateCommonCode(paramDto);
+        commonCodeRepository.updateCommonCode(paramDto, changedBy);
         recordCommonCodeVersionChange(
                 "UPDATE",
                 "common_codes",
                 data.getGroupCd() + ":" + data.getCode(),
                 "공통코드 수정",
-                data.getCreatedBy()
+                changedBy
         );
         return ApiResponse.success(null);
     }
@@ -166,8 +191,11 @@ public class CommonCodeServiceImpl implements CommonCodeService {
     @Transactional(transactionManager = "mybatisMainTransactionManager")
     public ApiResponse<Void> replaceCommonCodes(
             String groupCd,
-            ApiRequest<CommonCodeReplaceReqDto> paramDto
+            ApiRequest<CommonCodeReplaceReqDto> paramDto,
+            String userId
     ) {
+        // 그룹 수정, 코드 교체, 변경 이력에 동일한 검증 사용자를 적용한다.
+        String changedBy = requireUserId(userId);
         // 경로의 그룹 코드를 먼저 정규화하고 실제 존재하는 공통코드 그룹인지 확인한다.
         String requiredGroupCd = BusinessValidator.requireNonBlank(groupCd, "groupCd");
         BusinessValidator.requireFound(
@@ -176,17 +204,20 @@ public class CommonCodeServiceImpl implements CommonCodeService {
         );
 
         CommonCodeReplaceReqDto data = requireData(paramDto);
+        // 그룹 정보와 코드 목록을 모두 검증한 뒤에만 데이터 변경을 시작한다.
+        CommonCodeGroupReplaceReqDto requestedGroup = BusinessValidator.requireNonNull(data.getGroup(), "group");
+        requestedGroup.setGroupNm(BusinessValidator.requireNonBlank(requestedGroup.getGroupNm(), "group.groupNm"));
         // 빈 목록은 전체 삭제 요청으로 해석하지 않고 필수값 누락으로 거부한다.
-        List<CommonCodeReqDto> requestedCodeList = data.getCodes();
-        List<CommonCodeReqDto> codes = BusinessValidator.requireNonNull(
-                requestedCodeList == null || requestedCodeList.isEmpty() ? null : requestedCodeList,
-                "codes"
+        List<CommonCodeReqDto> requestedItems = data.getItems();
+        List<CommonCodeReqDto> items = BusinessValidator.requireNonNull(
+                requestedItems == null || requestedItems.isEmpty() ? null : requestedItems,
+                "items"
         );
 
-        // DELETE 전에 모든 항목을 검증하여 잘못된 요청이 기존 데이터를 변경하지 못하게 한다.
+        // 그룹 수정과 DELETE 전에 모든 항목을 검증하여 잘못된 요청이 기존 데이터를 변경하지 못하게 한다.
         Set<String> requestedCodes = new HashSet<>();
-        for (CommonCodeReqDto code : codes) {
-            CommonCodeReqDto requiredCode = BusinessValidator.requireNonNull(code, "codes.item");
+        for (CommonCodeReqDto code : items) {
+            CommonCodeReqDto requiredCode = BusinessValidator.requireNonNull(code, "items.item");
             requiredCode.setCode(BusinessValidator.requireNonBlank(requiredCode.getCode(), "code"));
             requiredCode.setCodeNm(BusinessValidator.requireNonBlank(requiredCode.getCodeNm(), "codeNm"));
             requiredCode.setParentCodeId(null);
@@ -195,15 +226,20 @@ public class CommonCodeServiceImpl implements CommonCodeService {
             }
         }
 
-        // 검증 완료 후 기존 목록을 지우고, 같은 트랜잭션에서 새 목록을 한 번에 등록한다.
+        ApiRequest<CommonCodeGroupReqDto> groupUpdateRequest = toGroupUpdateRequest(
+                requiredGroupCd,
+                requestedGroup
+        );
+        // 검증 완료 후 그룹을 수정하고 기존 코드 목록을 새 항목으로 원자적으로 교체한다.
+        commonCodeRepository.updateCommonCodeGroup(groupUpdateRequest, changedBy);
         commonCodeRepository.deleteCommonCodesByGroupCd(requiredGroupCd);
-        commonCodeRepository.insertCommonCodes(requiredGroupCd, codes, data.getCreatedBy());
+        commonCodeRepository.insertCommonCodes(requiredGroupCd, items, changedBy);
         recordCommonCodeVersionChange(
                 "REPLACE",
-                "common_codes",
+                "common_code_groups",
                 requiredGroupCd,
-                "공통코드 일괄 교체",
-                data.getCreatedBy()
+                "공통코드 그룹 및 코드 일괄 교체",
+                changedBy
         );
         return ApiResponse.success(null);
     }
@@ -213,8 +249,26 @@ public class CommonCodeServiceImpl implements CommonCodeService {
         return new BwgBusinessException.Builder()
                 .code(BusinessErrorCode.BUSINESS_RULE_VIOLATION)
                 .message(BusinessErrorCode.BUSINESS_RULE_VIOLATION.getMsg())
-                .details(Map.of("field", "codes.code", "value", code))
+                .details(Map.of("field", "items.code", "value", code))
                 .build();
+    }
+
+    private ApiRequest<CommonCodeGroupReqDto> toGroupUpdateRequest(
+            String groupCd,
+            CommonCodeGroupReplaceReqDto requestedGroup
+    ) {
+        // 통합 교체 전용 그룹 모델을 기존 그룹 수정 저장소 계약으로 변환한다.
+        CommonCodeGroupReqDto group = new CommonCodeGroupReqDto();
+        group.setGroupCd(groupCd);
+        group.setGroupNm(requestedGroup.getGroupNm());
+        group.setGroupDesc(requestedGroup.getGroupDesc());
+        group.setSystemYn(requestedGroup.getSystemYn());
+        group.setUseYn(requestedGroup.getUseYn());
+        group.setSortSeq(requestedGroup.getSortSeq());
+
+        ApiRequest<CommonCodeGroupReqDto> request = new ApiRequest<>();
+        request.setData(group);
+        return request;
     }
 
     private void recordCommonCodeVersionChange(
@@ -244,6 +298,11 @@ public class CommonCodeServiceImpl implements CommonCodeService {
     private <T> T requireData(ApiRequest<T> request) {
         // 공통 요청 래퍼의 data 블록 검증
         return BusinessValidator.requireNonNull(request == null ? null : request.getData(), "data");
+    }
+
+    private String requireUserId(String userId) {
+        // 내부 헤더 누락 시 감사 사용자를 비워 저장하지 않고 요청을 즉시 거부한다.
+        return BusinessValidator.requireNonBlank(userId, "userId");
     }
 
     private PaginationResDto toPagination(List<?> result) {
