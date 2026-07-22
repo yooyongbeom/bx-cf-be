@@ -51,7 +51,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
             ApiRequest<CommonCodeGroupReqDto> paramDto,
             String userId
     ) {
-        // 감사 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
+        // 시스템 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
         String changedBy = requireUserId(userId);
         // 요청 본문 데이터 필수 여부 검증
         CommonCodeGroupReqDto data = requireData(paramDto);
@@ -77,7 +77,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
             ApiRequest<CommonCodeGroupReqDto> paramDto,
             String userId
     ) {
-        // 감사 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
+        // 시스템 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
         String changedBy = requireUserId(userId);
         // 요청 본문 데이터 필수 여부 검증
         CommonCodeGroupReqDto data = requireData(paramDto);
@@ -139,7 +139,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
             ApiRequest<CommonCodeReqDto> paramDto,
             String userId
     ) {
-        // 감사 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
+        // 시스템 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
         String changedBy = requireUserId(userId);
         // 요청 본문 데이터 필수 여부 검증
         CommonCodeReqDto data = requireData(paramDto);
@@ -167,7 +167,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
             ApiRequest<CommonCodeReqDto> paramDto,
             String userId
     ) {
-        // 감사 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
+        // 시스템 컬럼과 변경 이력에는 Gateway가 검증한 사용자만 사용한다.
         String changedBy = requireUserId(userId);
         // 요청 본문 데이터 필수 여부 검증
         CommonCodeReqDto data = requireData(paramDto);
@@ -301,7 +301,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
     }
 
     private String requireUserId(String userId) {
-        // 내부 헤더 누락 시 감사 사용자를 비워 저장하지 않고 요청을 즉시 거부한다.
+        // 내부 헤더 누락 시 시스템 사용자 필드를 비워 저장하지 않고 요청을 즉시 거부한다.
         return BusinessValidator.requireNonBlank(userId, "userId");
     }
 

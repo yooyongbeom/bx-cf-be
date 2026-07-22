@@ -33,7 +33,7 @@ class CommonCodeMapperSqlContractTests {
     }
 
     @Test
-    void writesAuditFieldsFromExplicitUserParametersAndDatabaseTime() throws Exception {
+    void writesSystemFieldsFromExplicitUserParametersAndDatabaseTime() throws Exception {
         String mapperXml = Files.readString(findCommonCodeMapperXml());
 
         assertThat(mapperXml).doesNotContain("#{data.createdBy}");

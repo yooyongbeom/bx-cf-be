@@ -42,7 +42,7 @@ class SystemDtoOpenApiMetadataTests {
     );
 
     @Test
-    void commandDtosDoNotExposeAuditFields() {
+    void commandDtosDoNotExposeSystemFields() {
         assertThat(List.of(
                 CommonCodeGroupReqDto.class,
                 CommonCodeGroupReplaceReqDto.class,

@@ -24,10 +24,10 @@
 - 상세 조회 API는 키를 URL 경로 매개변수로 포함하고 마지막 endpoint를 `detail`로 한다.
 - 마스터·디테일 관계의 데이터를 함께 처리하는 API는 앞쪽 리소스 path를 생략한다. 예를 들어 공통코드의 그룹코드와 상세코드를 함께 처리하는 등록 API는 `/groups/create`가 아니라 `/create`로 한다.
 
-## 감사 필드 처리
+## 시스템 필드 처리
 
 - API 요청 DTO와 요청 body에는 `createdBy`, `createdAt`, `updatedBy`, `updatedAt`을 포함하지 않는다.
-- `createdBy`와 `updatedBy`는 Gateway가 검증된 JWT subject로 주입한 `X-Auth-User`를 사용하며, 클라이언트가 전달한 감사 사용자 값을 신뢰하지 않는다.
+- `createdBy`와 `updatedBy`는 Gateway가 검증된 JWT subject로 주입한 `X-Auth-User`를 사용하며, 클라이언트가 전달한 시스템 사용자 값을 신뢰하지 않는다.
 - Gateway는 JWT의 세션 ID로 Redis 세션 활성 여부를 검증하고, 외부 요청의 `X-Auth-User`를 검증된 JWT subject로 덮어쓴다.
 - `createdAt`과 `updatedAt`은 요청에서 받지 않고 SQL의 `current_timestamp` 또는 `now()`로 생성한다.
-- 응답 DTO에는 조회 목적으로 필요한 감사 필드를 포함할 수 있다.
+- 응답 DTO에는 조회 목적으로 필요한 시스템 필드를 포함할 수 있다.

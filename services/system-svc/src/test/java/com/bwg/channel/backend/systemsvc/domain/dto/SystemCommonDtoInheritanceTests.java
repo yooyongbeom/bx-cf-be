@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class SystemCommonDtoInheritanceTests {
 
     @Test
-    void writeDtosDoNotExposeAuditFields() {
+    void writeDtosDoNotExposeSystemFields() {
         assertThat(List.of(
                 CommonCodeGroupReqDto.class,
                 CommonCodeGroupReplaceReqDto.class,
@@ -39,7 +39,7 @@ class SystemCommonDtoInheritanceTests {
     }
 
     @Test
-    void responseDtosDeclareAuditFieldsDirectly() {
+    void responseDtosDeclareSystemFieldsDirectly() {
         assertThat(List.of(
                 CommonCodeGroupResDto.class,
                 CommonCodeResDto.class,
