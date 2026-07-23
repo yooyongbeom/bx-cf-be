@@ -456,6 +456,30 @@
 			"name": "System - 공통코드",
 			"item": [
 				{
+					"name": "공통코드 그룹/코드 통합 목록 조회",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/list",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"channel",
+								"backend",
+								"api",
+								"v1",
+								"system",
+								"common-codes",
+								"list"
+							]
+						},
+						"description": "전체 공통코드 그룹과 하위 상세코드를 조회한다. 요청 바디 없음."
+					},
+					"response": []
+				},
+				{
 					"name": "공통코드 그룹 목록 조회",
 					"request": {
 						"method": "POST",
@@ -481,21 +505,12 @@
 					"response": []
 				},
 				{
-					"name": "공통코드 그룹/코드 통합 목록 조회",
+					"name": "공통코드 그룹/코드 상세 조회",
 					"request": {
 						"method": "POST",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"data\": {\n        \"groupCd\": \"ALL\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
-							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/list",
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/USE_YN/detail",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -506,21 +521,22 @@
 								"v1",
 								"system",
 								"common-codes",
-								"list"
+								"USE_YN",
+								"detail"
 							]
 						},
-						"description": "data.groupCd 가 ALL 이면 전체 그룹+하위 공통코드, 그 외에는 해당 그룹만 조회."
+						"description": "그룹 코드(path variable)에 해당하는 그룹과 하위 상세코드를 조회한다. 요청 바디 없음."
 					},
 					"response": []
 				},
 				{
-					"name": "공통코드 그룹 등록",
+					"name": "공통코드 그룹 및 코드 통합 등록",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"data\": {\n        \"groupCd\": \"USE_YN\",\n        \"groupNm\": \"사용 여부\",\n        \"groupDesc\": \"\",\n        \"systemYn\": \"N\",\n        \"useYn\": \"Y\",\n        \"sortSeq\": 1\n    }\n}",
+							"raw": "{\n    \"data\": {\n        \"groupCd\": \"USE_YN\",\n        \"groupNm\": \"사용 여부\",\n        \"groupDesc\": \"사용 여부 공통코드\",\n        \"systemYn\": \"N\",\n        \"useYn\": \"Y\",\n        \"sortSeq\": 1,\n        \"codes\": [\n            {\n                \"code\": \"Y\",\n                \"codeNm\": \"사용\",\n                \"sortSeq\": 1,\n                \"useYn\": \"Y\"\n            }\n        ]\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -528,7 +544,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/create",
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/create",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -539,146 +555,10 @@
 								"v1",
 								"system",
 								"common-codes",
-								"groups",
 								"create"
 							]
 						},
-						"description": "공통코드 그룹 등록. groupCd, groupNm 필수."
-					},
-					"response": []
-				},
-				{
-					"name": "공통코드 그룹 수정",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"data\": {\n        \"groupNm\": \"사용 여부\",\n        \"groupDesc\": \"\",\n        \"systemYn\": \"N\",\n        \"useYn\": \"Y\",\n        \"sortSeq\": 1\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/USE_YN/update",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"channel",
-								"backend",
-								"api",
-								"v1",
-								"system",
-								"common-codes",
-								"groups",
-								"USE_YN",
-								"update"
-							]
-						},
-						"description": "그룹 코드(path variable) 기준 수정. groupNm 필수."
-					},
-					"response": []
-				},
-				{
-					"name": "공통코드 목록 조회",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/USE_YN/codes/list",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"channel",
-								"backend",
-								"api",
-								"v1",
-								"system",
-								"common-codes",
-								"groups",
-								"USE_YN",
-								"codes",
-								"list"
-							]
-						},
-						"description": "그룹 코드(path variable) 기준 공통코드 목록 조회."
-					},
-					"response": []
-				},
-				{
-					"name": "공통코드 등록",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"data\": {\n        \"code\": \"Y\",\n        \"codeNm\": \"사용\",\n        \"codeDesc\": \"\",\n        \"parentCodeId\": null,\n        \"sortSeq\": 1,\n        \"useYn\": \"Y\",\n        \"validFrom\": \"2026-01-01\",\n        \"validTo\": \"2026-12-31\",\n        \"extraData\": \"{}\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/USE_YN/codes/create",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"channel",
-								"backend",
-								"api",
-								"v1",
-								"system",
-								"common-codes",
-								"groups",
-								"USE_YN",
-								"codes",
-								"create"
-							]
-						},
-						"description": "그룹 코드(path variable) 하위 공통코드 등록. code, codeNm 필수. groupCd 는 경로에서 주입되므로 바디에 넣지 않는다."
-					},
-					"response": []
-				},
-				{
-					"name": "공통코드 수정",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"data\": {\n        \"codeNm\": \"사용\",\n        \"codeDesc\": \"\",\n        \"parentCodeId\": null,\n        \"sortSeq\": 1,\n        \"useYn\": \"Y\",\n        \"validFrom\": \"2026-01-01\",\n        \"validTo\": \"2026-12-31\",\n        \"extraData\": \"{}\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/groups/USE_YN/codes/Y/update",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"channel",
-								"backend",
-								"api",
-								"v1",
-								"system",
-								"common-codes",
-								"groups",
-								"USE_YN",
-								"codes",
-								"Y",
-								"update"
-							]
-						},
-						"description": "그룹 코드/공통코드(path variable) 기준 수정. codeNm 필수."
+						"description": "그룹을 등록하고 codes가 비어 있지 않으면 상세코드를 함께 등록한다."
 					},
 					"response": []
 				},
@@ -689,7 +569,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"data\": {\n        \"group\": {\n            \"groupNm\": \"사용 여부\",\n            \"groupDesc\": \"사용 여부 공통코드\",\n            \"systemYn\": \"N\",\n            \"useYn\": \"Y\",\n            \"sortSeq\": 1\n        },\n        \"items\": [\n            {\n                \"code\": \"Y\",\n                \"codeNm\": \"사용\"\n            },\n            {\n                \"code\": \"N\",\n                \"codeNm\": \"미사용\"\n            }\n        ]\n    }\n}",
+							"raw": "{\n    \"data\": {\n        \"groupNm\": \"사용 여부\",\n        \"groupDesc\": \"사용 여부 공통코드\",\n        \"systemYn\": \"N\",\n        \"useYn\": \"Y\",\n        \"sortSeq\": 1,\n        \"codes\": [\n            {\n                \"code\": \"Y\",\n                \"codeNm\": \"사용\",\n                \"sortSeq\": 1,\n                \"useYn\": \"Y\"\n            }\n        ]\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -712,7 +592,32 @@
 								"replace"
 							]
 						},
-						"description": "그룹 코드(path variable)의 그룹 정보를 수정하고 items로 전달한 공통코드 목록을 전체 교체한다."
+						"description": "그룹 정보를 수정하고 기존 상세코드를 삭제한 뒤 codes가 비어 있지 않으면 새 목록을 등록한다."
+					},
+					"response": []
+				},
+				{
+					"name": "공통코드 그룹 및 코드 통합 삭제",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/channel/backend/api/v1/system/common-codes/USE_YN/delete",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"channel",
+								"backend",
+								"api",
+								"v1",
+								"system",
+								"common-codes",
+								"USE_YN",
+								"delete"
+							]
+						},
+						"description": "그룹 코드(path variable)의 상세코드와 그룹을 모두 삭제한다. 요청 바디 없음."
 					},
 					"response": []
 				}

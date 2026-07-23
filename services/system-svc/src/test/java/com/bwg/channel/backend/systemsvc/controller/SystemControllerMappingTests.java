@@ -3,9 +3,8 @@ package com.bwg.channel.backend.systemsvc.controller;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
 import com.bwg.channel.backend.systemsvc.commoncode.controller.CommonCodeController;
-import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeCreateReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
-import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.menu.controller.MenuController;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuUpdateReqDto;
@@ -87,36 +86,11 @@ class SystemControllerMappingTests {
     @Test
     void commonCodeControllerRequestBodiesUseApiRequestWrapper() throws NoSuchMethodException {
         assertRequestBodyType(
-                CommonCodeController.class.getDeclaredMethod("createCommonCodeGroup", ApiRequest.class, String.class),
-                CommonCodeGroupReqDto.class
+                CommonCodeController.class.getDeclaredMethod("createCommonCodes", ApiRequest.class, String.class),
+                CommonCodeCreateReqDto.class
         );
         assertInternalAuthUserHeader(
-                CommonCodeController.class.getDeclaredMethod("createCommonCodeGroup", ApiRequest.class, String.class)
-        );
-        assertRequestBodyType(
-                CommonCodeController.class.getDeclaredMethod("updateCommonCodeGroup", String.class, ApiRequest.class, String.class),
-                CommonCodeGroupReqDto.class
-        );
-        assertInternalAuthUserHeader(
-                CommonCodeController.class.getDeclaredMethod("updateCommonCodeGroup", String.class, ApiRequest.class, String.class)
-        );
-        assertRequestBodyType(
-                CommonCodeController.class.getDeclaredMethod("getCommonCodeGroupDetails", ApiRequest.class),
-                CommonCodeGroupReqDto.class
-        );
-        assertRequestBodyType(
-                CommonCodeController.class.getDeclaredMethod("createCommonCode", String.class, ApiRequest.class, String.class),
-                CommonCodeReqDto.class
-        );
-        assertInternalAuthUserHeader(
-                CommonCodeController.class.getDeclaredMethod("createCommonCode", String.class, ApiRequest.class, String.class)
-        );
-        assertRequestBodyType(
-                CommonCodeController.class.getDeclaredMethod("updateCommonCode", String.class, String.class, ApiRequest.class, String.class),
-                CommonCodeReqDto.class
-        );
-        assertInternalAuthUserHeader(
-                CommonCodeController.class.getDeclaredMethod("updateCommonCode", String.class, String.class, ApiRequest.class, String.class)
+                CommonCodeController.class.getDeclaredMethod("createCommonCodes", ApiRequest.class, String.class)
         );
         assertRequestBodyType(
                 CommonCodeController.class.getDeclaredMethod("replaceCommonCodes", String.class, ApiRequest.class, String.class),
@@ -129,13 +103,24 @@ class SystemControllerMappingTests {
 
     @Test
     void commonCodeCombinedListUsesRootListPostMapping() throws NoSuchMethodException {
-        Method method = CommonCodeController.class.getDeclaredMethod(
-                "getCommonCodeGroupDetails",
-                ApiRequest.class
-        );
+        Method method = CommonCodeController.class.getDeclaredMethod("getCommonCodeGroupDetails");
         PostMapping mapping = method.getAnnotation(PostMapping.class);
 
         assertThat(mapping.value()).containsExactly("/list");
+        assertThat(method.getParameters()).isEmpty();
+    }
+
+    @Test
+    void commonCodeDetailUsesPathVariableWithoutRequestBody() throws NoSuchMethodException {
+        Method method = CommonCodeController.class.getDeclaredMethod(
+                "getCommonCodeGroupDetail",
+                String.class
+        );
+        PostMapping mapping = method.getAnnotation(PostMapping.class);
+
+        assertThat(mapping.value()).containsExactly("/{groupCd}/detail");
+        assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
+        assertThat(method.getParameters()[0].isAnnotationPresent(RequestBody.class)).isFalse();
     }
 
     @Test
@@ -150,6 +135,35 @@ class SystemControllerMappingTests {
 
         assertThat(mapping.value()).containsExactly("/{groupCd}/replace");
         assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
+    }
+
+    @Test
+    void commonCodeDeleteUsesPathVariableAndInternalUserHeader() throws NoSuchMethodException {
+        Method method = CommonCodeController.class.getDeclaredMethod(
+                "deleteCommonCodes",
+                String.class,
+                String.class
+        );
+        PostMapping mapping = method.getAnnotation(PostMapping.class);
+
+        assertThat(mapping.value()).containsExactly("/{groupCd}/delete");
+        assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
+        assertThat(method.getParameters()[0].isAnnotationPresent(RequestBody.class)).isFalse();
+        assertInternalAuthUserHeader(method);
+    }
+
+    @Test
+    void commonCodeControllerExposesOnlyFinalizedEndpoints() {
+        assertThat(CommonCodeController.class.getDeclaredMethods())
+                .extracting(Method::getName)
+                .containsExactlyInAnyOrder(
+                        "getCommonCodeGroups",
+                        "getCommonCodeGroupDetails",
+                        "getCommonCodeGroupDetail",
+                        "createCommonCodes",
+                        "replaceCommonCodes",
+                        "deleteCommonCodes"
+                );
     }
 
     @Test

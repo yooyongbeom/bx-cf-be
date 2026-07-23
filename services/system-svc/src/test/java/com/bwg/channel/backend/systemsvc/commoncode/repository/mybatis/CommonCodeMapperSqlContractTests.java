@@ -33,6 +33,16 @@ class CommonCodeMapperSqlContractTests {
     }
 
     @Test
+    void deleteRemovesCodesBeforeTheGroupThroughSeparateStatements() throws Exception {
+        String mapperXml = Files.readString(findCommonCodeMapperXml());
+
+        assertThat(mapperXml).contains("<delete id=\"deleteCommonCodesByGroupCd\">");
+        assertThat(mapperXml).contains("<delete id=\"deleteCommonCodeGroup\">");
+        assertThat(mapperXml).contains("DELETE FROM common_code_groups");
+        assertThat(mapperXml).contains("WHERE group_cd = #{groupCd}");
+    }
+
+    @Test
     void writesSystemFieldsFromExplicitUserParametersAndDatabaseTime() throws Exception {
         String mapperXml = Files.readString(findCommonCodeMapperXml());
 

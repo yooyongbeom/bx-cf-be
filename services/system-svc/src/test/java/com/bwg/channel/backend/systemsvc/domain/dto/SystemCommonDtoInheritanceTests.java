@@ -1,8 +1,7 @@
 package com.bwg.channel.backend.systemsvc.domain.dto;
 
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
-import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReplaceReqDto;
-import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeCreateReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
@@ -26,8 +25,7 @@ class SystemCommonDtoInheritanceTests {
     @Test
     void writeDtosDoNotExposeSystemFields() {
         assertThat(List.of(
-                CommonCodeGroupReqDto.class,
-                CommonCodeGroupReplaceReqDto.class,
+                CommonCodeCreateReqDto.class,
                 CommonCodeReplaceReqDto.class,
                 CommonCodeReqDto.class,
                 MenuCreateReqDto.class,

@@ -298,14 +298,12 @@ POST /channel/backend/api/v1/system/menus/roles/{roleId}/save
 ### System - Common Code
 
 ```text
-POST /channel/backend/api/v1/system/common-codes/groups/list
-POST /channel/backend/api/v1/system/common-codes/groups/create
-POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/update
 POST /channel/backend/api/v1/system/common-codes/list
-POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/codes/list
-POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/codes/create
-POST /channel/backend/api/v1/system/common-codes/groups/{groupCd}/codes/{code}/update
+POST /channel/backend/api/v1/system/common-codes/groups/list
+POST /channel/backend/api/v1/system/common-codes/{groupCd}/detail
+POST /channel/backend/api/v1/system/common-codes/create
 POST /channel/backend/api/v1/system/common-codes/{groupCd}/replace
+POST /channel/backend/api/v1/system/common-codes/{groupCd}/delete
 ```
 
 ### System - Reference Data

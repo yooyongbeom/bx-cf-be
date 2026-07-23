@@ -3,12 +3,10 @@ package com.bwg.channel.backend.systemsvc.commoncode.controller;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeCreateReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
-import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
-import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
-import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.service.CommonCodeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,67 +38,30 @@ public class CommonCodeController {
         return commonCodeService.getCommonCodeGroups();
     }
 
-    @Operation(summary = "공통코드 그룹 등록")
-    @PostMapping("/groups/create")
-    public ApiResponse<Void> createCommonCodeGroup(
-            @RequestBody ApiRequest<CommonCodeGroupReqDto> req,
+    @Operation(summary = "공통코드 그룹 및 상세코드 통합 등록")
+    @PostMapping("/create")
+    public ApiResponse<Void> createCommonCodes(
+            @RequestBody ApiRequest<CommonCodeCreateReqDto> req,
             @RequestHeader(InternalAuthHeaders.USER) String userId
     ) {
-        // Gateway가 검증한 사용자와 공통코드 그룹 등록 요청을 서비스에 전달한다.
-        return commonCodeService.createCommonCodeGroup(req, userId);
+        // 검증된 등록자와 그룹·상세코드 통합 등록 요청을 서비스에 전달한다.
+        return commonCodeService.createCommonCodes(req, userId);
     }
 
-    @Operation(summary = "공통코드 그룹 수정")
-    @PostMapping("/groups/{groupCd}/update")
-    public ApiResponse<Void> updateCommonCodeGroup(
-            @PathVariable String groupCd,
-            @RequestBody ApiRequest<CommonCodeGroupReqDto> req,
-            @RequestHeader(InternalAuthHeaders.USER) String userId
-    ) {
-        // 경로 변수, 요청 본문, 검증된 수정자를 함께 서비스에 전달한다.
-        return commonCodeService.updateCommonCodeGroup(groupCd, req, userId);
-    }
-
-    @Operation(
-            summary = "공통코드 그룹 상세 및 코드 목록 조회",
-            description = "data.groupCd가 ALL이면 전체 그룹과 하위 공통코드 목록을 조회하고, 그 외에는 해당 그룹만 조회한다."
-    )
+    @Operation(summary = "전체 공통코드 그룹 및 상세코드 목록 조회")
     @PostMapping("/list")
-    public ApiResponse<List<CommonCodeGroupDetailResDto>> getCommonCodeGroupDetails(
-            @RequestBody ApiRequest<CommonCodeGroupReqDto> req
-    ) {
-        // 요청 그룹 코드 기준 공통코드 그룹과 상세 코드 목록 조회를 서비스에 위임
-        return commonCodeService.getCommonCodeGroupDetails(req);
+    public ApiResponse<List<CommonCodeGroupDetailResDto>> getCommonCodeGroupDetails() {
+        // 전체 공통코드 그룹과 상세코드 조회를 서비스에 위임한다.
+        return commonCodeService.getCommonCodeGroupDetails();
     }
 
-    @Operation(summary = "공통코드 목록 조회")
-    @PostMapping("/groups/{groupCd}/codes/list")
-    public ApiResponse<List<CommonCodeResDto>> getCommonCodes(@PathVariable String groupCd) {
-        // 그룹 코드 기준 공통코드 목록 조회를 서비스에 위임
-        return commonCodeService.getCommonCodes(groupCd);
-    }
-
-    @Operation(summary = "공통코드 등록")
-    @PostMapping("/groups/{groupCd}/codes/create")
-    public ApiResponse<Void> createCommonCode(
-            @PathVariable String groupCd,
-            @RequestBody ApiRequest<CommonCodeReqDto> req,
-            @RequestHeader(InternalAuthHeaders.USER) String userId
+    @Operation(summary = "그룹별 공통코드 및 상세코드 조회")
+    @PostMapping("/{groupCd}/detail")
+    public ApiResponse<List<CommonCodeGroupDetailResDto>> getCommonCodeGroupDetail(
+            @PathVariable String groupCd
     ) {
-        // 그룹 코드, 요청 본문, 검증된 등록자를 함께 서비스에 전달한다.
-        return commonCodeService.createCommonCode(groupCd, req, userId);
-    }
-
-    @Operation(summary = "공통코드 수정")
-    @PostMapping("/groups/{groupCd}/codes/{code}/update")
-    public ApiResponse<Void> updateCommonCode(
-            @PathVariable String groupCd,
-            @PathVariable String code,
-            @RequestBody ApiRequest<CommonCodeReqDto> req,
-            @RequestHeader(InternalAuthHeaders.USER) String userId
-    ) {
-        // 그룹 코드와 공통코드 기준 수정 요청에 검증된 수정자를 함께 전달한다.
-        return commonCodeService.updateCommonCode(groupCd, code, req, userId);
+        // 경로의 그룹 코드에 해당하는 그룹과 상세코드 조회를 서비스에 위임한다.
+        return commonCodeService.getCommonCodeGroupDetail(groupCd);
     }
 
     @Operation(summary = "공통코드 그룹 및 코드 일괄 교체")
@@ -112,5 +73,15 @@ public class CommonCodeController {
     ) {
         // 경로의 그룹 코드, 교체 목록, 검증된 변경자를 서비스에 함께 전달한다.
         return commonCodeService.replaceCommonCodes(groupCd, req, userId);
+    }
+
+    @Operation(summary = "공통코드 그룹 및 상세코드 통합 삭제")
+    @PostMapping("/{groupCd}/delete")
+    public ApiResponse<Void> deleteCommonCodes(
+            @PathVariable String groupCd,
+            @RequestHeader(InternalAuthHeaders.USER) String userId
+    ) {
+        // 경로의 그룹 코드와 검증된 삭제자를 서비스에 전달한다.
+        return commonCodeService.deleteCommonCodes(groupCd, userId);
     }
 }

@@ -1,9 +1,10 @@
 package com.bwg.channel.backend.systemsvc.commoncode.repository;
 
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeCreateReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
-import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 
@@ -22,17 +23,16 @@ public interface CommonCodeRepository {
     /**
      * 공통코드 그룹 등록
      */
-    int insertCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto, String createdBy);
+    int insertCommonCodeGroup(ApiRequest<CommonCodeCreateReqDto> paramDto, String createdBy);
 
     /**
      * 공통코드 그룹 수정
      */
-    int updateCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto, String updatedBy);
-
-    /**
-     * 그룹 코드 기준 공통코드 목록 조회
-     */
-    List<CommonCodeResDto> findCommonCodes(String groupCd);
+    int updateCommonCodeGroup(
+            String groupCd,
+            ApiRequest<CommonCodeReplaceReqDto> paramDto,
+            String updatedBy
+    );
 
     /**
      * 공통코드 그룹 상세 정보 조회
@@ -47,19 +47,14 @@ public interface CommonCodeRepository {
     List<CommonCodeResDto> findCommonCodeDetails(String groupCd);
 
     /**
-     * 공통코드 등록
-     */
-    int insertCommonCode(ApiRequest<CommonCodeReqDto> paramDto, String createdBy);
-
-    /**
-     * 공통코드 수정
-     */
-    int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto, String updatedBy);
-
-    /**
      * 그룹 코드에 속한 기존 공통코드 전체 삭제
      */
     int deleteCommonCodesByGroupCd(String groupCd);
+
+    /**
+     * 그룹 코드에 해당하는 공통코드 그룹 삭제
+     */
+    int deleteCommonCodeGroup(String groupCd);
 
     /**
      * 그룹 코드에 속할 공통코드 목록 일괄 등록

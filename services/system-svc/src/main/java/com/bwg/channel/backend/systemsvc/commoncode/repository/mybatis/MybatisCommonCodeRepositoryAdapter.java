@@ -1,9 +1,10 @@
 package com.bwg.channel.backend.systemsvc.commoncode.repository.mybatis;
 
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeCreateReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
-import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.repository.CommonCodeRepository;
@@ -29,21 +30,19 @@ public class MybatisCommonCodeRepositoryAdapter implements CommonCodeRepository 
     }
 
     @Override
-    public int insertCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto, String createdBy) {
+    public int insertCommonCodeGroup(ApiRequest<CommonCodeCreateReqDto> paramDto, String createdBy) {
         // 요청 업무 데이터와 검증된 등록자를 분리하여 MyBatis Mapper에 전달한다.
         return commonCodeMapper.insertCommonCodeGroup(paramDto, createdBy);
     }
 
     @Override
-    public int updateCommonCodeGroup(ApiRequest<CommonCodeGroupReqDto> paramDto, String updatedBy) {
-        // 요청 업무 데이터와 검증된 수정자를 분리하여 MyBatis Mapper에 전달한다.
-        return commonCodeMapper.updateCommonCodeGroup(paramDto, updatedBy);
-    }
-
-    @Override
-    public List<CommonCodeResDto> findCommonCodes(String groupCd) {
-        // MyBatis Mapper를 통해 그룹별 공통코드 목록 조회
-        return commonCodeMapper.findCommonCodes(groupCd);
+    public int updateCommonCodeGroup(
+            String groupCd,
+            ApiRequest<CommonCodeReplaceReqDto> paramDto,
+            String updatedBy
+    ) {
+        // 경로 그룹 코드, 평탄화 요청 데이터와 검증된 수정자를 Mapper에 전달한다.
+        return commonCodeMapper.updateCommonCodeGroup(groupCd, paramDto, updatedBy);
     }
 
     @Override
@@ -65,21 +64,15 @@ public class MybatisCommonCodeRepositoryAdapter implements CommonCodeRepository 
     }
 
     @Override
-    public int insertCommonCode(ApiRequest<CommonCodeReqDto> paramDto, String createdBy) {
-        // 요청 업무 데이터와 검증된 등록자를 분리하여 MyBatis Mapper에 전달한다.
-        return commonCodeMapper.insertCommonCode(paramDto, createdBy);
-    }
-
-    @Override
-    public int updateCommonCode(ApiRequest<CommonCodeReqDto> paramDto, String updatedBy) {
-        // 요청 업무 데이터와 검증된 수정자를 분리하여 MyBatis Mapper에 전달한다.
-        return commonCodeMapper.updateCommonCode(paramDto, updatedBy);
-    }
-
-    @Override
     public int deleteCommonCodesByGroupCd(String groupCd) {
         // 교체 등록 전에 해당 그룹의 기존 공통코드를 한 번에 삭제한다.
         return commonCodeMapper.deleteCommonCodesByGroupCd(groupCd);
+    }
+
+    @Override
+    public int deleteCommonCodeGroup(String groupCd) {
+        // 하위 상세코드가 제거된 그룹을 MyBatis Mapper를 통해 삭제한다.
+        return commonCodeMapper.deleteCommonCodeGroup(groupCd);
     }
 
     @Override

@@ -1,9 +1,10 @@
 package com.bwg.channel.backend.systemsvc.commoncode.repository.mybatis.mapper;
 
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeCreateReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
-import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import org.apache.ibatis.annotations.Mapper;
@@ -26,7 +27,7 @@ public interface CommonCodeMapper {
      * 공통코드 그룹 등록 SQL 매핑
      */
     int insertCommonCodeGroup(
-            @Param("request") ApiRequest<CommonCodeGroupReqDto> paramDto,
+            @Param("request") ApiRequest<CommonCodeCreateReqDto> paramDto,
             @Param("createdBy") String createdBy
     );
 
@@ -34,14 +35,10 @@ public interface CommonCodeMapper {
      * 공통코드 그룹 수정 SQL 매핑
      */
     int updateCommonCodeGroup(
-            @Param("request") ApiRequest<CommonCodeGroupReqDto> paramDto,
+            @Param("groupCd") String groupCd,
+            @Param("request") ApiRequest<CommonCodeReplaceReqDto> paramDto,
             @Param("updatedBy") String updatedBy
     );
-
-    /**
-     * 그룹 코드 기준 공통코드 목록 조회 SQL 매핑
-     */
-    List<CommonCodeResDto> findCommonCodes(@Param("groupCd") String groupCd);
 
     /**
      * 공통코드 그룹 상세 정보 조회 SQL 매핑
@@ -59,25 +56,14 @@ public interface CommonCodeMapper {
     List<CommonCodeResDto> findCommonCodeDetails(@Param("groupCd") String groupCd);
 
     /**
-     * 공통코드 등록 SQL 매핑
-     */
-    int insertCommonCode(
-            @Param("request") ApiRequest<CommonCodeReqDto> paramDto,
-            @Param("createdBy") String createdBy
-    );
-
-    /**
-     * 공통코드 수정 SQL 매핑
-     */
-    int updateCommonCode(
-            @Param("request") ApiRequest<CommonCodeReqDto> paramDto,
-            @Param("updatedBy") String updatedBy
-    );
-
-    /**
      * 그룹 코드 기준 기존 공통코드 전체 삭제 SQL 매핑
      */
     int deleteCommonCodesByGroupCd(@Param("groupCd") String groupCd);
+
+    /**
+     * 그룹 코드 기준 공통코드 그룹 삭제 SQL 매핑
+     */
+    int deleteCommonCodeGroup(@Param("groupCd") String groupCd);
 
     /**
      * 교체 대상 공통코드 목록 일괄 등록 SQL 매핑
