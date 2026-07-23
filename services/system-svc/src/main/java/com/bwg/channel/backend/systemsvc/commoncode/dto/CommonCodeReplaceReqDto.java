@@ -29,6 +29,6 @@ public class CommonCodeReplaceReqDto {
     @ApiField(description = "정렬 순서", example = "1", optional = {"replace"})
     private Integer sortSeq;
 
-    @ApiField(description = "교체할 상세코드 전체 목록", required = {"replace"})
+    @ApiField(description = "교체할 상세코드 전체 목록(빈 배열이면 기존 상세코드 전체 삭제)", required = {"replace"})
     private List<CommonCodeReqDto> codes;
 }

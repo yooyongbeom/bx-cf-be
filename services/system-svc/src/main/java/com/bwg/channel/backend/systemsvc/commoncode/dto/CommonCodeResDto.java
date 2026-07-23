@@ -51,15 +51,15 @@ public class CommonCodeResDto {
     @ApiField(description = "추가 데이터 JSON 문자열", example = "{}", optional = {"list"})
     private String extraData;
 
-    @ApiField(description = "생성자 ID", example = "admin", optional = {"list"})
+    @ApiField(description = "생성자 ID", example = "admin", optional = {"list", "detail"})
     private String createdBy;
 
-    @ApiField(description = "수정자 ID", example = "admin", optional = {"list"})
+    @ApiField(description = "수정자 ID", example = "admin", optional = {"list", "detail"})
     private String updatedBy;
 
-    @ApiField(description = "생성 일시", example = "2026-01-01T09:00:00+09:00", optional = {"list"})
+    @ApiField(description = "생성 일시", example = "2026-01-01T09:00:00+09:00", optional = {"list", "detail"})
     private OffsetDateTime createdAt;
 
-    @ApiField(description = "수정 일시", example = "2026-01-01T10:00:00+09:00", optional = {"list"})
+    @ApiField(description = "수정 일시", example = "2026-01-01T10:00:00+09:00", optional = {"list", "detail"})
     private OffsetDateTime updatedAt;
 }

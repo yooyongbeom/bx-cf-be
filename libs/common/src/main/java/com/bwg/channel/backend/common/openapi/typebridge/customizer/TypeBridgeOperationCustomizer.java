@@ -12,11 +12,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.HandlerMethod;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -145,6 +147,21 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
 
     private Map<String, Object> buildApiRequestExample(Class<?> dataType, String endpoint) {
         Map<String, Object> request = new LinkedHashMap<>();
+        Map<String, Object> data = buildDtoExample(dataType, endpoint);
+        if (!data.isEmpty()) {
+            request.put("data", data);
+        }
+        return request;
+    }
+
+    /**
+     * DTO의 endpoint별 노출 규칙을 적용해 실제 요청 구조와 동일한 예제 데이터를 생성한다.
+     *
+     * @param dataType 예제를 생성할 DTO 타입
+     * @param endpoint 현재 API endpoint 식별자
+     * @return DTO 필드 순서를 유지한 예제 데이터
+     */
+    private Map<String, Object> buildDtoExample(Class<?> dataType, String endpoint) {
         Map<String, Object> data = new LinkedHashMap<>();
         Arrays.stream(dataType.getDeclaredFields()).forEach(field -> {
             var apiField = field.getAnnotation(com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField.class);
@@ -153,13 +170,54 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
             boolean isRequired = Arrays.asList(apiField.required()).contains(endpoint);
             boolean isOptional = Arrays.asList(apiField.optional()).contains(endpoint);
             if (!isRequired && !isOptional) return;
-            // @ApiField 예시가 있으면 우선 사용하고, 없으면 타입별 기본 예시로 문서 형태만 보장한다.
-            data.put(field.getName(), !apiField.example().isEmpty() ? apiField.example() : defaultExample(field.getType()));
+            // 명시 예제를 우선하고, 목록과 중첩 DTO는 내부 구조까지 재귀적으로 반영한다.
+            data.put(field.getName(), buildFieldExample(field, apiField.example(), endpoint));
         });
-        if (!data.isEmpty()) {
-            request.put("data", data);
+        return data;
+    }
+
+    /**
+     * 필드 타입과 제네릭 요소 타입을 기준으로 중첩 구조를 보존한 예제 값을 생성한다.
+     *
+     * @param field 예제를 생성할 DTO 필드
+     * @param explicitExample {@code @ApiField}에 명시된 예제
+     * @param endpoint 현재 API endpoint 식별자
+     * @return Swagger 요청 예제에 사용할 필드 값
+     */
+    private Object buildFieldExample(Field field, String explicitExample, String endpoint) {
+        if (!explicitExample.isEmpty()) {
+            return explicitExample;
         }
-        return request;
+
+        if (Collection.class.isAssignableFrom(field.getType())) {
+            Type genericType = field.getGenericType();
+            if (genericType instanceof ParameterizedType parameterizedType) {
+                Type itemType = parameterizedType.getActualTypeArguments()[0];
+                if (itemType instanceof Class<?> itemClass) {
+                    return List.of(hasApiFields(itemClass)
+                            ? buildDtoExample(itemClass, endpoint)
+                            : defaultExample(itemClass));
+                }
+            }
+            return List.of("string");
+        }
+
+        if (hasApiFields(field.getType())) {
+            return buildDtoExample(field.getType(), endpoint);
+        }
+        return defaultExample(field.getType());
+    }
+
+    /**
+     * 타입이 {@code @ApiField} 기반 중첩 DTO인지 확인한다.
+     *
+     * @param type 확인할 타입
+     * @return 문서화 대상 필드가 하나 이상이면 {@code true}
+     */
+    private boolean hasApiFields(Class<?> type) {
+        return Arrays.stream(type.getDeclaredFields())
+                .anyMatch(field -> field.getAnnotation(
+                        com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField.class) != null);
     }
 
     private Object defaultExample(Class<?> type) {

@@ -301,6 +301,28 @@ class TypeBridgeOpenApiCustomizerTests {
     }
 
     @Test
+    void operationCustomizerPreservesNestedCollectionShapeInRequestExample() throws NoSuchMethodException {
+        TypeBridgeOperationCustomizer customizer = new TypeBridgeOperationCustomizer();
+        Operation operation = new Operation()
+                .requestBody(new RequestBody().content(new Content().addMediaType("application/json", new MediaType()
+                        .schema(new Schema<>().$ref("#/components/schemas/ApiRequestCollectionReqDto")))));
+        HandlerMethod handlerMethod = new HandlerMethod(
+                new CollectionReqController(),
+                CollectionReqController.class.getDeclaredMethod("create", ApiRequest.class));
+
+        customizer.customize(operation, handlerMethod);
+
+        MediaType mediaType = operation.getRequestBody().getContent().get("application/json");
+        assertThat(mediaType.getSchema().get$ref()).isEqualTo("#/components/schemas/CollectionCreateRequest");
+        assertThat(mediaType.getExample()).isEqualTo(Map.of(
+                "data", Map.of(
+                        "groupCd", "USE_YN",
+                        "codes", List.of(Map.of("code", "Y"))
+                )
+        ));
+    }
+
+    @Test
     void responseWrapperCleanupHidesUnreferencedRawAndCommonSchemas() {
         OpenAPI openApi = new OpenAPI();
         openApi.schema("ApiRequestWrappedReqDto", new Schema<>().type("object"));
@@ -349,6 +371,12 @@ class TypeBridgeOpenApiCustomizerTests {
     static class WrappedReqController {
         @PostMapping("/login")
         void login(@org.springframework.web.bind.annotation.RequestBody ApiRequest<WrappedReqDto> req) {
+        }
+    }
+
+    static class CollectionReqController {
+        @PostMapping("/create")
+        void create(@org.springframework.web.bind.annotation.RequestBody ApiRequest<CollectionReqDto> req) {
         }
     }
 

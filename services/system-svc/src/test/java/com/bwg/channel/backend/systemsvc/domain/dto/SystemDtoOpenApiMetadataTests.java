@@ -61,6 +61,28 @@ class SystemDtoOpenApiMetadataTests {
     }
 
     @Test
+    void commonCodeDtosDocumentEmptyCodeListsAndDetailAuditFields() throws NoSuchFieldException {
+        ApiField createCodes = CommonCodeCreateReqDto.class
+                .getDeclaredField("codes")
+                .getAnnotation(ApiField.class);
+        ApiField replaceCodes = CommonCodeReplaceReqDto.class
+                .getDeclaredField("codes")
+                .getAnnotation(ApiField.class);
+
+        assertThat(createCodes.description()).contains("빈 배열이면 그룹만 등록");
+        assertThat(replaceCodes.description()).contains("빈 배열이면 기존 상세코드 전체 삭제");
+
+        for (String fieldName : List.of("createdBy", "updatedBy", "createdAt", "updatedAt")) {
+            ApiField apiField = CommonCodeResDto.class
+                    .getDeclaredField(fieldName)
+                    .getAnnotation(ApiField.class);
+            assertThat(apiField.optional())
+                    .as("CommonCodeResDto.%s detail endpoint", fieldName)
+                    .contains("detail");
+        }
+    }
+
+    @Test
     void menuCrudDtosUseMenuAsOpenApiBaseName() {
         assertThat(List.of(
                 MenuCreateReqDto.class,

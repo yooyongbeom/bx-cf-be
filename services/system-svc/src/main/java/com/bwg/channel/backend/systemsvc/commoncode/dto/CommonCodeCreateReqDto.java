@@ -32,6 +32,6 @@ public class CommonCodeCreateReqDto {
     @ApiField(description = "정렬 순서", example = "1", optional = {"create"})
     private Integer sortSeq;
 
-    @ApiField(description = "등록할 상세코드 목록", required = {"create"})
+    @ApiField(description = "등록할 상세코드 목록(빈 배열이면 그룹만 등록)", required = {"create"})
     private List<CommonCodeReqDto> codes;
 }
