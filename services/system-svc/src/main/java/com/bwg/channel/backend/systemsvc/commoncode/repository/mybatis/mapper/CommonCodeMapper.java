@@ -74,24 +74,4 @@ public interface CommonCodeMapper {
             @Param("createdBy") String createdBy
     );
 
-    /**
-     * 기준정보 버전 변경 이력 등록 SQL 매핑
-     */
-    int insertReferenceDataVersionHistory(
-            @Param("refType") String refType,
-            @Param("changeType") String changeType,
-            @Param("targetTable") String targetTable,
-            @Param("targetId") String targetId,
-            @Param("changeSummary") String changeSummary,
-            @Param("changedBy") String changedBy
-    );
-
-    /**
-     * 기준정보 최신 버전 갱신 SQL 매핑
-     */
-    int updateReferenceDataVersion(
-            @Param("refType") String refType,
-            @Param("remark") String remark,
-            @Param("changedBy") String changedBy
-    );
 }

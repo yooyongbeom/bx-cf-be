@@ -13,6 +13,7 @@ import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.repository.CommonCodeRepository;
 import com.bwg.channel.backend.systemsvc.commoncode.service.CommonCodeService;
 import com.bwg.channel.backend.systemsvc.commoncode.service.CommonCodeServiceImpl;
+import com.bwg.channel.backend.systemsvc.referencedata.service.ReferenceDataVersionService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -38,7 +38,10 @@ import static org.mockito.Mockito.when;
 class CommonCodeServiceTests {
 
     private final CommonCodeRepository commonCodeRepository = mock(CommonCodeRepository.class);
-    private final CommonCodeService commonCodeService = new CommonCodeServiceImpl(commonCodeRepository);
+    private final ReferenceDataVersionService referenceDataVersionService =
+            mock(ReferenceDataVersionService.class);
+    private final CommonCodeService commonCodeService =
+            new CommonCodeServiceImpl(commonCodeRepository, referenceDataVersionService);
 
     @Test
     void mutationMethodsUseMainMybatisTransactionManager() throws NoSuchMethodException {
@@ -165,7 +168,6 @@ class CommonCodeServiceTests {
         ApiRequest<CommonCodeCreateReqDto> request = createRequest(List.of(code));
         when(commonCodeRepository.insertCommonCodeGroup(request, "jwt-user")).thenReturn(1);
         when(commonCodeRepository.insertCommonCodes("USE_YN", List.of(code), "jwt-user")).thenReturn(1);
-        stubSuccessfulVersionChange();
 
         ApiResponse<Void> response = commonCodeService.createCommonCodes(request, "jwt-user");
 
@@ -176,7 +178,7 @@ class CommonCodeServiceTests {
         assertThat(code.getCodeNm()).isEqualTo("사용");
         verify(commonCodeRepository).insertCommonCodeGroup(request, "jwt-user");
         verify(commonCodeRepository).insertCommonCodes("USE_YN", List.of(code), "jwt-user");
-        verify(commonCodeRepository).insertReferenceDataVersionHistory(
+        verify(referenceDataVersionService).versionChange(
                 "COMMON_CODE",
                 "CREATE",
                 "common_code_groups",
@@ -190,7 +192,6 @@ class CommonCodeServiceTests {
     void createsOnlyCommonCodeGroupWhenCodesAreEmpty() {
         ApiRequest<CommonCodeCreateReqDto> request = createRequest(List.of());
         when(commonCodeRepository.insertCommonCodeGroup(request, "jwt-user")).thenReturn(1);
-        stubSuccessfulVersionChange();
 
         ApiResponse<Void> response = commonCodeService.createCommonCodes(request, "jwt-user");
 
@@ -205,44 +206,7 @@ class CommonCodeServiceTests {
 
         assertServerError(() -> commonCodeService.createCommonCodes(request, "jwt-user"));
 
-        verify(commonCodeRepository, never()).insertReferenceDataVersionHistory(
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString()
-        );
-    }
-
-    @Test
-    void rejectsCreateWhenVersionHistoryAffectsNoRows() {
-        ApiRequest<CommonCodeCreateReqDto> request = createRequest(List.of());
-        when(commonCodeRepository.insertCommonCodeGroup(request, "jwt-user")).thenReturn(1);
-
-        assertServerError(() -> commonCodeService.createCommonCodes(request, "jwt-user"));
-
-        verify(commonCodeRepository, never()).updateReferenceDataVersion(
-                anyString(),
-                anyString(),
-                anyString()
-        );
-    }
-
-    @Test
-    void rejectsCreateWhenLatestVersionUpdateAffectsNoRows() {
-        ApiRequest<CommonCodeCreateReqDto> request = createRequest(List.of());
-        when(commonCodeRepository.insertCommonCodeGroup(request, "jwt-user")).thenReturn(1);
-        when(commonCodeRepository.insertReferenceDataVersionHistory(
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString()
-        )).thenReturn(1);
-
-        assertServerError(() -> commonCodeService.createCommonCodes(request, "jwt-user"));
+        verifyNoInteractions(referenceDataVersionService);
     }
 
     @Test
@@ -291,7 +255,6 @@ class CommonCodeServiceTests {
                 List.of(useCode, unusedCode),
                 "jwt-user"
         )).thenReturn(2);
-        stubSuccessfulVersionChange();
 
         ApiResponse<Void> response = commonCodeService.replaceCommonCodes(" USE_YN ", request, "jwt-user");
 
@@ -299,7 +262,7 @@ class CommonCodeServiceTests {
         assertThat(useCode.getCode()).isEqualTo("Y");
         assertThat(useCode.getCodeNm()).isEqualTo("사용");
 
-        InOrder inOrder = inOrder(commonCodeRepository);
+        InOrder inOrder = inOrder(commonCodeRepository, referenceDataVersionService);
         inOrder.verify(commonCodeRepository).findCommonCodeGroupDetail("USE_YN");
         inOrder.verify(commonCodeRepository).updateCommonCodeGroup("USE_YN", request, "jwt-user");
         inOrder.verify(commonCodeRepository).deleteCommonCodesByGroupCd("USE_YN");
@@ -308,16 +271,11 @@ class CommonCodeServiceTests {
                 List.of(useCode, unusedCode),
                 "jwt-user"
         );
-        inOrder.verify(commonCodeRepository).insertReferenceDataVersionHistory(
+        inOrder.verify(referenceDataVersionService).versionChange(
                 "COMMON_CODE",
                 "REPLACE",
                 "common_code_groups",
                 "USE_YN",
-                "공통코드 그룹 및 코드 일괄 교체",
-                "jwt-user"
-        );
-        inOrder.verify(commonCodeRepository).updateReferenceDataVersion(
-                "COMMON_CODE",
                 "공통코드 그룹 및 코드 일괄 교체",
                 "jwt-user"
         );
@@ -375,7 +333,6 @@ class CommonCodeServiceTests {
         stubExistingGroup("USE_YN");
         ApiRequest<CommonCodeReplaceReqDto> request = replaceRequest(List.of());
         when(commonCodeRepository.updateCommonCodeGroup("USE_YN", request, "jwt-user")).thenReturn(1);
-        stubSuccessfulVersionChange();
 
         ApiResponse<Void> response = commonCodeService.replaceCommonCodes("USE_YN", request, "jwt-user");
 
@@ -435,25 +392,19 @@ class CommonCodeServiceTests {
     void deletesCommonCodeGroupAndCodesInChildParentVersionOrder() {
         stubExistingGroup("USE_YN");
         when(commonCodeRepository.deleteCommonCodeGroup("USE_YN")).thenReturn(1);
-        stubSuccessfulVersionChange();
 
         ApiResponse<Void> response = commonCodeService.deleteCommonCodes(" USE_YN ", "jwt-user");
 
         assertThat(response.isSuccess()).isTrue();
-        InOrder inOrder = inOrder(commonCodeRepository);
+        InOrder inOrder = inOrder(commonCodeRepository, referenceDataVersionService);
         inOrder.verify(commonCodeRepository).findCommonCodeGroupDetail("USE_YN");
         inOrder.verify(commonCodeRepository).deleteCommonCodesByGroupCd("USE_YN");
         inOrder.verify(commonCodeRepository).deleteCommonCodeGroup("USE_YN");
-        inOrder.verify(commonCodeRepository).insertReferenceDataVersionHistory(
+        inOrder.verify(referenceDataVersionService).versionChange(
                 "COMMON_CODE",
                 "DELETE",
                 "common_code_groups",
                 "USE_YN",
-                "공통코드 그룹 및 코드 통합 삭제",
-                "jwt-user"
-        );
-        inOrder.verify(commonCodeRepository).updateReferenceDataVersion(
-                "COMMON_CODE",
                 "공통코드 그룹 및 코드 통합 삭제",
                 "jwt-user"
         );
@@ -465,14 +416,7 @@ class CommonCodeServiceTests {
 
         assertServerError(() -> commonCodeService.deleteCommonCodes("USE_YN", "jwt-user"));
 
-        verify(commonCodeRepository, never()).insertReferenceDataVersionHistory(
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString()
-        );
+        verifyNoInteractions(referenceDataVersionService);
     }
 
     @Test
@@ -506,23 +450,6 @@ class CommonCodeServiceTests {
         CommonCodeGroupDetailResDto group = new CommonCodeGroupDetailResDto();
         group.setGroupCd(groupCd);
         when(commonCodeRepository.findCommonCodeGroupDetail(groupCd)).thenReturn(group);
-    }
-
-    private void stubSuccessfulVersionChange() {
-        // 성공 흐름에서는 버전 이력 등록과 최신 버전 갱신이 각각 한 건씩 반영된다.
-        when(commonCodeRepository.insertReferenceDataVersionHistory(
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString()
-        )).thenReturn(1);
-        when(commonCodeRepository.updateReferenceDataVersion(
-                anyString(),
-                anyString(),
-                anyString()
-        )).thenReturn(1);
     }
 
     private ApiRequest<CommonCodeReplaceReqDto> replaceRequest(List<CommonCodeReqDto> codes) {

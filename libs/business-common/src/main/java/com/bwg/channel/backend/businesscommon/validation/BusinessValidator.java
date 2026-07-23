@@ -4,6 +4,7 @@ import com.bwg.channel.backend.businesscommon.constants.BusinessErrorCode;
 import com.bwg.channel.backend.businesscommon.constants.enums.UseYn;
 import com.bwg.channel.backend.businesscommon.domain.vo.BusinessDateRange;
 import com.bwg.channel.backend.businesscommon.exception.BwgBusinessException;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -17,6 +18,19 @@ import java.util.Map;
 public final class BusinessValidator {
 
     private BusinessValidator() {
+    }
+
+    /**
+     * 공통 API 요청 래퍼에서 필수 {@code data} 영역을 추출한다.
+     *
+     * @param request 공통 API 요청 래퍼
+     * @param <T> 요청 데이터 타입
+     * @return null이 아닌 요청 데이터
+     * @throws BwgBusinessException 요청 래퍼 또는 {@code data}가 없는 경우
+     */
+    public static <T> T requireData(ApiRequest<T> request) {
+        // 요청 래퍼 자체가 없는 경우도 data 필드 누락과 동일한 업무 오류로 처리한다.
+        return requireNonNull(request == null ? null : request.getData(), "data");
     }
 
     public static <T> T requireNonNull(T value, String fieldName) {

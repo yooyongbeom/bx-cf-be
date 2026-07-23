@@ -21,6 +21,11 @@ public interface ProductMapper {
     List<ProductResDto> findAll(ApiRequest<ProductReqDto> paramDto);
 
     /**
+     * 상품 목록과 동일한 검색 조건의 전체 건수 조회
+     */
+    long countAll(ApiRequest<ProductReqDto> paramDto);
+
+    /**
      * 상품 ID 기준 단건 조회
      */
     Optional<ProductResDto> findById(@Param("productId") Long productId);

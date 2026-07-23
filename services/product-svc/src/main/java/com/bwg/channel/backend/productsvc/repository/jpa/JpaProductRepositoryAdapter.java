@@ -27,13 +27,17 @@ public class JpaProductRepositoryAdapter implements ProductRepository {
      */
     @Override
     public List<ProductResDto> findAll(ApiRequest<ProductReqDto> paramDto) {
-        // 사용 여부 기본값 보정
-        String useYn = paramDto.getFilter() != null && paramDto.getFilter().getUseYn() != null
-                ? paramDto.getFilter().getUseYn()
-                : "Y";
-        return jpaProductRepository.findByUseYn(useYn).stream()
+        return jpaProductRepository.findByUseYn(resolveUseYn(paramDto)).stream()
                 .map(this::toResDto)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * JPA 목록 조회와 동일한 사용 여부 조건의 전체 건수를 조회한다.
+     */
+    @Override
+    public long count(ApiRequest<ProductReqDto> paramDto) {
+        return jpaProductRepository.countByUseYn(resolveUseYn(paramDto));
     }
 
     /**
@@ -61,5 +65,20 @@ public class JpaProductRepositoryAdapter implements ProductRepository {
         dto.setStockQty(product.getStockQty());
         dto.setUseYn(product.getUseYn());
         return dto;
+    }
+
+    /**
+     * JPA 상품 조회에 사용할 사용 여부 조건을 요청에서 추출하고 기본값을 적용한다.
+     *
+     * @param paramDto 상품 조회 요청
+     * @return 요청된 사용 여부 또는 기본값 {@code Y}
+     */
+    private String resolveUseYn(ApiRequest<ProductReqDto> paramDto) {
+        // JPA 목록과 COUNT가 항상 같은 기본 필터를 사용하도록 한 곳에서 값을 결정한다.
+        return paramDto != null
+                && paramDto.getFilter() != null
+                && paramDto.getFilter().getUseYn() != null
+                ? paramDto.getFilter().getUseYn()
+                : "Y";
     }
 }

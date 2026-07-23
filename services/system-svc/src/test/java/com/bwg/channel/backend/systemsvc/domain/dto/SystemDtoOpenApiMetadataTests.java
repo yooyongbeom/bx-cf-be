@@ -83,6 +83,23 @@ class SystemDtoOpenApiMetadataTests {
     }
 
     @Test
+    void commonCodeListAndDetailExposeGroupAndCodeIdentifiers() throws NoSuchFieldException {
+        ApiField groupId = CommonCodeGroupDetailResDto.class
+                .getDeclaredField("groupId")
+                .getAnnotation(ApiField.class);
+        ApiField codeId = CommonCodeResDto.class
+                .getDeclaredField("codeId")
+                .getAnnotation(ApiField.class);
+        ApiField codeGroupId = CommonCodeResDto.class
+                .getDeclaredField("groupId")
+                .getAnnotation(ApiField.class);
+
+        assertThat(groupId.optional()).contains("list", "detail");
+        assertThat(codeId.optional()).contains("list", "detail");
+        assertThat(codeGroupId.optional()).contains("list", "detail");
+    }
+
+    @Test
     void menuCrudDtosUseMenuAsOpenApiBaseName() {
         assertThat(List.of(
                 MenuCreateReqDto.class,

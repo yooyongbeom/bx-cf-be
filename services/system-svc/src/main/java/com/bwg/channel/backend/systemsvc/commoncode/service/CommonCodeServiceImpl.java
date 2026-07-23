@@ -5,7 +5,7 @@ import com.bwg.channel.backend.businesscommon.exception.BwgBusinessException;
 import com.bwg.channel.backend.businesscommon.validation.BusinessValidator;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
-import com.bwg.channel.backend.common.domain.dto.PaginationResDto;
+import com.bwg.channel.backend.common.util.PageUtil;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeCreateReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupResDto;
@@ -13,6 +13,7 @@ import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReqDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.repository.CommonCodeRepository;
+import com.bwg.channel.backend.systemsvc.referencedata.service.ReferenceDataVersionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
     private static final String REF_TYPE_COMMON_CODE = "COMMON_CODE";
 
     private final CommonCodeRepository commonCodeRepository;
+    private final ReferenceDataVersionService referenceDataVersionService;
 
     /**
      * 공통코드 그룹의 기본 정보 목록을 조회한다.
@@ -45,7 +47,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
         // 저장소에서 공통코드 그룹 목록 조회
         List<CommonCodeGroupResDto> result = commonCodeRepository.findCommonCodeGroups();
         // 조회 결과와 목록 메타데이터를 포함하여 응답 생성
-        return ApiResponse.success(result, toPagination(result));
+        return ApiResponse.success(result, PageUtil.singlePage(result));
     }
 
     /**
@@ -67,7 +69,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
     ) {
         // 그룹과 상세코드 시스템 필드에는 Gateway가 검증한 사용자만 사용한다.
         String changedBy = requireUserId(userId);
-        CommonCodeCreateReqDto data = requireData(paramDto);
+        CommonCodeCreateReqDto data = BusinessValidator.requireData(paramDto);
         // 데이터 변경 전에 그룹과 전체 상세코드 목록을 검증한다.
         data.setGroupCd(BusinessValidator.requireNonBlank(data.getGroupCd(), "groupCd"));
         data.setGroupNm(BusinessValidator.requireNonBlank(data.getGroupNm(), "groupNm"));
@@ -86,7 +88,8 @@ public class CommonCodeServiceImpl implements CommonCodeService {
                     "insertCommonCodes"
             );
         }
-        recordCommonCodeVersionChange(
+        referenceDataVersionService.versionChange(
+                REF_TYPE_COMMON_CODE,
                 "CREATE",
                 "common_code_groups",
                 data.getGroupCd(),
@@ -152,7 +155,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
                         Collectors.toList()
                 ));
         groups.forEach(group -> group.setCodes(codesByGroupCd.getOrDefault(group.getGroupCd(), List.of())));
-        return ApiResponse.success(groups, toPagination(groups));
+        return ApiResponse.success(groups, PageUtil.singlePage(groups));
     }
 
     /**
@@ -183,7 +186,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
                 "commonCodeGroup"
         );
 
-        CommonCodeReplaceReqDto data = requireData(paramDto);
+        CommonCodeReplaceReqDto data = BusinessValidator.requireData(paramDto);
         // 평탄화된 그룹 정보와 전체 코드 목록을 DELETE 전에 모두 검증한다.
         data.setGroupNm(BusinessValidator.requireNonBlank(data.getGroupNm(), "groupNm"));
         List<CommonCodeReqDto> codes = validateCommonCodes(data.getCodes());
@@ -202,7 +205,8 @@ public class CommonCodeServiceImpl implements CommonCodeService {
                     "insertCommonCodes"
             );
         }
-        recordCommonCodeVersionChange(
+        referenceDataVersionService.versionChange(
+                REF_TYPE_COMMON_CODE,
                 "REPLACE",
                 "common_code_groups",
                 requiredGroupCd,
@@ -240,7 +244,8 @@ public class CommonCodeServiceImpl implements CommonCodeService {
                 1,
                 "deleteCommonCodeGroup"
         );
-        recordCommonCodeVersionChange(
+        referenceDataVersionService.versionChange(
+                REF_TYPE_COMMON_CODE,
                 "DELETE",
                 "common_code_groups",
                 requiredGroupCd,
@@ -291,50 +296,6 @@ public class CommonCodeServiceImpl implements CommonCodeService {
     }
 
     /**
-     * 공통코드 변경 이력을 등록하고 최신 기준정보 버전을 갱신한다.
-     *
-     * <p>호출한 등록·교체·삭제 작업의 트랜잭션에 참여하며, 두 SQL 중 하나라도 예상 반영
-     * 건수와 다르면 예외를 발생시켜 업무 데이터 변경까지 함께 롤백한다.</p>
-     *
-     * @param changeType 변경 유형
-     * @param targetTable 변경 대상 테이블
-     * @param targetId 변경 대상 식별자
-     * @param changeSummary 변경 내용 요약
-     * @param changedBy 변경 사용자 ID
-     * @throws BwgBusinessException 버전 이력 또는 최신 버전 갱신 건수가 예상과 다른 경우
-     */
-    private void recordCommonCodeVersionChange(
-            String changeType,
-            String targetTable,
-            String targetId,
-            String changeSummary,
-            String changedBy
-    ) {
-        // 업무 데이터 변경과 같은 트랜잭션에서 기준정보 버전 이력과 최신 버전을 함께 갱신
-        requireAffectedRows(
-                commonCodeRepository.insertReferenceDataVersionHistory(
-                        REF_TYPE_COMMON_CODE,
-                        changeType,
-                        targetTable,
-                        targetId,
-                        changeSummary,
-                        changedBy
-                ),
-                1,
-                "insertReferenceDataVersionHistory"
-        );
-        requireAffectedRows(
-                commonCodeRepository.updateReferenceDataVersion(
-                        REF_TYPE_COMMON_CODE,
-                        changeSummary,
-                        changedBy
-                ),
-                1,
-                "updateReferenceDataVersion"
-        );
-    }
-
-    /**
      * DB 변경 SQL의 실제 반영 건수가 업무 흐름에서 기대한 건수와 같은지 확인한다.
      *
      * @param actualRows 실제 DB 반영 건수
@@ -358,19 +319,6 @@ public class CommonCodeServiceImpl implements CommonCodeService {
     }
 
     /**
-     * 공통 요청 래퍼에서 필수 {@code data} 영역을 추출한다.
-     *
-     * @param request 공통 API 요청 래퍼
-     * @param <T> 요청 데이터 타입
-     * @return null이 아닌 요청 데이터
-     * @throws BwgBusinessException 요청 또는 {@code data}가 없는 경우
-     */
-    private <T> T requireData(ApiRequest<T> request) {
-        // 공통 요청 래퍼의 data 블록 검증
-        return BusinessValidator.requireNonNull(request == null ? null : request.getData(), "data");
-    }
-
-    /**
      * Gateway가 검증해 전달한 사용자 ID를 필수값으로 확인하고 정규화한다.
      *
      * @param userId Gateway의 {@code X-Auth-User} 헤더에서 전달된 사용자 ID
@@ -382,20 +330,4 @@ public class CommonCodeServiceImpl implements CommonCodeService {
         return BusinessValidator.requireNonBlank(userId, "userId");
     }
 
-    /**
-     * 전체 목록 조회 결과 크기를 기준으로 단일 페이지 메타데이터를 생성한다.
-     *
-     * @param result 페이지 정보를 계산할 조회 결과
-     * @return 전체 결과를 한 페이지로 표현한 페이지 정보
-     */
-    private PaginationResDto toPagination(List<?> result) {
-        // 현재 전체 목록 응답 기준으로 페이지 메타데이터 생성
-        int totalCount = result == null ? 0 : result.size();
-        PaginationResDto pagination = new PaginationResDto();
-        pagination.setPage(1);
-        pagination.setSize(totalCount);
-        pagination.setTotalCount((long) totalCount);
-        pagination.setTotalPages(totalCount == 0 ? 0 : 1);
-        return pagination;
-    }
 }

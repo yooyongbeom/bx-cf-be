@@ -28,4 +28,30 @@ public class MybatisReferenceDataVersionRepositoryAdapter implements ReferenceDa
         // MyBatis Mapper를 통해 기준정보 유형별 최신 버전 조회
         return referenceDataVersionMapper.findLatestReferenceDataVersionsByRefType(refType);
     }
+
+    @Override
+    public int insertReferenceDataVersionHistory(
+            String refType,
+            String changeType,
+            String targetTable,
+            String targetId,
+            String changeSummary,
+            String changedBy
+    ) {
+        // MyBatis Mapper를 통해 기준정보 버전 변경 이력을 등록한다.
+        return referenceDataVersionMapper.insertReferenceDataVersionHistory(
+                refType,
+                changeType,
+                targetTable,
+                targetId,
+                changeSummary,
+                changedBy
+        );
+    }
+
+    @Override
+    public int updateReferenceDataVersion(String refType, String remark, String changedBy) {
+        // MyBatis Mapper를 통해 기준정보 유형의 최신 버전을 갱신한다.
+        return referenceDataVersionMapper.updateReferenceDataVersion(refType, remark, changedBy);
+    }
 }

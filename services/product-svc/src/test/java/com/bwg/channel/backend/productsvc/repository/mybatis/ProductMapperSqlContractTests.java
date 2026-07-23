@@ -36,6 +36,45 @@ class ProductMapperSqlContractTests {
         assertThat(mapperXml).contains("pagination.offset");
     }
 
+    @Test
+    void productCountUsesTheSameFiltersWithoutPagingOrSorting() throws Exception {
+        String mapperXml = Files.readString(findProductMapperXml());
+        String listStatement = xmlElement(mapperXml, "select", "findAll");
+        String countStatement = xmlElement(mapperXml, "select", "countAll");
+        String filterConditions = xmlElement(mapperXml, "sql", "productSearchConditions");
+
+        assertThat(listStatement).contains("<include refid=\"productSearchConditions\"/>");
+        assertThat(countStatement).contains("<include refid=\"productSearchConditions\"/>");
+        assertThat(filterConditions)
+                .contains("filter.useYn")
+                .contains("data.productNm")
+                .contains("filter.keyword")
+                .contains("filter.searchType");
+        assertThat(countStatement)
+                .contains("COUNT(*)")
+                .doesNotContain("ORDER BY")
+                .doesNotContain("LIMIT")
+                .doesNotContain("OFFSET");
+    }
+
+    /**
+     * Mapper XML에서 지정한 요소만 분리해 다른 SQL이나 공통 조각의 문자열로 계약이 통과하지 않게 한다.
+     *
+     * @param mapperXml 전체 Mapper XML
+     * @param elementName 추출할 XML 요소명
+     * @param elementId 추출할 요소 ID
+     * @return 시작 태그부터 종료 태그까지의 XML 요소
+     */
+    private static String xmlElement(String mapperXml, String elementName, String elementId) {
+        String startTag = "<" + elementName + " id=\"" + elementId + "\"";
+        int startIndex = mapperXml.indexOf(startTag);
+        int endIndex = mapperXml.indexOf("</" + elementName + ">", startIndex);
+
+        assertThat(startIndex).as("%s start", elementId).isGreaterThanOrEqualTo(0);
+        assertThat(endIndex).as("%s end", elementId).isGreaterThan(startIndex);
+        return mapperXml.substring(startIndex, endIndex);
+    }
+
     private static Path findProductMapperXml() {
         Path current = Path.of(System.getProperty("user.dir")).toAbsolutePath();
         while (current != null) {

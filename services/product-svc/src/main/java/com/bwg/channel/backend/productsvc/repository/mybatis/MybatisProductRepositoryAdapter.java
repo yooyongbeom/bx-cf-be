@@ -32,6 +32,14 @@ public class MybatisProductRepositoryAdapter implements ProductRepository {
     }
 
     /**
+     * MyBatis 기반 상품 검색 조건 전체 건수 조회
+     */
+    @Override
+    public long count(ApiRequest<ProductReqDto> paramDto) {
+        return productMapper.countAll(paramDto);
+    }
+
+    /**
      * MyBatis 기반 상품 단건 조회
      */
     @Override

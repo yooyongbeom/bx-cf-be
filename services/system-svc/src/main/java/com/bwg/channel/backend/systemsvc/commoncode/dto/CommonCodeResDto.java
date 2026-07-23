@@ -15,10 +15,10 @@ import java.time.OffsetDateTime;
 @ApiDto(type = ApiType.RESPONSE, name = "CommonCode", endpoints = {"list", "detail"})
 public class CommonCodeResDto {
 
-    @ApiField(description = "공통코드 ID", optional = {"list"})
+    @ApiField(description = "공통코드 ID", optional = {"list", "detail"})
     private Long codeId;
 
-    @ApiField(description = "공통코드 그룹 ID", optional = {"list"})
+    @ApiField(description = "공통코드 그룹 ID", optional = {"list", "detail"})
     private Long groupId;
 
     @ApiField(description = "공통코드 그룹 코드", optional = {"list", "detail"})

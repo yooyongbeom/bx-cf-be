@@ -4,6 +4,7 @@ import com.bwg.channel.backend.businesscommon.constants.BusinessErrorCode;
 import com.bwg.channel.backend.businesscommon.constants.enums.UseYn;
 import com.bwg.channel.backend.businesscommon.domain.vo.BusinessDateRange;
 import com.bwg.channel.backend.businesscommon.exception.BwgBusinessException;
+import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -15,6 +16,33 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * 업무 입력값 공통 검증 유틸의 정상 변환과 실패 코드 검증
  */
 class BusinessValidatorTests {
+
+    @Test
+    void returnsRequiredApiRequestData() {
+        ApiRequest<String> request = new ApiRequest<>();
+        request.setData("requestData");
+
+        assertThat(BusinessValidator.requireData(request))
+                .isEqualTo("requestData");
+    }
+
+    @Test
+    void rejectsMissingApiRequestData() {
+        ApiRequest<String> request = new ApiRequest<>();
+
+        assertThatThrownBy(() -> BusinessValidator.requireData(request))
+                .isInstanceOf(BwgBusinessException.class)
+                .extracting("code")
+                .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);
+    }
+
+    @Test
+    void rejectsMissingApiRequestWrapper() {
+        assertThatThrownBy(() -> BusinessValidator.requireData(null))
+                .isInstanceOf(BwgBusinessException.class)
+                .extracting("code")
+                .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);
+    }
 
     @Test
     void returnsTrimmedNonBlankValue() {

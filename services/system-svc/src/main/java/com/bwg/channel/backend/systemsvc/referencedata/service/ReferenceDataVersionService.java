@@ -8,7 +8,7 @@ import com.bwg.channel.backend.systemsvc.referencedata.dto.ReferenceDataVersionR
 import java.util.List;
 
 /**
- * 기준정보 버전 조회 서비스 계약.
+ * 기준정보 버전 조회와 변경을 담당하는 서비스 계약.
  */
 public interface ReferenceDataVersionService {
 
@@ -22,5 +22,24 @@ public interface ReferenceDataVersionService {
      */
     ApiResponse<List<ReferenceDataVersionResDto>> getLatestReferenceDataVersions(
             ApiRequest<ReferenceDataVersionReqDto> paramDto
+    );
+
+    /**
+     * 기준정보 변경 이력을 등록하고 해당 유형의 최신 버전을 갱신한다.
+     *
+     * @param refType 기준정보 유형
+     * @param changeType 변경 유형
+     * @param targetTable 변경 대상 테이블
+     * @param targetId 변경 대상 식별자
+     * @param changeSummary 변경 내용 요약
+     * @param changedBy 변경 사용자 ID
+     */
+    void versionChange(
+            String refType,
+            String changeType,
+            String targetTable,
+            String targetId,
+            String changeSummary,
+            String changedBy
     );
 }

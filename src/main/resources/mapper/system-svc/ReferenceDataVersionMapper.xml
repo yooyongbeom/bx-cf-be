@@ -56,4 +56,69 @@
         ORDER BY ref_type
         ]]>
     </select>
+
+    <!-- 기준정보 버전 변경 이력 등록 -->
+    <insert id="insertReferenceDataVersionHistory">
+        <![CDATA[
+        /* systemsvc.ReferenceDataVersionMapper.insertReferenceDataVersionHistory(기준정보 버전 변경 이력 등록) */
+        INSERT INTO reference_data_version_histories (
+            ref_type
+            ,before_version_no
+            ,after_version_no
+            ,change_type
+            ,target_table
+            ,target_id
+            ,change_summary
+            ,changed_at
+            ,changed_by
+            ,created_by
+            ,created_at
+            ,updated_by
+            ,updated_at
+        )
+        SELECT
+            ref_type
+            ,version_no
+            ,CONCAT(
+                split_part(version_no, '.', 1),
+                '.',
+                split_part(version_no, '.', 2),
+                '.',
+                (COALESCE(NULLIF(split_part(version_no, '.', 3), ''), '0')::integer + 1)::text
+            )
+            ,#{changeType}
+            ,#{targetTable}
+            ,#{targetId}
+            ,#{changeSummary}
+            ,current_timestamp
+            ,#{changedBy}
+            ,#{changedBy}
+            ,current_timestamp
+            ,#{changedBy}
+            ,current_timestamp
+        FROM reference_data_versions
+        WHERE ref_type = #{refType}
+        ]]>
+    </insert>
+
+    <!-- 기준정보 최신 버전 갱신 -->
+    <update id="updateReferenceDataVersion">
+        <![CDATA[
+        /* systemsvc.ReferenceDataVersionMapper.updateReferenceDataVersion(기준정보 최신 버전 갱신) */
+        UPDATE reference_data_versions
+        SET version_no = CONCAT(
+                split_part(version_no, '.', 1),
+                '.',
+                split_part(version_no, '.', 2),
+                '.',
+                (COALESCE(NULLIF(split_part(version_no, '.', 3), ''), '0')::integer + 1)::text
+            )
+            ,last_changed_at = current_timestamp
+            ,last_changed_by = #{changedBy}
+            ,remark = #{remark}
+            ,updated_at = current_timestamp
+            ,updated_by = #{changedBy}
+        WHERE ref_type = #{refType}
+        ]]>
+    </update>
 </mapper>

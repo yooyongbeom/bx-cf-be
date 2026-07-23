@@ -17,6 +17,11 @@ public interface ProductRepository {
     List<ProductResDto> findAll(ApiRequest<ProductReqDto> paramDto);
 
     /**
+     * 상품 목록과 동일한 검색 조건에 해당하는 전체 건수 조회
+     */
+    long count(ApiRequest<ProductReqDto> paramDto);
+
+    /**
      * 상품 단건 조회
      */
     ProductResDto findById(Long productId);

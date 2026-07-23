@@ -52,6 +52,37 @@ class CommonCodeMapperSqlContractTests {
         assertThat(mapperXml).contains("current_timestamp");
     }
 
+    @Test
+    void listQueriesSelectGroupAndCodeIdentifiers() throws Exception {
+        String mapperXml = Files.readString(findCommonCodeMapperXml());
+        String groupDetail = selectStatement(mapperXml, "findCommonCodeGroupDetail");
+        String groupDetails = selectStatement(mapperXml, "findCommonCodeGroupDetails");
+        String codeDetails = selectStatement(mapperXml, "findCommonCodeDetails");
+
+        assertThat(groupDetail).contains("group_id");
+        assertThat(groupDetails).contains("group_id");
+        assertThat(codeDetails)
+                .contains("c.code_id")
+                .contains("c.group_id");
+    }
+
+    /**
+     * Mapper XML에서 지정한 select 구문만 분리해 다른 SQL의 컬럼으로 테스트가 통과하지 않게 한다.
+     *
+     * @param mapperXml 전체 Mapper XML
+     * @param statementId 추출할 select statement ID
+     * @return 시작 태그부터 종료 태그까지의 select 구문
+     */
+    private static String selectStatement(String mapperXml, String statementId) {
+        String startTag = "<select id=\"" + statementId + "\"";
+        int startIndex = mapperXml.indexOf(startTag);
+        int endIndex = mapperXml.indexOf("</select>", startIndex);
+
+        assertThat(startIndex).as("%s select start", statementId).isGreaterThanOrEqualTo(0);
+        assertThat(endIndex).as("%s select end", statementId).isGreaterThan(startIndex);
+        return mapperXml.substring(startIndex, endIndex);
+    }
+
     private static Path findCommonCodeMapperXml() {
         Path current = Path.of(System.getProperty("user.dir")).toAbsolutePath();
         while (current != null) {

@@ -3,7 +3,7 @@ package com.bwg.channel.backend.productsvc.service;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.PaginationReqDto;
-import com.bwg.channel.backend.common.domain.dto.PaginationResDto;
+import com.bwg.channel.backend.common.util.PageUtil;
 import com.bwg.channel.backend.productsvc.constants.ProductErrorCode;
 import com.bwg.channel.backend.productsvc.exception.BwgProductException;
 import com.bwg.channel.backend.productsvc.domain.dto.ProductReqDto;
@@ -39,7 +39,10 @@ public class ProductServiceImpl implements ProductService {
         ProductRepository repository = getRepository(type);
         // 선택된 저장소 기준 상품 목록 조회
         List<ProductResDto> result = repository.findAll(paramDto);
-        return ApiResponse.success(result, toPagination(result, paramDto));
+        PaginationReqDto requestPagination = paramDto == null ? null : paramDto.getPagination();
+        // 페이지 요청이 있을 때만 동일 검색 조건의 전체 건수를 추가 조회한다.
+        long totalCount = requestPagination == null ? 0L : repository.count(paramDto);
+        return ApiResponse.success(result, PageUtil.of(requestPagination, totalCount));
     }
 
     /**
@@ -84,40 +87,4 @@ public class ProductServiceImpl implements ProductService {
         return repository;
     }
 
-    /**
-     * 요청 페이지 정보와 조회 결과 크기로 응답 페이지 메타데이터를 생성한다.
-     *
-     * <p>요청 또는 페이지 정보가 없으면 페이지 메타데이터를 생성하지 않고 {@code null}을 반환한다.</p>
-     *
-     * @param result 저장소가 반환한 상품 목록
-     * @param paramDto 선택적 페이지 정보가 포함된 상품 조회 요청
-     * @return 계산된 페이지 정보 또는 페이지 요청이 없을 때 {@code null}
-     */
-    private PaginationResDto toPagination(List<ProductResDto> result, ApiRequest<ProductReqDto> paramDto) {
-        if (paramDto == null || paramDto.getPagination() == null) {
-            return null;
-        }
-
-        PaginationReqDto requestPagination = paramDto.getPagination();
-        PaginationResDto responsePagination = new PaginationResDto();
-        responsePagination.setPage(requestPagination.getPage());
-        responsePagination.setSize(requestPagination.getSize());
-        responsePagination.setTotalCount((long) result.size());
-        responsePagination.setTotalPages(calculateTotalPages(result.size(), requestPagination.getSize()));
-        return responsePagination;
-    }
-
-    /**
-     * 전체 건수와 페이지 크기로 전체 페이지 수를 올림 계산한다.
-     *
-     * @param totalCount 전체 건수
-     * @param size 페이지당 건수
-     * @return 계산된 전체 페이지 수, size가 없거나 1보다 작으면 {@code null}
-     */
-    private Integer calculateTotalPages(int totalCount, Integer size) {
-        if (size == null || size < 1) {
-            return null;
-        }
-        return (int) Math.ceil((double) totalCount / size);
-    }
 }

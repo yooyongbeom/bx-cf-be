@@ -12,6 +12,7 @@ import com.bwg.channel.backend.systemsvc.menu.dto.RoleMenuSaveReqDto;
 import com.bwg.channel.backend.systemsvc.menu.repository.MenuRepository;
 import com.bwg.channel.backend.systemsvc.menu.service.MenuService;
 import com.bwg.channel.backend.systemsvc.menu.service.MenuServiceImpl;
+import com.bwg.channel.backend.systemsvc.referencedata.service.ReferenceDataVersionService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
@@ -33,7 +34,10 @@ import static org.mockito.Mockito.when;
 class MenuServiceTests {
 
     private final MenuRepository menuRepository = mock(MenuRepository.class);
-    private final MenuService menuService = new MenuServiceImpl(menuRepository);
+    private final ReferenceDataVersionService referenceDataVersionService =
+            mock(ReferenceDataVersionService.class);
+    private final MenuService menuService =
+            new MenuServiceImpl(menuRepository, referenceDataVersionService);
 
     @Test
     void returnsMenuByIdWithoutPaginationMetadata() {
@@ -118,9 +122,8 @@ class MenuServiceTests {
         assertThat(data.getMenuCd()).isEqualTo("DASHBOARD");
         assertThat(data.getMenuNm()).isEqualTo("대시보드");
         verify(menuRepository).insertMenu(request, "hong.gildong");
-        verify(menuRepository).insertReferenceDataVersionHistory(
+        verify(referenceDataVersionService).versionChange(
                 "MENU", "CREATE", "menus", "DASHBOARD", "메뉴 등록", "hong.gildong");
-        verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 등록", "hong.gildong");
     }
 
     @Test
@@ -135,9 +138,8 @@ class MenuServiceTests {
         assertThat(response.isSuccess()).isTrue();
         assertThat(data.getMenuNm()).isEqualTo("대시보드");
         verify(menuRepository).updateMenu(7L, request, "hong.gildong");
-        verify(menuRepository).insertReferenceDataVersionHistory(
+        verify(referenceDataVersionService).versionChange(
                 "MENU", "UPDATE", "menus", "7", "메뉴 수정", "hong.gildong");
-        verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 수정", "hong.gildong");
     }
 
     @Test
@@ -148,14 +150,13 @@ class MenuServiceTests {
         ApiResponse<Void> response = menuService.deleteMenu(10L, "hong.gildong");
 
         assertThat(response.isSuccess()).isTrue();
-        InOrder inOrder = inOrder(menuRepository);
+        InOrder inOrder = inOrder(menuRepository, referenceDataVersionService);
         inOrder.verify(menuRepository).findMenuHierarchyIds(10L);
         inOrder.verify(menuRepository).deleteRoleMenusByMenuIds(menuIds);
         inOrder.verify(menuRepository).deleteMenuActionsByMenuIds(menuIds);
         inOrder.verify(menuRepository).deleteMenus(menuIds);
-        inOrder.verify(menuRepository).insertReferenceDataVersionHistory(
+        inOrder.verify(referenceDataVersionService).versionChange(
                 "MENU", "DELETE", "menus", "10", "메뉴 삭제", "hong.gildong");
-        inOrder.verify(menuRepository).updateReferenceDataVersion("MENU", "메뉴 삭제", "hong.gildong");
     }
 
     @Test
@@ -185,9 +186,8 @@ class MenuServiceTests {
         verify(menuRepository).deleteRoleMenus(1L);
         verify(menuRepository).insertRoleMenu(1L, 1L, "hong.gildong");
         verify(menuRepository).insertRoleMenu(1L, 2L, "hong.gildong");
-        verify(menuRepository).insertReferenceDataVersionHistory(
+        verify(referenceDataVersionService).versionChange(
                 "MENU", "SAVE", "role_menus", "1", "역할별 메뉴 권한 저장", "hong.gildong");
-        verify(menuRepository).updateReferenceDataVersion("MENU", "역할별 메뉴 권한 저장", "hong.gildong");
     }
 
     @Test
@@ -225,6 +225,6 @@ class MenuServiceTests {
                 .extracting("code")
                 .isEqualTo(BusinessErrorCode.REQUIRED_VALUE_MISSING);
 
-        verifyNoInteractions(menuRepository);
+        verifyNoInteractions(menuRepository, referenceDataVersionService);
     }
 }

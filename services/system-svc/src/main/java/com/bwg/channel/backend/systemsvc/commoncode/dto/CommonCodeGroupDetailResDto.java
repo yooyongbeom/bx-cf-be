@@ -16,6 +16,9 @@ import java.util.List;
 @ApiDto(type = ApiType.RESPONSE, name = "CommonCodeGroupDetail", endpoints = {"list", "detail"})
 public class CommonCodeGroupDetailResDto {
 
+    @ApiField(description = "공통코드 그룹 ID", optional = {"list", "detail"})
+    private Long groupId;
+
     @ApiField(description = "공통코드 그룹 코드", example = "USE_YN", optional = {"list", "detail"})
     private String groupCd;
 

@@ -81,29 +81,4 @@ public class MybatisCommonCodeRepositoryAdapter implements CommonCodeRepository 
         return commonCodeMapper.insertCommonCodes(groupCd, codes, createdBy);
     }
 
-    @Override
-    public int insertReferenceDataVersionHistory(
-            String refType,
-            String changeType,
-            String targetTable,
-            String targetId,
-            String changeSummary,
-            String changedBy
-    ) {
-        // MyBatis Mapper를 통해 기준정보 버전 변경 이력 등록
-        return commonCodeMapper.insertReferenceDataVersionHistory(
-                refType,
-                changeType,
-                targetTable,
-                targetId,
-                changeSummary,
-                changedBy
-        );
-    }
-
-    @Override
-    public int updateReferenceDataVersion(String refType, String remark, String changedBy) {
-        // MyBatis Mapper를 통해 기준정보 최신 버전 갱신
-        return commonCodeMapper.updateReferenceDataVersion(refType, remark, changedBy);
-    }
 }

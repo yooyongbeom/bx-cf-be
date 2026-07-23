@@ -1,19 +1,24 @@
 package com.bwg.channel.backend.systemsvc.referencedata.service;
 
+import com.bwg.channel.backend.businesscommon.constants.BusinessErrorCode;
+import com.bwg.channel.backend.businesscommon.exception.BwgBusinessException;
 import com.bwg.channel.backend.businesscommon.validation.BusinessValidator;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.domain.dto.ApiResponse;
-import com.bwg.channel.backend.common.domain.dto.PaginationResDto;
+import com.bwg.channel.backend.common.util.PageUtil;
 import com.bwg.channel.backend.systemsvc.referencedata.dto.ReferenceDataVersionReqDto;
 import com.bwg.channel.backend.systemsvc.referencedata.dto.ReferenceDataVersionResDto;
 import com.bwg.channel.backend.systemsvc.referencedata.repository.ReferenceDataVersionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 /**
- * 기준정보 최신 버전 조회 요청을 검증하고 저장소 조회를 위임하는 서비스 구현체.
+ * 기준정보 최신 버전 조회와 변경 이력 기록을 담당하는 서비스 구현체.
  */
 @Service
 @RequiredArgsConstructor
@@ -39,7 +44,7 @@ public class ReferenceDataVersionServiceImpl implements ReferenceDataVersionServ
             ApiRequest<ReferenceDataVersionReqDto> paramDto
     ) {
         // 요청 본문의 기준정보 유형을 필수값으로 검증
-        ReferenceDataVersionReqDto data = requireData(paramDto);
+        ReferenceDataVersionReqDto data = BusinessValidator.requireData(paramDto);
         String refType = BusinessValidator.requireNonBlank(data.getRefType(), "refType");
 
         // ALL 요청은 전체 기준정보 최신 버전을, 그 외에는 해당 기준정보 유형만 조회
@@ -47,7 +52,58 @@ public class ReferenceDataVersionServiceImpl implements ReferenceDataVersionServ
                 ? referenceDataVersionRepository.findLatestReferenceDataVersions()
                 : referenceDataVersionRepository.findLatestReferenceDataVersionsByRefType(refType);
 
-        return ApiResponse.success(result, toPagination(result));
+        return ApiResponse.success(result, PageUtil.singlePage(result));
+    }
+
+    /**
+     * 변경 이력을 먼저 등록한 뒤 동일한 기준정보 유형의 최신 버전을 갱신한다.
+     *
+     * <p>호출한 업무 서비스의 MyBatis 트랜잭션에 반드시 참여하며, 두 SQL 중 하나라도
+     * 예상 반영 건수와 다르면 예외를 발생시켜 업무 데이터 변경까지 함께 롤백한다.</p>
+     *
+     * @param refType 기준정보 유형
+     * @param changeType 변경 유형
+     * @param targetTable 변경 대상 테이블
+     * @param targetId 변경 대상 식별자
+     * @param changeSummary 변경 내용 요약
+     * @param changedBy 변경 사용자 ID
+     * @throws BwgBusinessException 버전 이력 또는 최신 버전 갱신 건수가 예상과 다른 경우
+     */
+    @Override
+    @Transactional(
+            transactionManager = "mybatisMainTransactionManager",
+            propagation = Propagation.MANDATORY
+    )
+    public void versionChange(
+            String refType,
+            String changeType,
+            String targetTable,
+            String targetId,
+            String changeSummary,
+            String changedBy
+    ) {
+        // 이력을 먼저 기록해 변경 전후 버전을 보존한 뒤 최신 버전을 같은 트랜잭션에서 갱신한다.
+        requireAffectedRows(
+                referenceDataVersionRepository.insertReferenceDataVersionHistory(
+                        refType,
+                        changeType,
+                        targetTable,
+                        targetId,
+                        changeSummary,
+                        changedBy
+                ),
+                1,
+                "insertReferenceDataVersionHistory"
+        );
+        requireAffectedRows(
+                referenceDataVersionRepository.updateReferenceDataVersion(
+                        refType,
+                        changeSummary,
+                        changedBy
+                ),
+                1,
+                "updateReferenceDataVersion"
+        );
     }
 
     /**
@@ -62,33 +118,26 @@ public class ReferenceDataVersionServiceImpl implements ReferenceDataVersionServ
     }
 
     /**
-     * 공통 API 요청 래퍼에서 필수 {@code data} 영역을 추출한다.
+     * 기준정보 버전 SQL의 실제 반영 건수가 기대한 건수와 같은지 확인한다.
      *
-     * @param request 공통 API 요청 래퍼
-     * @param <T> 요청 데이터 타입
-     * @return null이 아닌 요청 데이터
-     * @throws com.bwg.channel.backend.businesscommon.exception.BwgBusinessException
-     *         요청 또는 {@code data}가 없는 경우
+     * @param actualRows 실제 DB 반영 건수
+     * @param expectedRows 기대하는 DB 반영 건수
+     * @param operation 반영 건수를 확인할 저장소 작업명
+     * @throws BwgBusinessException 실제 반영 건수와 기대 건수가 다른 경우
      */
-    private <T> T requireData(ApiRequest<T> request) {
-        // 공통 요청 래퍼의 data 블록 검증
-        return BusinessValidator.requireNonNull(request == null ? null : request.getData(), "data");
+    private void requireAffectedRows(int actualRows, int expectedRows, String operation) {
+        // 일부 SQL만 반영된 성공 응답을 방지하고 호출한 업무 트랜잭션 전체를 롤백한다.
+        if (actualRows != expectedRows) {
+            throw new BwgBusinessException.Builder()
+                    .code(BusinessErrorCode.SERVER_ERROR)
+                    .message(BusinessErrorCode.SERVER_ERROR.getMsg())
+                    .details(Map.of(
+                            "operation", operation,
+                            "expectedRows", expectedRows,
+                            "actualRows", actualRows
+                    ))
+                    .build();
+        }
     }
 
-    /**
-     * 전체 목록 조회 결과 크기를 기준으로 단일 페이지 메타데이터를 생성한다.
-     *
-     * @param result 페이지 정보를 계산할 조회 결과
-     * @return 전체 결과를 한 페이지로 표현한 페이지 정보
-     */
-    private PaginationResDto toPagination(List<?> result) {
-        // 현재 전체 목록 응답 기준으로 페이지 메타데이터 생성
-        int totalCount = result == null ? 0 : result.size();
-        PaginationResDto pagination = new PaginationResDto();
-        pagination.setPage(1);
-        pagination.setSize(totalCount);
-        pagination.setTotalCount((long) totalCount);
-        pagination.setTotalPages(totalCount == 0 ? 0 : 1);
-        return pagination;
-    }
 }
