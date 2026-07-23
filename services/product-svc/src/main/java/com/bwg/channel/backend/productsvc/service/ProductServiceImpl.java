@@ -26,7 +26,12 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository defaultProductRepository;
 
     /**
-     * 상품 목록 조회
+     * 요청한 저장소 전략으로 상품 목록을 조회하고 선택적 페이지 메타데이터를 생성한다.
+     *
+     * @param paramDto 상품 조회 조건과 선택적 페이지 요청
+     * @param type 사용할 상품 저장소 유형
+     * @return 상품 목록과 요청된 경우 페이지 정보가 포함된 응답
+     * @throws BwgProductException 저장소 유형에 해당하는 구현체가 없는 경우
      */
     @Override
     public ApiResponse<List<ProductResDto>> getProductList(ApiRequest<ProductReqDto> paramDto, String type) {
@@ -38,7 +43,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * 상품 단건 조회
+     * 요청한 저장소 전략으로 상품 ID에 해당하는 상품 한 건을 조회한다.
+     *
+     * @param productId 조회할 상품 ID
+     * @param type 사용할 상품 저장소 유형
+     * @return 저장소가 반환한 상품이 포함된 응답
+     * @throws BwgProductException 저장소 유형에 해당하는 구현체가 없거나 상품이 존재하지 않는 경우
      */
     @Override
     public ApiResponse<ProductResDto> getProduct(Long productId, String type) {
@@ -50,7 +60,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * 상품 저장소 전략 선택
+     * 요청 type 값으로 상품 저장소 구현체를 선택한다.
+     *
+     * <p>type이 없거나 빈 문자열이면 기본 저장소를 사용하고, 값이 있으면 등록된
+     * 저장소 맵에서 해당 구현체를 조회한다.</p>
+     *
+     * @param type 선택할 상품 저장소 유형
+     * @return 기본 저장소 또는 type으로 등록된 상품 저장소
+     * @throws BwgProductException type에 해당하는 저장소가 등록되어 있지 않은 경우
      */
     private ProductRepository getRepository(String type) {
         ProductRepository repository = (type == null || type.isEmpty())
@@ -67,6 +84,15 @@ public class ProductServiceImpl implements ProductService {
         return repository;
     }
 
+    /**
+     * 요청 페이지 정보와 조회 결과 크기로 응답 페이지 메타데이터를 생성한다.
+     *
+     * <p>요청 또는 페이지 정보가 없으면 페이지 메타데이터를 생성하지 않고 {@code null}을 반환한다.</p>
+     *
+     * @param result 저장소가 반환한 상품 목록
+     * @param paramDto 선택적 페이지 정보가 포함된 상품 조회 요청
+     * @return 계산된 페이지 정보 또는 페이지 요청이 없을 때 {@code null}
+     */
     private PaginationResDto toPagination(List<ProductResDto> result, ApiRequest<ProductReqDto> paramDto) {
         if (paramDto == null || paramDto.getPagination() == null) {
             return null;
@@ -81,6 +107,13 @@ public class ProductServiceImpl implements ProductService {
         return responsePagination;
     }
 
+    /**
+     * 전체 건수와 페이지 크기로 전체 페이지 수를 올림 계산한다.
+     *
+     * @param totalCount 전체 건수
+     * @param size 페이지당 건수
+     * @return 계산된 전체 페이지 수, size가 없거나 1보다 작으면 {@code null}
+     */
     private Integer calculateTotalPages(int totalCount, Integer size) {
         if (size == null || size < 1) {
             return null;

@@ -19,21 +19,44 @@ public class DefaultSessionContextService implements SessionContextService {
     /** Redis/Valkey 저장 방식과 key 규칙을 캡슐화한 세션 컨텍스트 저장소. */
     private final SessionContextRepository sessionContextRepository;
 
+    /**
+     * 세션 컨텍스트와 만료 기간을 저장소에 전달해 저장한다.
+     *
+     * @param context 저장할 사용자 세션 컨텍스트
+     * @param ttl 세션을 유지할 기간
+     */
     @Override
     public void save(SessionContext context, Duration ttl) {
         sessionContextRepository.save(context, ttl);
     }
 
+    /**
+     * 세션 ID에 해당하는 컨텍스트 조회를 저장소에 위임한다.
+     *
+     * @param sessionId 조회할 세션 ID
+     * @return 세션이 존재하면 해당 컨텍스트, 없으면 빈 Optional
+     */
     @Override
     public Optional<SessionContext> findBySessionId(String sessionId) {
         return sessionContextRepository.findBySessionId(sessionId);
     }
 
+    /**
+     * 세션 ID에 해당하는 컨텍스트의 존재 여부 확인을 저장소에 위임한다.
+     *
+     * @param sessionId 존재 여부를 확인할 세션 ID
+     * @return 세션이 존재하면 {@code true}
+     */
     @Override
     public boolean existsBySessionId(String sessionId) {
         return sessionContextRepository.existsBySessionId(sessionId);
     }
 
+    /**
+     * 세션 ID에 해당하는 컨텍스트 삭제를 저장소에 위임한다.
+     *
+     * @param sessionId 삭제할 세션 ID
+     */
     @Override
     public void deleteBySessionId(String sessionId) {
         sessionContextRepository.deleteBySessionId(sessionId);

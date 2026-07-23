@@ -14,6 +14,12 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * GitHub webhook의 필수 헤더와 서명을 검증하고 지원하는 issue 이벤트를 Notion 할일로 적재한다.
+ *
+ * <p>동일 프로세스 안에서는 delivery ID를 기준으로 중복 처리를 방지하고, payload 변환이나
+ * Notion 호출이 실패하면 재시도를 허용하기 위해 delivery ID 마킹을 제거한다.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class GithubWebhookService {
@@ -41,11 +47,17 @@ public class GithubWebhookService {
     /**
      * GitHub webhook을 검증하고 지원 대상 이벤트만 Notion 할일 row로 적재한다.
      *
+     * <p>필수 헤더와 HMAC 서명을 검증한 뒤 {@code issues} 이외 이벤트를 무시한다.
+     * issue 이벤트는 delivery ID로 프로세스 내 중복을 차단하고 지원 action만 Notion page로
+     * 생성하며, payload 변환이나 Notion 호출이 실패하면 재시도를 위해 delivery ID 마킹을 제거한다.</p>
+     *
      * @param eventName GitHub 이벤트 이름.
      * @param deliveryId GitHub webhook 전송 고유 ID.
      * @param signature GitHub HMAC-SHA256 서명 헤더.
      * @param payload GitHub webhook 원본 JSON 문자열.
      * @return 처리 결과 DTO.
+     * @throws ResponseStatusException 필수 헤더가 없거나 webhook 서명이 유효하지 않은 경우
+     * @throws RuntimeException payload 변환 또는 Notion page 생성이 실패한 경우
      */
     public GithubWebhookResDto handle(String eventName, String deliveryId, String signature, String payload) {
         validateHeaders(eventName, deliveryId);
@@ -76,6 +88,10 @@ public class GithubWebhookService {
 
     /**
      * GitHub webhook 처리에 반드시 필요한 헤더가 들어왔는지 확인한다.
+     *
+     * @param eventName {@code X-GitHub-Event} 헤더 값
+     * @param deliveryId {@code X-GitHub-Delivery} 헤더 값
+     * @throws ResponseStatusException 이벤트 이름 또는 delivery ID가 비어 있는 경우
      */
     private void validateHeaders(String eventName, String deliveryId) {
         if (!StringUtils.hasText(eventName)) {

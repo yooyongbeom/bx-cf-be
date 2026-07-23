@@ -60,6 +60,14 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
 
     /**
      * 로그인 요청의 type 저장소에서 사용자 정보를 확인하고 access/refresh token과 Redis 세션을 함께 만든다.
+     *
+     * <p>발급한 refresh token은 DB에 저장하고, access token의 sessionId와 연결되는
+     * 세션 컨텍스트는 refresh token 만료 시각을 TTL로 사용해 Redis에 저장한다.</p>
+     *
+     * @param paramDto 사용자 ID와 비밀번호가 포함된 로그인 요청
+     * @param type 사용할 로그인 저장소 유형
+     * @return 사용자 정보와 access/refresh token이 포함된 로그인 응답
+     * @throws BwgAuthException 저장소 유형이 유효하지 않거나 인증 처리에 실패한 경우
      */
     @Override
     @Transactional
@@ -102,6 +110,16 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
         return ApiResponse.success(userDetails);
     }
 
+    /**
+     * 로그인 또는 토큰 재발급 결과를 Redis 세션 컨텍스트로 저장한다.
+     *
+     * <p>세션 생성 시각과 마지막 접근 시각은 동일한 현재 시각을 사용하며,
+     * refresh token 만료 시각까지의 기간을 Redis TTL로 설정한다.</p>
+     *
+     * @param userDetails 세션에 기록할 사용자와 권한 정보
+     * @param sessionId access token claim과 Redis key에 사용할 세션 ID
+     * @param refreshTokenExpiryDate Redis TTL 기준이 되는 refresh token 만료 시각
+     */
     private void saveSessionContext(LoginResDto userDetails, String sessionId, Date refreshTokenExpiryDate) {
         // 세션 생성/마지막 접근 시각의 동일 기준 시각
         Instant now = Instant.now();
@@ -125,6 +143,14 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
 
     /**
      * 검증된 refresh token으로 사용자 정보를 조회하고 access/refresh token과 Redis 세션을 새로 발급한다.
+     *
+     * <p>refresh token을 검증한 후 신규 token 쌍과 sessionId를 만들고, DB의 refresh token과
+     * Redis 세션 컨텍스트를 신규 값으로 저장한다.</p>
+     *
+     * @param paramDto 쿠키에서 추출한 refresh token 요청
+     * @param type 사용할 로그인 저장소 유형
+     * @return 새 access/refresh token이 포함된 재발급 응답
+     * @throws BwgAuthException refresh token이 유효하지 않거나 저장소 유형이 유효하지 않은 경우
      */
     @Override
     @Transactional
@@ -181,6 +207,12 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
 
     /**
      * Gateway가 전달한 내부 인증 헤더의 사용자/sessionId 기준으로 DB refresh token과 Redis 세션을 제거한다.
+     *
+     * @param userId 로그아웃할 사용자 ID
+     * @param sessionId 삭제할 Redis 세션 ID
+     * @param type 사용할 로그인 저장소 유형
+     * @return 로그아웃 성공 응답
+     * @throws BwgAuthException 저장소 유형이 유효하지 않은 경우
      */
     @Override
     @Transactional
@@ -205,6 +237,11 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
 
     /**
      * Spring Security 연동 확장 지점. 현재 인증 흐름은 login/refresh token 저장소 조회가 담당한다.
+     *
+     * <p>현재 구현은 사용자 조회를 수행하지 않고 항상 {@code null}을 반환한다.</p>
+     *
+     * @param username 조회할 사용자 이름
+     * @return 현재 구현에서는 항상 {@code null}
      */
     @Override
     public CustomUserDetails loadUserByUsername(String username) throws UserNotFoundException {
@@ -213,6 +250,10 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
 
     /**
      * 요청 type 값으로 로그인 저장소 구현체를 선택하고, 유효하지 않은 type은 인증 예외로 변환한다.
+     *
+     * @param type 선택할 로그인 저장소 유형
+     * @return type이 없으면 기본 저장소, 값이 있으면 해당 유형으로 등록된 저장소
+     * @throws BwgAuthException type에 해당하는 저장소가 등록되어 있지 않은 경우
      */
     private LoginRepository getRepo(String type) {
         // type이 없으면 기본 저장소, type이 있으면 등록된 저장소 맵에서 선택
