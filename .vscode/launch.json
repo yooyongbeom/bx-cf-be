@@ -1,0 +1,76 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-DiscoverySvcApplication<discovery-svc>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bwg.channel.backend.discovery.DiscoverySvcApplication",
+            "projectName": "discovery-svc",
+            "args": "--spring.profiles.active=local",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=54721 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=discovery-svc"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ApiGatewayApplication<api-gateway>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bwg.channel.backend.gateway.ApiGatewayApplication",
+            "projectName": "api-gateway",
+            "args": "--spring.profiles.active=local",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=61476 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=api-gateway"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-AuthServiceApplication<auth-svc>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bwg.channel.backend.authsvc.AuthServiceApplication",
+            "projectName": "auth-svc",
+            "args": "--spring.profiles.active=local",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-IntegrationServiceApplication<integration-svc>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bwg.channel.backend.integrationsvc.IntegrationServiceApplication",
+            "projectName": "integration-svc",
+            "args": "--spring.profiles.active=local",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ProductServiceApplication<product-svc>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bwg.channel.backend.productsvc.ProductServiceApplication",
+            "projectName": "product-svc",
+            "args": "--spring.profiles.active=local",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MciServiceApplication<mci-svc>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bwg.channel.backend.mcisvc.MciServiceApplication",
+            "projectName": "mci-svc",
+            "args": "--spring.profiles.active=local",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-SystemServiceApplication<system-svc>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bwg.channel.backend.systemsvc.SystemServiceApplication",
+            "projectName": "system-svc",
+            "args": "--spring.profiles.active=local",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

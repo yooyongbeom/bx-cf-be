@@ -67,3 +67,22 @@ subprojects {
         destinationDirectory = rootProject.file("build/dist/bx-cf-be")
     }
 }
+
+// Eclipse 일반 "Java Application" 실행 지원.
+// 이 프로젝트는 각 모듈의 설정 yml을 루트 config/<module>/ 에서 processResources가
+// build/resources/main 으로 복사한다. IntelliJ/VSCode는 실행을 Gradle에 위임해 이 생성
+// 리소스를 클래스패스에 올리지만, Eclipse(Buildship)는 src/main/resources를 제외 처리하고
+// 생성 리소스를 클래스패스에 넣지 않아 설정(application.yml 등)을 읽지 못한다.
+// 그래서 bootable 모듈(services:*, infra:*)에 한해 build/resources/main 을 클래스패스에 추가한다.
+configure(subprojects.findAll { it.path.startsWith(':services') || it.path.startsWith(':infra') }) {
+    apply plugin: 'eclipse'
+
+    // Buildship 동기화 시 생성되는 .classpath에 리소스 출력 폴더를 lib 엔트리로 추가
+    eclipse.classpath.file.whenMerged { cp ->
+        def resDir = layout.buildDirectory.dir('resources/main').get().asFile
+        cp.entries.add(new org.gradle.plugins.ide.eclipse.model.Library(cp.fileReference(resDir)))
+    }
+
+    // gradlew eclipse 로 .classpath를 생성할 때 설정 yml이 먼저 존재하도록 보장
+    tasks.named('eclipseClasspath') { dependsOn 'processResources' }
+}

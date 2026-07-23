@@ -70,7 +70,7 @@ class SecurityConfigTest {
         properties.setAllowCredentials(true);
         properties.setMaxAge(3600L);
 
-        SecurityConfig securityConfig = new SecurityConfig(null, properties);
+        SecurityConfig securityConfig = new SecurityConfig(null, properties, null);
 
         CorsConfiguration corsConfiguration = securityConfig.corsConfigurationSource()
                 .getCorsConfiguration(MockServerWebExchange.from(MockServerHttpRequest.get("/test").build()));
