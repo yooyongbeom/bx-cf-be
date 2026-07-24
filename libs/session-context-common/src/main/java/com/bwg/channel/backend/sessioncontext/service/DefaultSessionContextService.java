@@ -72,4 +72,26 @@ public class DefaultSessionContextService implements SessionContextService {
         // The repository owns Redis key scanning and selective deletion details.
         sessionContextRepository.deleteByUserId(userId);
     }
+
+    /**
+     * 사용자별 신규 세션 생성 차단을 저장소에 위임한다.
+     *
+     * @param userId 신규 세션 발급을 차단할 사용자 ID
+     */
+    @Override
+    public void blockSessionCreation(String userId) {
+        // tombstone의 Redis 저장 방식은 저장소 구현체가 소유한다.
+        sessionContextRepository.blockSessionCreation(userId);
+    }
+
+    /**
+     * 사용자별 신규 세션 생성 차단 해제를 저장소에 위임한다.
+     *
+     * @param userId 신규 세션 발급 차단을 해제할 사용자 ID
+     */
+    @Override
+    public void unblockSessionCreation(String userId) {
+        // 사용자 재등록 또는 실패 보상 시 저장소의 tombstone만 제거한다.
+        sessionContextRepository.unblockSessionCreation(userId);
+    }
 }

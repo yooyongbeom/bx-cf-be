@@ -43,4 +43,18 @@ public interface SessionContextRepository {
      * @param userId user ID subject to forced logout
      */
     void deleteByUserId(String userId);
+
+    /**
+     * 사용자별 신규 세션 생성을 지속적으로 차단하는 tombstone을 저장한다.
+     *
+     * @param userId 신규 세션 발급을 차단할 사용자 ID
+     */
+    void blockSessionCreation(String userId);
+
+    /**
+     * 사용자별 신규 세션 생성 차단 tombstone을 제거한다.
+     *
+     * @param userId 신규 세션 발급 차단을 해제할 사용자 ID
+     */
+    void unblockSessionCreation(String userId);
 }

@@ -69,7 +69,8 @@ app:
 
 logging:
   level:
-    p6spy: INFO
+    # 인증 서비스의 SQL 바인딩 값에 포함된 평문 자격 증명을 로그로 남기지 않는다.
+    p6spy: OFF
 
 p6spy:
   engine:

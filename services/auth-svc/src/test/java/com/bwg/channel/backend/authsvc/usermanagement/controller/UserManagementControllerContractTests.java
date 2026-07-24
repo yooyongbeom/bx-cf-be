@@ -45,12 +45,12 @@ class UserManagementControllerContractTests {
     }
 
     @Test
-    void everyEndpointRequiresGatewayRolesHeader() {
+    void everyEndpointBindsOptionalGatewayRolesHeader() {
         for (Method method : UserManagementController.class.getDeclaredMethods()) {
             assertThat(method.getParameters())
                     .filteredOn(parameter -> parameter.isAnnotationPresent(RequestHeader.class))
-                    .anySatisfy(parameter -> assertThat(parameter.getAnnotation(RequestHeader.class).value())
-                            .isEqualTo(InternalAuthHeaders.ROLES));
+                    .anySatisfy(parameter ->
+                            assertOptionalRequestHeader(parameter, InternalAuthHeaders.ROLES));
         }
     }
 
@@ -67,11 +67,11 @@ class UserManagementControllerContractTests {
         );
 
         // 변경 요청은 Gateway가 주입한 작업자 헤더와 요청 본문을 각각의 서비스 인자 위치에 바인딩한다.
-        assertRequestHeader(createUser.getParameters()[1], InternalAuthHeaders.USER);
+        assertOptionalRequestHeader(createUser.getParameters()[1], InternalAuthHeaders.USER);
         assertRequestBody(createUser.getParameters()[0]);
-        assertRequestHeader(updateUser.getParameters()[2], InternalAuthHeaders.USER);
+        assertOptionalRequestHeader(updateUser.getParameters()[2], InternalAuthHeaders.USER);
         assertRequestBody(updateUser.getParameters()[1]);
-        assertRequestHeader(deleteUser.getParameters()[1], InternalAuthHeaders.USER);
+        assertOptionalRequestHeader(deleteUser.getParameters()[1], InternalAuthHeaders.USER);
     }
 
     @Test
@@ -120,9 +120,11 @@ class UserManagementControllerContractTests {
         assertThat(method.getAnnotation(PostMapping.class).value()).containsExactly(path);
     }
 
-    private static void assertRequestHeader(Parameter parameter, String headerName) {
+    private static void assertOptionalRequestHeader(Parameter parameter, String headerName) {
         assertThat(parameter.isAnnotationPresent(RequestHeader.class)).isTrue();
         assertThat(parameter.getAnnotation(RequestHeader.class).value()).isEqualTo(headerName);
+        // 내부 헤더 누락도 MVC가 선제 차단하지 않고 서비스의 명시적 권한/필수값 검증까지 전달한다.
+        assertThat(parameter.getAnnotation(RequestHeader.class).required()).isFalse();
     }
 
     private static void assertRequestBody(Parameter parameter) {

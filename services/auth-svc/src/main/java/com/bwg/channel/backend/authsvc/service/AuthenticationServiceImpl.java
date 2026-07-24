@@ -14,6 +14,7 @@ import com.bwg.channel.backend.securitycommon.exception.UserNotFoundException;
 import com.bwg.channel.backend.securitycommon.service.CustomUserDetailsService;
 import com.bwg.channel.backend.securitycommon.util.JwtUtil;
 import com.bwg.channel.backend.sessioncontext.domain.SessionContext;
+import com.bwg.channel.backend.sessioncontext.exception.SessionCreationBlockedException;
 import com.bwg.channel.backend.sessioncontext.service.SessionContextService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -137,8 +138,17 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
         // refresh token 만료 시각과 Redis 세션 만료 시각을 맞추기 위한 TTL
         Duration ttl = Duration.between(now, refreshTokenExpiryDate.toInstant());
 
-        // session:{sessionId} 규칙으로 Redis에 세션 컨텍스트 저장
-        sessionContextService.save(sessionContext, ttl);
+        try {
+            // session:{sessionId} 규칙으로 Redis에 세션 컨텍스트 저장
+            sessionContextService.save(sessionContext, ttl);
+        } catch (SessionCreationBlockedException exception) {
+            // 사용자 삭제 tombstone과 경합한 로그인/재발급은 내부 원인을 보존한 안전한 접근 거부로 변환한다.
+            throw new BwgAuthException.Builder()
+                    .code(AuthErrorCode.ACCESS_DENIED)
+                    .message(AuthErrorCode.ACCESS_DENIED.getMsg())
+                    .cause(exception)
+                    .build();
+        }
     }
 
     /**

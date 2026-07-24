@@ -22,7 +22,7 @@ public interface UserManagementRepository {
 
     int insertUser(ApiRequest<UserCreateReqDto> request, String createdBy);
 
-    int insertUserRole(String userId, Long roleId, String createdBy);
+    int insertUserRole(String userId, Long roleId);
 
     int updateUser(String userId, ApiRequest<UserUpdateReqDto> request, String updatedBy);
 

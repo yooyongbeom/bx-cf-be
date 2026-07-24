@@ -33,7 +33,17 @@ class UserManagementMapperSqlContractTests {
                 .contains("ROLE_NAME = #{roleName}");
         assertThat(statement(xml, "insert", "insertUserRole"))
                 .contains("INSERT INTO USER_ROLES")
-                .contains("#{roleId}");
+                .contains("USER_ID")
+                .contains("ROLE_ID")
+                .contains("#{userId}")
+                .contains("#{roleId}")
+                // 현재 USER_ROLES 스키마 계약은 사용자와 역할 FK 두 열뿐이다.
+                .doesNotContain("CREATED_BY")
+                .doesNotContain("CREATED_AT")
+                .doesNotContain("UPDATED_BY")
+                .doesNotContain("UPDATED_AT")
+                .doesNotContain("#{createdBy}")
+                .doesNotContain("current_timestamp");
     }
 
     @Test

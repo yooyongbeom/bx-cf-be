@@ -16,7 +16,9 @@ import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
 import com.bwg.channel.backend.securitycommon.exception.BwgAuthException;
 import com.bwg.channel.backend.sessioncontext.service.SessionContextService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,7 +70,8 @@ public class UserManagementServiceImpl implements UserManagementService {
         UserCreateReqDto data = BusinessValidator.requireData(request);
         data.setUsrId(BusinessValidator.requireNonBlank(data.getUsrId(), "usrId"));
         data.setUsrNm(BusinessValidator.requireNonBlank(data.getUsrNm(), "usrNm"));
-        data.setUsrPwd(BusinessValidator.requireNonBlank(data.getUsrPwd(), "usrPwd"));
+        // 비밀번호는 nonblank 여부만 trim으로 확인하고 저장할 원문은 변경하지 않는다.
+        BusinessValidator.requireNonBlank(data.getUsrPwd(), "usrPwd");
 
         if (userManagementRepository.existsUser(data.getUsrId())) {
             throw duplicateUser(data.getUsrId());
@@ -85,12 +88,20 @@ public class UserManagementServiceImpl implements UserManagementService {
             requireSingleAffectedRow(userManagementRepository.insertUser(request, createdBy), "insertUser");
             // TODO 사용자 역할 관리 기능이 추가되면 요청 역할 목록을 검증하여 USER_ROLES 연결을 관리한다.
             requireSingleAffectedRow(
-                    userManagementRepository.insertUserRole(data.getUsrId(), roleIds.get(0), createdBy),
+                    userManagementRepository.insertUserRole(data.getUsrId(), roleIds.get(0)),
                     "insertUserRole"
             );
         } catch (DuplicateKeyException exception) {
             // 사전 존재 확인 뒤 동시 등록이 일어나도 사용자 ID 중복이라는 동일한 업무 오류로 응답한다.
             throw duplicateUser(data.getUsrId());
+        }
+
+        try {
+            // 삭제된 ID를 재등록한 경우 DB 등록 뒤 남아 있는 세션 생성 tombstone을 제거한다.
+            sessionContextService.unblockSessionCreation(data.getUsrId());
+        } catch (RuntimeException exception) {
+            // Redis 접근 실패는 원인을 보존한 안전한 오류로 변환해 사용자 등록 트랜잭션을 롤백한다.
+            throw translateSessionStoreFailure(exception, "Unable to clear user session block");
         }
         return ApiResponse.success(null);
     }
@@ -128,19 +139,25 @@ public class UserManagementServiceImpl implements UserManagementService {
         requireExistingUser(requiredUserId);
 
         try {
-            // DB 삭제 전에 대상 사용자의 모든 세션을 폐기하여 삭제 진행 중에도 재접속을 차단한다.
+            // 세션 폐기보다 먼저 tombstone을 저장해 삭제와 로그인/재발급 경합을 차단한다.
+            sessionContextService.blockSessionCreation(requiredUserId);
             sessionContextService.deleteByUserId(requiredUserId);
         } catch (RuntimeException exception) {
-            // 세션 폐기에 실패하면 DB 삭제를 시작하지 않고 안전한 서비스 오류로 변환한다.
-            throw new BwgAuthException.Builder()
-                    .code(CommonErrorCode.SERVICE_UNAVAILABLE)
-                    .message("Unable to revoke user sessions")
-                    .build();
+            // block 또는 세션 폐기에 실패하면 tombstone을 best-effort로 제거하고 DB 삭제를 시작하지 않는다.
+            bestEffortUnblockSessionCreation(requiredUserId);
+            throw translateSessionStoreFailure(exception, "Unable to block or revoke user sessions");
         }
 
-        // 세션 폐기가 끝난 뒤 FK 참조를 제거하고 사용자 본문을 물리 삭제한다.
-        userManagementRepository.deleteUserRoles(requiredUserId);
-        requireSingleAffectedRow(userManagementRepository.deleteUser(requiredUserId), "deleteUser");
+        try {
+            // 세션 폐기가 끝난 뒤 FK 참조를 제거하고 사용자 본문을 물리 삭제한다.
+            userManagementRepository.deleteUserRoles(requiredUserId);
+            requireSingleAffectedRow(userManagementRepository.deleteUser(requiredUserId), "deleteUser");
+        } catch (RuntimeException exception) {
+            // 관계형 삭제가 실패하면 사용자가 남아 있으므로 다시 로그인할 수 있도록 tombstone을 제거한다.
+            bestEffortUnblockSessionCreation(requiredUserId);
+            throw exception;
+        }
+        // 물리 삭제 성공 후에는 동일 ID의 세션이 다시 발급되지 않도록 tombstone을 유지한다.
         return ApiResponse.success(null);
     }
 
@@ -196,5 +213,26 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .message("Unable to save user data")
                 .details(Map.of("operation", operation))
                 .build();
+    }
+
+    private RuntimeException translateSessionStoreFailure(RuntimeException exception, String message) {
+        // Redis 계층이 명시한 접근/직렬화 실패만 외부 노출이 안전한 서비스 불가 오류로 변환한다.
+        if (exception instanceof DataAccessException || exception instanceof SerializationException) {
+            return new BwgAuthException.Builder()
+                    .code(CommonErrorCode.SERVICE_UNAVAILABLE)
+                    .message(message)
+                    .cause(exception)
+                    .build();
+        }
+        return exception;
+    }
+
+    private void bestEffortUnblockSessionCreation(String userId) {
+        try {
+            // 최초 실패를 가리지 않도록 tombstone 보상 제거는 best-effort로 수행한다.
+            sessionContextService.unblockSessionCreation(userId);
+        } catch (RuntimeException ignored) {
+            // 보상 실패보다 최초 세션/DB 실패 원인을 우선해 호출자에게 전달한다.
+        }
     }
 }

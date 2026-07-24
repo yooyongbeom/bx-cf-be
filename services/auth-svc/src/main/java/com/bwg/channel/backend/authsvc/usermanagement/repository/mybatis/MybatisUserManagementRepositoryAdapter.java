@@ -50,9 +50,9 @@ public class MybatisUserManagementRepositoryAdapter implements UserManagementRep
     }
 
     @Override
-    public int insertUserRole(String userId, Long roleId, String createdBy) {
-        // 사용자 등록 후 기본 역할 연결을 별도 SQL로 등록한다.
-        return userManagementMapper.insertUserRole(userId, roleId, createdBy);
+    public int insertUserRole(String userId, Long roleId) {
+        // USER_ROLES 스키마의 두 FK 열만 사용해 기본 역할 연결을 등록한다.
+        return userManagementMapper.insertUserRole(userId, roleId);
     }
 
     @Override

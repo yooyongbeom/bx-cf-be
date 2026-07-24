@@ -3,14 +3,16 @@ package com.bwg.channel.backend.authsvc.usermanagement.dto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
 import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.ibatis.type.Alias;
 
 /**
  * 사용자 등록 요청 모델.
  */
 @Alias("UserCreateReqDto")
-@Data
+@Getter
+@Setter
 @ApiDto(type = ApiType.REQUEST, name = "User", endpoints = {"create"})
 public class UserCreateReqDto {
 

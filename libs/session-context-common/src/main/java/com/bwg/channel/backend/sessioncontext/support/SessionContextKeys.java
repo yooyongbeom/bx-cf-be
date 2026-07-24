@@ -6,6 +6,8 @@ package com.bwg.channel.backend.sessioncontext.support;
 public final class SessionContextKeys {
     /** Gateway access token claim의 sessionId와 결합되는 Redis key 접두어. */
     private static final String SESSION_PREFIX = "session:";
+    /** 사용자 삭제 경합 중 신규 세션 발급을 차단하는 tombstone key 접두어. */
+    private static final String USER_SESSION_BLOCK_PREFIX = "session-blocked:";
 
     private SessionContextKeys() {
     }
@@ -27,5 +29,17 @@ public final class SessionContextKeys {
      */
     public static String sessionPattern() {
         return SESSION_PREFIX + "*";
+    }
+
+    /**
+     * 사용자별 세션 생성 차단 tombstone key를 반환한다.
+     *
+     * <p>세션 탐색 패턴과 겹치지 않는 별도 namespace를 사용해 강제 로그아웃 SCAN에서 제외한다.</p>
+     *
+     * @param userId 신규 세션 발급을 차단할 사용자 ID
+     * @return 사용자별 세션 생성 차단 key
+     */
+    public static String userSessionBlockKey(String userId) {
+        return USER_SESSION_BLOCK_PREFIX + userId;
     }
 }
