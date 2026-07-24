@@ -6,7 +6,10 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @MapperScan(
-    basePackages = "com.bwg.channel.backend.authsvc.repository.mybatis.mapper",
+    basePackages = {
+        "com.bwg.channel.backend.authsvc.repository.mybatis.mapper",
+        "com.bwg.channel.backend.authsvc.usermanagement.repository.mybatis.mapper"
+    },
     sqlSessionFactoryRef = "mybatisMainSqlSessionFactory"
 )
 public class MyBatisDataSourceConfig extends MyBatisMainConfigBase {
@@ -15,6 +18,7 @@ public class MyBatisDataSourceConfig extends MyBatisMainConfigBase {
     @Override
     protected String typeAliasesPackage() {
         return "com.bwg.channel.backend.common.domain.dto,"
-                + "com.bwg.channel.backend.authsvc.domain.dto";
+                + "com.bwg.channel.backend.authsvc.domain.dto,"
+                + "com.bwg.channel.backend.authsvc.usermanagement.dto";
     }
 }
