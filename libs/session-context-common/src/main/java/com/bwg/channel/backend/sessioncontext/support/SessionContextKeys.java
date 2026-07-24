@@ -19,4 +19,13 @@ public final class SessionContextKeys {
     public static String sessionKey(String sessionId) {
         return SESSION_PREFIX + sessionId;
     }
+
+    /**
+     * Returns the Redis SCAN pattern that selects only session-context keys.
+     *
+     * @return pattern matching session-context keys only
+     */
+    public static String sessionPattern() {
+        return SESSION_PREFIX + "*";
+    }
 }

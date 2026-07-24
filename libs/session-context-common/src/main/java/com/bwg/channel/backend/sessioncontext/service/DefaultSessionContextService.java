@@ -61,4 +61,15 @@ public class DefaultSessionContextService implements SessionContextService {
     public void deleteBySessionId(String sessionId) {
         sessionContextRepository.deleteBySessionId(sessionId);
     }
+
+    /**
+     * Delegates user-ID-based forced logout to the repository implementation.
+     *
+     * @param userId user ID subject to forced logout
+     */
+    @Override
+    public void deleteByUserId(String userId) {
+        // The repository owns Redis key scanning and selective deletion details.
+        sessionContextRepository.deleteByUserId(userId);
+    }
 }

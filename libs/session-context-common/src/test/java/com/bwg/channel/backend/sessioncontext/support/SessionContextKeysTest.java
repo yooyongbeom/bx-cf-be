@@ -11,4 +11,9 @@ class SessionContextKeysTest {
         assertThat(SessionContextKeys.sessionKey("abc-123"))
                 .isEqualTo("session:abc-123");
     }
+
+    @Test
+    void exposesOnlySessionKeysAsScanPattern() {
+        assertThat(SessionContextKeys.sessionPattern()).isEqualTo("session:*");
+    }
 }

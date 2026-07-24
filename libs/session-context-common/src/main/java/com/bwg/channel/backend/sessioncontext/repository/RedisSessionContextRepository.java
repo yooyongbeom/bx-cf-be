@@ -3,10 +3,14 @@ package com.bwg.channel.backend.sessioncontext.repository;
 import com.bwg.channel.backend.sessioncontext.domain.SessionContext;
 import com.bwg.channel.backend.sessioncontext.support.SessionContextKeys;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -40,5 +44,29 @@ public class RedisSessionContextRepository implements SessionContextRepository {
     public void deleteBySessionId(String sessionId) {
         // 로그아웃 시 access token claim에서 전달된 sessionId 기준 Redis key 제거
         redisTemplate.delete(SessionContextKeys.sessionKey(sessionId));
+    }
+    @Override
+    public void deleteByUserId(String userId) {
+        // SCAN avoids the blocking KEYS command while traversing session keys in production Redis.
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(SessionContextKeys.sessionPattern())
+                .count(100)
+                .build();
+        List<String> ownedSessionKeys = new ArrayList<>();
+
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                String sessionKey = cursor.next();
+                SessionContext context = redisTemplate.opsForValue().get(sessionKey);
+                if (context != null && userId.equals(context.getUserId())) {
+                    ownedSessionKeys.add(sessionKey);
+                }
+            }
+        }
+
+        // Invoke bulk deletion only when the target user has at least one active session.
+        if (!ownedSessionKeys.isEmpty()) {
+            redisTemplate.delete(ownedSessionKeys);
+        }
     }
 }

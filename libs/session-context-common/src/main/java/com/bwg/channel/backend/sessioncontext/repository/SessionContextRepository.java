@@ -36,4 +36,11 @@ public interface SessionContextRepository {
      * 로그아웃, 강제 만료 같은 이벤트에서 sessionId 기준 세션 컨텍스트를 제거한다.
      */
     void deleteBySessionId(String sessionId);
+
+    /**
+     * Deletes every session context owned by the specified user ID.
+     *
+     * @param userId user ID subject to forced logout
+     */
+    void deleteByUserId(String userId);
 }

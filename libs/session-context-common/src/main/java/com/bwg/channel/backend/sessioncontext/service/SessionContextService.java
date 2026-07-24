@@ -41,4 +41,11 @@ public interface SessionContextService {
      * @param sessionId 삭제할 세션 ID
      */
     void deleteBySessionId(String sessionId);
+
+    /**
+     * Deletes every session context owned by the specified user ID.
+     *
+     * @param userId user ID subject to forced logout
+     */
+    void deleteByUserId(String userId);
 }
