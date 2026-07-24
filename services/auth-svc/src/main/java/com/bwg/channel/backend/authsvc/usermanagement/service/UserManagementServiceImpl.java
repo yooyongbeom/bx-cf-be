@@ -77,20 +77,15 @@ public class UserManagementServiceImpl implements UserManagementService {
         // 역할 ID를 하드코딩하지 않고 ROLE_USER가 DB에 정확히 하나 존재하는지 확인한다.
         List<Long> roleIds = userManagementRepository.findRoleIdsByName(DEFAULT_ROLE_NAME);
         if (roleIds == null || roleIds.size() != 1) {
-            throw databaseSaveFailure("Default role must exist exactly once: " + DEFAULT_ROLE_NAME);
+            throw databaseSaveFailure("defaultRole");
         }
 
         try {
             // 사용자 본문을 먼저 만들고, 같은 트랜잭션에서 기본 역할 하나만 연결한다.
-            BusinessValidator.requireAffectedRows(
-                    userManagementRepository.insertUser(request, createdBy),
-                    1,
-                    "insertUser"
-            );
+            requireSingleAffectedRow(userManagementRepository.insertUser(request, createdBy), "insertUser");
             // TODO 사용자 역할 관리 기능이 추가되면 요청 역할 목록을 검증하여 USER_ROLES 연결을 관리한다.
-            BusinessValidator.requireAffectedRows(
+            requireSingleAffectedRow(
                     userManagementRepository.insertUserRole(data.getUsrId(), roleIds.get(0), createdBy),
-                    1,
                     "insertUserRole"
             );
         } catch (DuplicateKeyException exception) {
@@ -116,9 +111,8 @@ public class UserManagementServiceImpl implements UserManagementService {
         data.setUsrNm(BusinessValidator.requireNonBlank(data.getUsrNm(), "usrNm"));
         requireExistingUser(requiredUserId);
 
-        BusinessValidator.requireAffectedRows(
+        requireSingleAffectedRow(
                 userManagementRepository.updateUser(requiredUserId, request, updatedBy),
-                1,
                 "updateUser"
         );
         return ApiResponse.success(null);
@@ -146,11 +140,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
         // 세션 폐기가 끝난 뒤 FK 참조를 제거하고 사용자 본문을 물리 삭제한다.
         userManagementRepository.deleteUserRoles(requiredUserId);
-        BusinessValidator.requireAffectedRows(
-                userManagementRepository.deleteUser(requiredUserId),
-                1,
-                "deleteUser"
-        );
+        requireSingleAffectedRow(userManagementRepository.deleteUser(requiredUserId), "deleteUser");
         return ApiResponse.success(null);
     }
 
@@ -192,11 +182,19 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .build();
     }
 
-    private BwgAuthException databaseSaveFailure(String message) {
-        // 기본 역할 데이터의 이상은 인증ㆍ권한 구성이 깨진 서버 저장 오류로 처리한다.
+    private void requireSingleAffectedRow(int affectedRows, String operation) {
+        // 사용자 변경 SQL은 정확히 한 건만 반영되어야 하며, 그렇지 않으면 저장 실패로 처리한다.
+        if (affectedRows != 1) {
+            throw databaseSaveFailure(operation);
+        }
+    }
+
+    private BwgAuthException databaseSaveFailure(String operation) {
+        // 저장 오류의 세부 원인은 노출하지 않고, 민감하지 않은 작업 이름만 오류 상세 정보에 남긴다.
         return new BwgAuthException.Builder()
                 .code(CommonErrorCode.DB_SAVE_DATA_ERROR)
-                .message(message)
+                .message("Unable to save user data")
+                .details(Map.of("operation", operation))
                 .build();
     }
 }

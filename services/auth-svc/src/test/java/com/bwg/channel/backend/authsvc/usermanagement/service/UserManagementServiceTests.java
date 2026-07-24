@@ -122,11 +122,34 @@ class UserManagementServiceTests {
 
         when(repository.findRoleIdsByName("ROLE_USER")).thenReturn(List.of());
         assertThatThrownBy(() -> service.createUser(request, "admin", "ROLE_ADMIN"))
-                .isInstanceOf(BwgAuthException.class);
+                .isInstanceOf(BwgAuthException.class)
+                .extracting("code")
+                .isEqualTo(CommonErrorCode.DB_SAVE_DATA_ERROR);
 
         when(repository.findRoleIdsByName("ROLE_USER")).thenReturn(List.of(1L, 2L));
         assertThatThrownBy(() -> service.createUser(request, "admin", "ROLE_ADMIN"))
-                .isInstanceOf(BwgAuthException.class);
+                .isInstanceOf(BwgAuthException.class)
+                .extracting("code")
+                .isEqualTo(CommonErrorCode.DB_SAVE_DATA_ERROR);
+    }
+
+    @Test
+    void rejectsUserCreationWhenInsertAffectsUnexpectedRows() {
+        UserCreateReqDto data = new UserCreateReqDto();
+        data.setUsrId("new.user");
+        data.setUsrNm("신규 사용자");
+        data.setUsrPwd("password");
+        ApiRequest<UserCreateReqDto> request = new ApiRequest<>();
+        request.setData(data);
+        when(repository.findRoleIdsByName("ROLE_USER")).thenReturn(List.of(7L));
+        when(repository.insertUser(request, "admin")).thenReturn(0);
+
+        assertThatThrownBy(() -> service.createUser(request, "admin", "ROLE_ADMIN"))
+                .isInstanceOf(BwgAuthException.class)
+                .extracting("code")
+                .isEqualTo(CommonErrorCode.DB_SAVE_DATA_ERROR);
+
+        verify(repository, never()).insertUserRole("new.user", 7L, "admin");
     }
 
     @Test
@@ -143,6 +166,21 @@ class UserManagementServiceTests {
         assertThat(data.getUsrNm()).isEqualTo("변경 사용자");
         verify(repository).updateUser("target", request, "admin");
         verify(repository, never()).deleteUserRoles("target");
+    }
+
+    @Test
+    void rejectsUserUpdateWhenAffectedRowsAreUnexpected() {
+        UserUpdateReqDto data = new UserUpdateReqDto();
+        data.setUsrNm("변경 사용자");
+        ApiRequest<UserUpdateReqDto> request = new ApiRequest<>();
+        request.setData(data);
+        when(repository.existsUser("target")).thenReturn(true);
+        when(repository.updateUser("target", request, "admin")).thenReturn(0);
+
+        assertThatThrownBy(() -> service.updateUser("target", request, "admin", "ROLE_ADMIN"))
+                .isInstanceOf(BwgAuthException.class)
+                .extracting("code")
+                .isEqualTo(CommonErrorCode.DB_SAVE_DATA_ERROR);
     }
 
     @Test
@@ -181,7 +219,9 @@ class UserManagementServiceTests {
         when(repository.deleteUser("target")).thenReturn(0);
 
         assertThatThrownBy(() -> service.deleteUser("target", "admin", "ROLE_ADMIN"))
-                .isInstanceOf(BwgBusinessException.class);
+                .isInstanceOf(BwgAuthException.class)
+                .extracting("code")
+                .isEqualTo(CommonErrorCode.DB_SAVE_DATA_ERROR);
 
         InOrder order = inOrder(repository, sessionContextService);
         order.verify(repository).existsUser("target");
