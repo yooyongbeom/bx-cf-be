@@ -33,6 +33,29 @@ public final class BusinessValidator {
         return requireNonNull(request == null ? null : request.getData(), "data");
     }
 
+    /**
+     * DB 변경 SQL의 실제 반영 건수가 업무 흐름에서 기대한 건수와 같은지 확인한다.
+     *
+     * @param actualRows 실제 DB 반영 건수
+     * @param expectedRows 기대하는 DB 반영 건수
+     * @param operation 반영 건수를 확인할 저장소 작업명
+     * @throws BwgBusinessException 실제 반영 건수와 기대 건수가 다른 경우
+     */
+    public static void requireAffectedRows(int actualRows, int expectedRows, String operation) {
+        // 예상과 다른 일부 반영을 성공으로 처리하지 않도록 공통 서버 오류를 발생시킨다.
+        if (actualRows != expectedRows) {
+            throw new BwgBusinessException.Builder()
+                    .code(BusinessErrorCode.SERVER_ERROR)
+                    .message(BusinessErrorCode.SERVER_ERROR.getMsg())
+                    .details(Map.of(
+                            "operation", operation,
+                            "expectedRows", expectedRows,
+                            "actualRows", actualRows
+                    ))
+                    .build();
+        }
+    }
+
     public static <T> T requireNonNull(T value, String fieldName) {
         if (value == null) {
             throw requiredValueMissing(fieldName);

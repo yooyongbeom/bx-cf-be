@@ -131,16 +131,17 @@ class CommonCodeServiceTests {
         when(commonCodeRepository.findCommonCodeGroupDetail("USE_YN")).thenReturn(group);
         when(commonCodeRepository.findCommonCodeDetails("USE_YN")).thenReturn(List.of(code));
 
-        ApiResponse<List<CommonCodeGroupDetailResDto>> response =
+        ApiResponse<CommonCodeGroupDetailResDto> response =
                 commonCodeService.getCommonCodeGroupDetail(" USE_YN ");
 
         assertThat(response.isSuccess()).isTrue();
-        assertThat(response.getPayload()).singleElement()
+        assertThat(response.getPayload())
                 .satisfies(result -> {
                     assertThat(result.getGroupCd()).isEqualTo("USE_YN");
                     assertThat(result.getCodes()).extracting(CommonCodeResDto::getCode)
                             .containsExactly("Y");
                 });
+        assertThat(response.getPagination()).isNull();
     }
 
     @Test

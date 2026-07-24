@@ -68,7 +68,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
             String userId
     ) {
         // 그룹과 상세코드 시스템 필드에는 Gateway가 검증한 사용자만 사용한다.
-        String changedBy = requireUserId(userId);
+        String changedBy = BusinessValidator.requireNonBlank(userId, "userId");
         CommonCodeCreateReqDto data = BusinessValidator.requireData(paramDto);
         // 데이터 변경 전에 그룹과 전체 상세코드 목록을 검증한다.
         data.setGroupCd(BusinessValidator.requireNonBlank(data.getGroupCd(), "groupCd"));
@@ -76,13 +76,13 @@ public class CommonCodeServiceImpl implements CommonCodeService {
         List<CommonCodeReqDto> codes = validateCommonCodes(data.getCodes());
 
         // 그룹을 먼저 등록하고 목록이 있을 때만 동일 트랜잭션에서 상세코드를 등록한다.
-        requireAffectedRows(
+        BusinessValidator.requireAffectedRows(
                 commonCodeRepository.insertCommonCodeGroup(paramDto, changedBy),
                 1,
                 "insertCommonCodeGroup"
         );
         if (!codes.isEmpty()) {
-            requireAffectedRows(
+            BusinessValidator.requireAffectedRows(
                     commonCodeRepository.insertCommonCodes(data.getGroupCd(), codes, changedBy),
                     codes.size(),
                     "insertCommonCodes"
@@ -106,46 +106,42 @@ public class CommonCodeServiceImpl implements CommonCodeService {
      */
     @Override
     public ApiResponse<List<CommonCodeGroupDetailResDto>> getCommonCodeGroupDetails() {
-        // groupCd가 없는 내부 조회 흐름은 전체 그룹과 상세코드를 반환한다.
-        return getCommonCodeGroupDetailsByGroupCd(null);
+        List<CommonCodeGroupDetailResDto> groups = commonCodeRepository.findCommonCodeGroupDetails();
+        // 전체 상세코드를 그룹별로 결합한 뒤 목록 응답에만 페이지 정보를 포함한다.
+        attachCommonCodeDetails(groups, null);
+        return ApiResponse.success(groups, PageUtil.singlePage(groups));
     }
 
     /**
      * 지정한 그룹과 해당 그룹에 속한 상세코드를 함께 조회한다.
      *
      * @param groupCd 조회할 공통코드 그룹 코드
-     * @return 요청 그룹 한 건을 배열 형태로 포함한 응답
+     * @return 요청 그룹 한 건을 object 형태로 포함한 응답
      * @throws BwgBusinessException 그룹 코드가 비어 있거나 대상 그룹이 존재하지 않는 경우
      */
     @Override
-    public ApiResponse<List<CommonCodeGroupDetailResDto>> getCommonCodeGroupDetail(String groupCd) {
-        // 경로의 그룹 코드를 검증한 뒤 기존 그룹별 조회 흐름을 재사용한다.
-        return getCommonCodeGroupDetailsByGroupCd(
-                BusinessValidator.requireNonBlank(groupCd, "groupCd")
+    public ApiResponse<CommonCodeGroupDetailResDto> getCommonCodeGroupDetail(String groupCd) {
+        String requiredGroupCd = BusinessValidator.requireNonBlank(groupCd, "groupCd");
+        CommonCodeGroupDetailResDto group = BusinessValidator.requireFound(
+                commonCodeRepository.findCommonCodeGroupDetail(requiredGroupCd),
+                "commonCodeGroup"
         );
+        // 단건 상세의 내부 codes만 배열로 조립하고 payload 자체는 그룹 object로 유지한다.
+        attachCommonCodeDetails(List.of(group), requiredGroupCd);
+        return ApiResponse.success(group);
     }
 
     /**
-     * 전체 또는 단일 그룹 조회 결과에 그룹별 상세코드 목록을 결합한다.
+     * 조회된 그룹에 그룹별 상세코드 목록을 결합한다.
      *
-     * <p>{@code groupCd}가 {@code null}이면 전체 그룹을 조회하고, 값이 있으면 해당 그룹만
-     * 조회한다. 단일 그룹도 목록 API와 동일한 응답 구조를 유지하기 위해 배열로 반환한다.</p>
-     *
-     * @param groupCd 조회할 그룹 코드, 전체 조회 시 {@code null}
-     * @return 그룹별 상세코드가 조립된 목록 응답
-     * @throws BwgBusinessException 지정한 그룹이 존재하지 않는 경우
+     * @param groups 상세코드를 결합할 그룹 목록
+     * @param groupCd 조회할 그룹 코드, 전체 상세코드 조회 시 {@code null}
      */
-    private ApiResponse<List<CommonCodeGroupDetailResDto>> getCommonCodeGroupDetailsByGroupCd(
+    private void attachCommonCodeDetails(
+            List<CommonCodeGroupDetailResDto> groups,
             String groupCd
     ) {
-        // groupCd가 없으면 전체 그룹을, 있으면 존재하는 단일 그룹을 배열 형태로 조회한다.
-        List<CommonCodeGroupDetailResDto> groups = groupCd == null
-                ? commonCodeRepository.findCommonCodeGroupDetails()
-                : List.of(BusinessValidator.requireFound(
-                        commonCodeRepository.findCommonCodeGroupDetail(groupCd),
-                        "commonCodeGroup"
-                ));
-        // 그룹별 하위 공통코드를 묶어 payload를 항상 배열 형태로 조립한다.
+        // 전체 또는 지정 그룹의 상세코드를 그룹 코드 기준으로 묶어 응답 DTO에 연결한다.
         Map<String, List<CommonCodeResDto>> codesByGroupCd = commonCodeRepository
                 .findCommonCodeDetails(groupCd)
                 .stream()
@@ -155,7 +151,6 @@ public class CommonCodeServiceImpl implements CommonCodeService {
                         Collectors.toList()
                 ));
         groups.forEach(group -> group.setCodes(codesByGroupCd.getOrDefault(group.getGroupCd(), List.of())));
-        return ApiResponse.success(groups, PageUtil.singlePage(groups));
     }
 
     /**
@@ -178,7 +173,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
             String userId
     ) {
         // 그룹 수정, 코드 교체, 변경 이력에 동일한 검증 사용자를 적용한다.
-        String changedBy = requireUserId(userId);
+        String changedBy = BusinessValidator.requireNonBlank(userId, "userId");
         // 경로의 그룹 코드를 먼저 정규화하고 실제 존재하는 공통코드 그룹인지 확인한다.
         String requiredGroupCd = BusinessValidator.requireNonBlank(groupCd, "groupCd");
         BusinessValidator.requireFound(
@@ -192,14 +187,14 @@ public class CommonCodeServiceImpl implements CommonCodeService {
         List<CommonCodeReqDto> codes = validateCommonCodes(data.getCodes());
 
         // 검증 완료 후 그룹을 수정하고 기존 코드 목록을 새 항목으로 원자적으로 교체한다.
-        requireAffectedRows(
+        BusinessValidator.requireAffectedRows(
                 commonCodeRepository.updateCommonCodeGroup(requiredGroupCd, paramDto, changedBy),
                 1,
                 "updateCommonCodeGroup"
         );
         commonCodeRepository.deleteCommonCodesByGroupCd(requiredGroupCd);
         if (!codes.isEmpty()) {
-            requireAffectedRows(
+            BusinessValidator.requireAffectedRows(
                     commonCodeRepository.insertCommonCodes(requiredGroupCd, codes, changedBy),
                     codes.size(),
                     "insertCommonCodes"
@@ -230,7 +225,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
     @Transactional(transactionManager = "mybatisMainTransactionManager")
     public ApiResponse<Void> deleteCommonCodes(String groupCd, String userId) {
         // 그룹과 상세코드 삭제 및 변경 이력에는 검증된 사용자만 사용한다.
-        String changedBy = requireUserId(userId);
+        String changedBy = BusinessValidator.requireNonBlank(userId, "userId");
         String requiredGroupCd = BusinessValidator.requireNonBlank(groupCd, "groupCd");
         BusinessValidator.requireFound(
                 commonCodeRepository.findCommonCodeGroupDetail(requiredGroupCd),
@@ -239,7 +234,7 @@ public class CommonCodeServiceImpl implements CommonCodeService {
 
         // 외래키 관계를 고려해 상세코드를 먼저 삭제한 뒤 그룹과 버전을 변경한다.
         commonCodeRepository.deleteCommonCodesByGroupCd(requiredGroupCd);
-        requireAffectedRows(
+        BusinessValidator.requireAffectedRows(
                 commonCodeRepository.deleteCommonCodeGroup(requiredGroupCd),
                 1,
                 "deleteCommonCodeGroup"
@@ -293,41 +288,6 @@ public class CommonCodeServiceImpl implements CommonCodeService {
             }
         }
         return codes;
-    }
-
-    /**
-     * DB 변경 SQL의 실제 반영 건수가 업무 흐름에서 기대한 건수와 같은지 확인한다.
-     *
-     * @param actualRows 실제 DB 반영 건수
-     * @param expectedRows 기대하는 DB 반영 건수
-     * @param operation 반영 건수를 확인할 저장소 작업명
-     * @throws BwgBusinessException 실제 반영 건수와 기대 건수가 다른 경우
-     */
-    private void requireAffectedRows(int actualRows, int expectedRows, String operation) {
-        // DB 변경 건수가 예상과 다르면 성공 응답을 만들지 않고 전체 트랜잭션을 롤백한다.
-        if (actualRows != expectedRows) {
-            throw new BwgBusinessException.Builder()
-                    .code(BusinessErrorCode.SERVER_ERROR)
-                    .message(BusinessErrorCode.SERVER_ERROR.getMsg())
-                    .details(Map.of(
-                            "operation", operation,
-                            "expectedRows", expectedRows,
-                            "actualRows", actualRows
-                    ))
-                    .build();
-        }
-    }
-
-    /**
-     * Gateway가 검증해 전달한 사용자 ID를 필수값으로 확인하고 정규화한다.
-     *
-     * @param userId Gateway의 {@code X-Auth-User} 헤더에서 전달된 사용자 ID
-     * @return 공백이 제거된 사용자 ID
-     * @throws BwgBusinessException 사용자 ID가 없거나 공백인 경우
-     */
-    private String requireUserId(String userId) {
-        // 내부 헤더 누락 시 시스템 사용자 필드를 비워 저장하지 않고 요청을 즉시 거부한다.
-        return BusinessValidator.requireNonBlank(userId, "userId");
     }
 
 }

@@ -4,6 +4,7 @@ import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.securitycommon.constants.InternalAuthHeaders;
 import com.bwg.channel.backend.systemsvc.commoncode.controller.CommonCodeController;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeCreateReqDto;
+import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeGroupDetailResDto;
 import com.bwg.channel.backend.systemsvc.commoncode.dto.CommonCodeReplaceReqDto;
 import com.bwg.channel.backend.systemsvc.menu.controller.MenuController;
 import com.bwg.channel.backend.systemsvc.menu.dto.MenuCreateReqDto;
@@ -121,6 +122,11 @@ class SystemControllerMappingTests {
         assertThat(mapping.value()).containsExactly("/{groupCd}/detail");
         assertThat(method.getParameters()[0].isAnnotationPresent(PathVariable.class)).isTrue();
         assertThat(method.getParameters()[0].isAnnotationPresent(RequestBody.class)).isFalse();
+
+        ParameterizedType responseType = (ParameterizedType) method.getGenericReturnType();
+        assertThat(responseType.getActualTypeArguments())
+                .as("단건 상세 조회 payload는 DTO object 타입이어야 한다")
+                .containsExactly(CommonCodeGroupDetailResDto.class);
     }
 
     @Test

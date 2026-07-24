@@ -74,7 +74,7 @@ public class MenuServiceImpl implements MenuService {
     public ApiResponse<Void> createMenu(ApiRequest<MenuCreateReqDto> paramDto, String userId) {
         // 요청 본문 데이터 필수 여부 검증
         MenuCreateReqDto data = BusinessValidator.requireData(paramDto);
-        String changedBy = requireActor(userId);
+        String changedBy = BusinessValidator.requireNonBlank(userId, "userId");
         // 등록 필수값 검증
         data.setMenuCd(BusinessValidator.requireNonBlank(data.getMenuCd(), "menuCd"));
         data.setMenuNm(BusinessValidator.requireNonBlank(data.getMenuNm(), "menuNm"));
@@ -108,7 +108,7 @@ public class MenuServiceImpl implements MenuService {
     public ApiResponse<Void> updateMenu(Long menuId, ApiRequest<MenuUpdateReqDto> paramDto, String userId) {
         // 요청 본문 데이터 필수 여부 검증
         MenuUpdateReqDto data = BusinessValidator.requireData(paramDto);
-        String changedBy = requireActor(userId);
+        String changedBy = BusinessValidator.requireNonBlank(userId, "userId");
         // 경로 변수와 수정 필수값 검증
         Long requiredMenuId = BusinessValidator.requireNonNull(menuId, "menuId");
         data.setMenuNm(BusinessValidator.requireNonBlank(data.getMenuNm(), "menuNm"));
@@ -141,7 +141,7 @@ public class MenuServiceImpl implements MenuService {
     public ApiResponse<Void> deleteMenu(Long menuId, String userId) {
         // 삭제 대상과 작업자 필수값 검증
         Long requiredMenuId = BusinessValidator.requireNonNull(menuId, "menuId");
-        String changedBy = requireActor(userId);
+        String changedBy = BusinessValidator.requireNonBlank(userId, "userId");
         // 루트 메뉴와 모든 하위 메뉴 ID를 한 번에 조회하고 미존재 여부 검증
         List<Long> menuIds = menuRepository.findMenuHierarchyIds(requiredMenuId);
         List<Long> requiredMenuIds = BusinessValidator.requireFound(
@@ -211,7 +211,7 @@ public class MenuServiceImpl implements MenuService {
         // 역할 ID와 요청 본문 데이터 필수 여부 검증
         Long requiredRoleId = BusinessValidator.requireNonNull(roleId, "roleId");
         RoleMenuSaveReqDto data = BusinessValidator.requireData(paramDto);
-        String changedBy = requireActor(userId);
+        String changedBy = BusinessValidator.requireNonBlank(userId, "userId");
         // 기존 역할별 메뉴 권한 삭제
         menuRepository.deleteRoleMenus(requiredRoleId);
         // 요청된 메뉴 ID 기준으로 역할별 메뉴 권한 재등록
@@ -227,19 +227,6 @@ public class MenuServiceImpl implements MenuService {
                 changedBy
         );
         return ApiResponse.success(null);
-    }
-
-    /**
-     * Gateway가 전달한 인증 사용자 ID를 필수값으로 확인하고 정규화한다.
-     *
-     * @param userId Gateway의 {@code X-Auth-User} 헤더에서 전달된 사용자 ID
-     * @return 공백이 제거된 사용자 ID
-     * @throws com.bwg.channel.backend.businesscommon.exception.BwgBusinessException
-     *         사용자 ID가 없거나 공백인 경우
-     */
-    private String requireActor(String userId) {
-        // Gateway가 전달한 인증 사용자 ID 검증
-        return BusinessValidator.requireNonBlank(userId, "userId");
     }
 
 }

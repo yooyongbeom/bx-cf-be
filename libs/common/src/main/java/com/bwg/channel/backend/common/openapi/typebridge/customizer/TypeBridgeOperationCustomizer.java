@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 각 API 오퍼레이션의 requestBody 및 200 response 스키마 참조를 엔드포인트별 named 스키마로 교체한다.
@@ -52,8 +51,8 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
             if (apiDto.type() == ApiType.RESPONSE) continue;   // 응답 전용 DTO는 요청 바디로 쓰지 않음
             if (!Arrays.asList(apiDto.endpoints()).contains(endpointId)) continue;
 
-            String baseName = resolveBaseName(paramType, apiDto);
-            String schemaName = baseName + toPascalCase(endpointId) + "Request";
+            String baseName = TypeBridgeSupport.resolveBaseName(paramType, apiDto);
+            String schemaName = baseName + TypeBridgeSupport.toPascalCase(endpointId) + "Request";
             replaceContentSchema(operation.getRequestBody() != null
                     ? operation.getRequestBody().getContent()
                     : null, schemaName, buildApiRequestExample(paramType, endpointId));
@@ -87,10 +86,11 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
         if (apiDto.type() == ApiType.RESPONSE) {
             // 신규: 엔드포인트별 응답 스키마 (해당 엔드포인트가 등록돼 있어야 교체)
             if (!Arrays.asList(apiDto.endpoints()).contains(endpointId)) return;
-            responseName = resolveBaseName(typeArg, apiDto) + toPascalCase(endpointId) + "Response";
+            responseName = TypeBridgeSupport.resolveBaseName(typeArg, apiDto)
+                    + TypeBridgeSupport.toPascalCase(endpointId) + "Response";
         } else if (apiDto.type() == ApiType.LEGACY) {
             if (!apiDto.generateResponse()) return;
-            responseName = resolveBaseName(typeArg, apiDto) + "Response";
+            responseName = TypeBridgeSupport.resolveBaseName(typeArg, apiDto) + "Response";
         } else {
             return;   // REQUEST 타입이 반환 타입인 경우는 무시
         }
@@ -163,7 +163,7 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
      */
     private Map<String, Object> buildDtoExample(Class<?> dataType, String endpoint) {
         Map<String, Object> data = new LinkedHashMap<>();
-        Arrays.stream(dataType.getDeclaredFields()).forEach(field -> {
+        TypeBridgeSupport.getAllFields(dataType).forEach(field -> {
             var apiField = field.getAnnotation(com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField.class);
             if (apiField == null || apiField.hidden() || apiField.responseOnly()) return;
             if (Arrays.asList(apiField.exclude()).contains(endpoint)) return;
@@ -194,7 +194,7 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
             if (genericType instanceof ParameterizedType parameterizedType) {
                 Type itemType = parameterizedType.getActualTypeArguments()[0];
                 if (itemType instanceof Class<?> itemClass) {
-                    return List.of(hasApiFields(itemClass)
+                    return List.of(TypeBridgeSupport.hasApiFields(itemClass)
                             ? buildDtoExample(itemClass, endpoint)
                             : defaultExample(itemClass));
                 }
@@ -202,22 +202,10 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
             return List.of("string");
         }
 
-        if (hasApiFields(field.getType())) {
+        if (TypeBridgeSupport.hasApiFields(field.getType())) {
             return buildDtoExample(field.getType(), endpoint);
         }
         return defaultExample(field.getType());
-    }
-
-    /**
-     * 타입이 {@code @ApiField} 기반 중첩 DTO인지 확인한다.
-     *
-     * @param type 확인할 타입
-     * @return 문서화 대상 필드가 하나 이상이면 {@code true}
-     */
-    private boolean hasApiFields(Class<?> type) {
-        return Arrays.stream(type.getDeclaredFields())
-                .anyMatch(field -> field.getAnnotation(
-                        com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField.class) != null);
     }
 
     private Object defaultExample(Class<?> type) {
@@ -291,15 +279,4 @@ public class TypeBridgeOperationCustomizer implements OperationCustomizer {
         return segment.startsWith("{") && segment.endsWith("}");
     }
 
-    private String resolveBaseName(Class<?> clazz, ApiDto apiDto) {
-        return apiDto.name().isEmpty()
-                ? clazz.getSimpleName().replaceAll("(Req|Res|Request|Response)?Dto$", "")
-                : apiDto.name();
-    }
-
-    private String toPascalCase(String hyphenated) {
-        return Arrays.stream(hyphenated.split("[-_]"))
-                .map(w -> Character.toUpperCase(w.charAt(0)) + w.substring(1))
-                .collect(Collectors.joining());
-    }
 }

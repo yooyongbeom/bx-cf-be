@@ -69,7 +69,7 @@ public class CommonCodeController {
             description = "경로의 groupCd에 해당하는 그룹과 상세코드 목록을 조회한다."
     )
     @PostMapping("/{groupCd}/detail")
-    public ApiResponse<List<CommonCodeGroupDetailResDto>> getCommonCodeGroupDetail(
+    public ApiResponse<CommonCodeGroupDetailResDto> getCommonCodeGroupDetail(
             @PathVariable String groupCd
     ) {
         // 경로의 그룹 코드에 해당하는 그룹과 상세코드 조회를 서비스에 위임한다.

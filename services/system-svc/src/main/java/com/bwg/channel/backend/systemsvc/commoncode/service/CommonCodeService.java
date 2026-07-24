@@ -43,9 +43,9 @@ public interface CommonCodeService {
      * 그룹 코드에 해당하는 그룹 정보와 하위 상세코드를 조회한다.
      *
      * @param groupCd 조회할 공통코드 그룹 코드
-     * @return 요청 그룹 한 건을 배열 형태로 포함한 응답
+     * @return 요청 그룹 한 건을 object 형태로 포함한 응답
      */
-    ApiResponse<List<CommonCodeGroupDetailResDto>> getCommonCodeGroupDetail(String groupCd);
+    ApiResponse<CommonCodeGroupDetailResDto> getCommonCodeGroupDetail(String groupCd);
 
     /**
      * 공통코드 그룹 정보를 수정하고 기존 상세코드 전체를 요청 목록으로 교체한다.

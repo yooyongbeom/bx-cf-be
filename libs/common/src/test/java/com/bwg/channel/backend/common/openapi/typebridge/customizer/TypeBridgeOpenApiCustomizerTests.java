@@ -2,6 +2,9 @@ package com.bwg.channel.backend.common.openapi.typebridge.customizer;
 
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
 import com.bwg.channel.backend.common.openapi.customizer.ResponseWrapperSchemaCustomizer;
+import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiDto;
+import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiField;
+import com.bwg.channel.backend.common.openapi.typebridge.annotation.ApiType;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.ArraySchema;
@@ -323,6 +326,28 @@ class TypeBridgeOpenApiCustomizerTests {
     }
 
     @Test
+    void operationCustomizerIncludesInheritedFieldsInRequestExample() throws NoSuchMethodException {
+        TypeBridgeOperationCustomizer customizer = new TypeBridgeOperationCustomizer();
+        Operation operation = new Operation()
+                .requestBody(new RequestBody().content(new Content().addMediaType("application/json", new MediaType()
+                        .schema(new Schema<>().$ref("#/components/schemas/ApiRequestInheritedReqDto")))));
+        HandlerMethod handlerMethod = new HandlerMethod(
+                new InheritedReqController(),
+                InheritedReqController.class.getDeclaredMethod("create", ApiRequest.class));
+
+        customizer.customize(operation, handlerMethod);
+
+        MediaType mediaType = operation.getRequestBody().getContent().get("application/json");
+        assertThat(mediaType.getSchema().get$ref()).isEqualTo("#/components/schemas/InheritedCreateRequest");
+        assertThat(mediaType.getExample()).isEqualTo(Map.of(
+                "data", Map.of(
+                        "baseValue", "base-value",
+                        "childValue", "child-value"
+                )
+        ));
+    }
+
+    @Test
     void responseWrapperCleanupHidesUnreferencedRawAndCommonSchemas() {
         OpenAPI openApi = new OpenAPI();
         openApi.schema("ApiRequestWrappedReqDto", new Schema<>().type("object"));
@@ -378,6 +403,25 @@ class TypeBridgeOpenApiCustomizerTests {
         @PostMapping("/create")
         void create(@org.springframework.web.bind.annotation.RequestBody ApiRequest<CollectionReqDto> req) {
         }
+    }
+
+    static class InheritedReqController {
+        @PostMapping("/create")
+        void create(@org.springframework.web.bind.annotation.RequestBody ApiRequest<InheritedReqDto> req) {
+        }
+    }
+
+    static class InheritedBaseReqDto {
+
+        @ApiField(description = "공통 값", example = "base-value", required = {"create"})
+        private String baseValue;
+    }
+
+    @ApiDto(type = ApiType.REQUEST, name = "Inherited", endpoints = {"create"})
+    static class InheritedReqDto extends InheritedBaseReqDto {
+
+        @ApiField(description = "상세 값", example = "child-value", required = {"create"})
+        private String childValue;
     }
 
     static class NestedController {

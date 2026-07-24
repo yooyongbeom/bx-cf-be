@@ -23,6 +23,9 @@
 - 목록 조회 API는 조회 대상 자체의 키를 URL 경로 매개변수로 사용하지 않고 마지막 endpoint를 `list`로 한다. 다만, 마스터에 종속된 상세 목록은 조회 범위를 특정하기 위해 마스터 키를 URL 경로 매개변수로 포함한다. 예: `/groups/{groupCd}/codes/list`
 - 상세 조회 API는 키를 URL 경로 매개변수로 포함하고 마지막 endpoint를 `detail`로 한다.
 - 마스터·디테일 관계의 데이터를 함께 처리하는 API는 앞쪽 리소스 path를 생략한다. 예를 들어 공통코드의 그룹코드와 상세코드를 함께 처리하는 등록 API는 `/groups/create`가 아니라 `/create`로 한다.
+- 단건 조회 응답의 `payload`는 JSON object로 제공하고, 목록 또는 복수 건 조회 응답의 `payload`는 JSON array로 제공한다.
+- 단건 응답 DTO 내부에는 업무상 필요한 배열 필드를 포함할 수 있지만, 단건 DTO 자체를 `List`로 감싸 `payload`를 배열로 만들지 않는다.
+- 컨트롤러와 서비스의 `ApiResponse<T>` 제네릭 타입은 실제 `payload`의 단건·목록 구조와 일치시켜야 하며, 캐스팅으로 응답 구조를 우회하지 않는다.
 
 ## 시스템 필드 처리
 

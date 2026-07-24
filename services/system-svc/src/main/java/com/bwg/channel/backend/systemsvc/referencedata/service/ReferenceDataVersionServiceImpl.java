@@ -1,6 +1,5 @@
 package com.bwg.channel.backend.systemsvc.referencedata.service;
 
-import com.bwg.channel.backend.businesscommon.constants.BusinessErrorCode;
 import com.bwg.channel.backend.businesscommon.exception.BwgBusinessException;
 import com.bwg.channel.backend.businesscommon.validation.BusinessValidator;
 import com.bwg.channel.backend.common.domain.dto.ApiRequest;
@@ -15,7 +14,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 기준정보 최신 버전 조회와 변경 이력 기록을 담당하는 서비스 구현체.
@@ -83,7 +81,7 @@ public class ReferenceDataVersionServiceImpl implements ReferenceDataVersionServ
             String changedBy
     ) {
         // 이력을 먼저 기록해 변경 전후 버전을 보존한 뒤 최신 버전을 같은 트랜잭션에서 갱신한다.
-        requireAffectedRows(
+        BusinessValidator.requireAffectedRows(
                 referenceDataVersionRepository.insertReferenceDataVersionHistory(
                         refType,
                         changeType,
@@ -95,7 +93,7 @@ public class ReferenceDataVersionServiceImpl implements ReferenceDataVersionServ
                 1,
                 "insertReferenceDataVersionHistory"
         );
-        requireAffectedRows(
+        BusinessValidator.requireAffectedRows(
                 referenceDataVersionRepository.updateReferenceDataVersion(
                         refType,
                         changeSummary,
@@ -115,29 +113,6 @@ public class ReferenceDataVersionServiceImpl implements ReferenceDataVersionServ
     private boolean isAllRefType(String refType) {
         // ALL은 전체 기준정보 최신 버전 조회를 나타내는 예약 refType이다.
         return ALL_REF_TYPE.equalsIgnoreCase(refType);
-    }
-
-    /**
-     * 기준정보 버전 SQL의 실제 반영 건수가 기대한 건수와 같은지 확인한다.
-     *
-     * @param actualRows 실제 DB 반영 건수
-     * @param expectedRows 기대하는 DB 반영 건수
-     * @param operation 반영 건수를 확인할 저장소 작업명
-     * @throws BwgBusinessException 실제 반영 건수와 기대 건수가 다른 경우
-     */
-    private void requireAffectedRows(int actualRows, int expectedRows, String operation) {
-        // 일부 SQL만 반영된 성공 응답을 방지하고 호출한 업무 트랜잭션 전체를 롤백한다.
-        if (actualRows != expectedRows) {
-            throw new BwgBusinessException.Builder()
-                    .code(BusinessErrorCode.SERVER_ERROR)
-                    .message(BusinessErrorCode.SERVER_ERROR.getMsg())
-                    .details(Map.of(
-                            "operation", operation,
-                            "expectedRows", expectedRows,
-                            "actualRows", actualRows
-                    ))
-                    .build();
-        }
     }
 
 }

@@ -23,7 +23,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @ApiDto / @ApiField 어노테이션을 스캔하여 엔드포인트별 OpenAPI 스키마를 생성한다.
@@ -61,27 +60,27 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
 
         for (Class<?> clazz : dtoClasses) {
             ApiDto apiDto = clazz.getAnnotation(ApiDto.class);
-            String baseName = resolveBaseName(clazz, apiDto);
+            String baseName = TypeBridgeSupport.resolveBaseName(clazz, apiDto);
 
             switch (apiDto.type()) {
                 // 신규: 요청 전용 DTO → 엔드포인트별 Request 스키마
                 case REQUEST -> {
                     for (String endpoint : apiDto.endpoints()) {
-                        components.getSchemas().put(baseName + toPascalCase(endpoint) + "Request",
+                        components.getSchemas().put(baseName + TypeBridgeSupport.toPascalCase(endpoint) + "Request",
                                 buildApiRequestSchema(clazz, endpoint));
                     }
                 }
                 // 신규: 응답 전용 DTO → 엔드포인트별 Response 스키마 (필수/노출 엔드포인트별 제어)
                 case RESPONSE -> {
                     for (String endpoint : apiDto.endpoints()) {
-                        components.getSchemas().put(baseName + toPascalCase(endpoint) + "Response",
+                        components.getSchemas().put(baseName + TypeBridgeSupport.toPascalCase(endpoint) + "Response",
                                 buildEndpointSchema(clazz, endpoint));
                     }
                 }
                 // 하위호환: 하나의 DTO가 요청/응답 겸용
                 case LEGACY -> {
                     for (String endpoint : apiDto.endpoints()) {
-                        components.getSchemas().put(baseName + toPascalCase(endpoint) + "Request",
+                        components.getSchemas().put(baseName + TypeBridgeSupport.toPascalCase(endpoint) + "Request",
                                 buildRequestSchema(clazz, endpoint));
                     }
                     if (apiDto.generateResponse()) {
@@ -104,7 +103,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
         Map<String, Schema> properties = new LinkedHashMap<>();
         List<String> requiredList = new ArrayList<>();
 
-        for (Field field : getAllFields(ApiRequest.class)) {
+        for (Field field : TypeBridgeSupport.getAllFields(ApiRequest.class)) {
             ApiField af = field.getAnnotation(ApiField.class);
             if (af == null || af.hidden()) continue;
 
@@ -143,7 +142,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
         Map<String, Schema> properties = new LinkedHashMap<>();
         List<String> requiredList = new ArrayList<>();
 
-        for (Field field : getAllFields(clazz)) {
+        for (Field field : TypeBridgeSupport.getAllFields(clazz)) {
             ApiField af = field.getAnnotation(ApiField.class);
             if (af == null || af.hidden()) continue;
             // LEGACY DTO는 요청/응답 겸용이므로 responseOnly 필드는 요청 스키마에서 제외한다.
@@ -176,7 +175,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
         Map<String, Schema> properties = new LinkedHashMap<>();
         List<String> requiredList = new ArrayList<>();
 
-        for (Field field : getAllFields(clazz)) {
+        for (Field field : TypeBridgeSupport.getAllFields(clazz)) {
             ApiField af = field.getAnnotation(ApiField.class);
             if (af == null || af.hidden()) continue;
             if (Arrays.asList(af.exclude()).contains(endpoint)) continue;
@@ -201,7 +200,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
 
         Map<String, Schema> properties = new LinkedHashMap<>();
         // LEGACY 응답은 엔드포인트별 분기 없이 response 컨텍스트 기준의 단일 스키마를 만든다.
-        for (Field field : getAllFields(clazz)) {
+        for (Field field : TypeBridgeSupport.getAllFields(clazz)) {
             ApiField af = field.getAnnotation(ApiField.class);
             if (af == null || af.hidden()) continue;
             if (Arrays.asList(af.exclude()).contains("response")) continue;
@@ -229,7 +228,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
             if (!apiDto.generateResponse()) continue;
 
             String dtoName      = clazz.getSimpleName();
-            String baseName     = resolveBaseName(clazz, apiDto);
+            String baseName     = TypeBridgeSupport.resolveBaseName(clazz, apiDto);
             String responseName = baseName + "Response";
 
             // dtoName을 포함하는 래퍼 스키마 탐색 (예: "ApiResponse«XxxDto»")
@@ -322,7 +321,7 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
     }
 
     private Schema<?> fieldSchemaForClass(Class<?> type, ApiField af, String endpoint) {
-        if (hasApiFields(type)) {
+        if (TypeBridgeSupport.hasApiFields(type)) {
             // 중첩 DTO도 같은 엔드포인트 규칙(required/optional/exclude)을 적용해 인라인 스키마로 만든다.
             return buildEndpointSchema(type, endpoint);
         }
@@ -354,10 +353,6 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
             s.setType("string");
         }
         return s;
-    }
-
-    private boolean hasApiFields(Class<?> type) {
-        return getAllFields(type).stream().anyMatch(field -> field.getAnnotation(ApiField.class) != null);
     }
 
     @SuppressWarnings("unchecked")
@@ -403,27 +398,4 @@ public class TypeBridgeOpenApiCustomizer implements GlobalOpenApiCustomizer {
         return result;
     }
 
-    private String resolveBaseName(Class<?> clazz, ApiDto apiDto) {
-        return apiDto.name().isEmpty()
-                ? clazz.getSimpleName().replaceAll("(Req|Res|Request|Response)?Dto$", "")
-                : apiDto.name();
-    }
-
-    private List<Field> getAllFields(Class<?> clazz) {
-        List<Field> fields = new ArrayList<>();
-        Class<?> current = clazz;
-        while (current != null && current != Object.class) {
-            // 부모 필드를 앞에 두어 상속 DTO도 선언 순서에 가깝게 문서화한다.
-            fields.addAll(0, Arrays.asList(current.getDeclaredFields()));
-            current = current.getSuperclass();
-        }
-        return fields;
-    }
-
-    private String toPascalCase(String hyphenated) {
-        // endpoint id(login-user, login_user)를 스키마 이름 조각(LoginUser)으로 변환한다.
-        return Arrays.stream(hyphenated.split("[-_]"))
-                .map(w -> Character.toUpperCase(w.charAt(0)) + w.substring(1))
-                .collect(Collectors.joining());
-    }
 }
