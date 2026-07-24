@@ -74,24 +74,39 @@ public class DefaultSessionContextService implements SessionContextService {
     }
 
     /**
-     * 사용자별 신규 세션 생성 차단을 저장소에 위임한다.
+     * 삭제 작업 토큰 기반 세션 생성 차단 획득을 저장소에 위임한다.
      *
      * @param userId 신규 세션 발급을 차단할 사용자 ID
+     * @param operationId tombstone 소유권을 식별하는 삭제 작업 토큰
+     * @return 이 작업이 tombstone을 새로 획득했으면 {@code true}
      */
     @Override
-    public void blockSessionCreation(String userId) {
-        // tombstone의 Redis 저장 방식은 저장소 구현체가 소유한다.
-        sessionContextRepository.blockSessionCreation(userId);
+    public boolean blockSessionCreation(String userId, String operationId) {
+        // tombstone의 SET NX 저장 방식과 소유권 판정은 저장소 구현체가 소유한다.
+        return sessionContextRepository.blockSessionCreation(userId, operationId);
     }
 
     /**
-     * 사용자별 신규 세션 생성 차단 해제를 저장소에 위임한다.
+     * 삭제 작업 토큰 기반 세션 생성 차단 해제를 저장소에 위임한다.
      *
      * @param userId 신규 세션 발급 차단을 해제할 사용자 ID
+     * @param operationId tombstone을 획득한 삭제 작업 토큰
      */
     @Override
-    public void unblockSessionCreation(String userId) {
-        // 사용자 재등록 또는 실패 보상 시 저장소의 tombstone만 제거한다.
-        sessionContextRepository.unblockSessionCreation(userId);
+    public void unblockSessionCreation(String userId, String operationId) {
+        // 다른 삭제 작업의 tombstone을 지우지 않도록 소유자 토큰을 그대로 전달한다.
+        sessionContextRepository.unblockSessionCreation(userId, operationId);
+    }
+
+    /**
+     * 사용자별 세션 생성 차단 여부 조회를 저장소에 위임한다.
+     *
+     * @param userId 차단 여부를 조회할 사용자 ID
+     * @return tombstone이 존재하면 {@code true}
+     */
+    @Override
+    public boolean isSessionCreationBlocked(String userId) {
+        // marker 값은 불투명하게 유지하고 key 존재 여부만 업무 계층에 제공한다.
+        return sessionContextRepository.isSessionCreationBlocked(userId);
     }
 }

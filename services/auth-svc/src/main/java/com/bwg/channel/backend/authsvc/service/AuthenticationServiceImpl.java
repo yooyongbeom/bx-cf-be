@@ -71,7 +71,7 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
      * @throws BwgAuthException 저장소 유형이 유효하지 않거나 인증 처리에 실패한 경우
      */
     @Override
-    @Transactional
+    @Transactional(transactionManager = "mybatisMainTransactionManager")
     public ApiResponse<LoginResDto> login(ApiRequest<LoginReqDto> paramDto, String type) {
         log.info("current login type =====================> {}", type);
 
@@ -163,7 +163,7 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
      * @throws BwgAuthException refresh token이 유효하지 않거나 저장소 유형이 유효하지 않은 경우
      */
     @Override
-    @Transactional
+    @Transactional(transactionManager = "mybatisMainTransactionManager")
     public ApiResponse<LoginResDto> refreshToken(RefreshTknReqDto paramDto, String type) {
         // 쿠키로 전달된 refresh token 값
         String refreshToken = paramDto.getRefreshToken();
@@ -225,7 +225,7 @@ public class AuthenticationServiceImpl implements AuthenticationService, CustomU
      * @throws BwgAuthException 저장소 유형이 유효하지 않은 경우
      */
     @Override
-    @Transactional
+    @Transactional(transactionManager = "mybatisMainTransactionManager")
     public ApiResponse<Void> logout(String userId, String sessionId, String type) {
         // 로그인 type에 맞는 저장소 선택
         LoginRepository repo = getRepo(type);

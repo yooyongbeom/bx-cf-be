@@ -42,9 +42,9 @@ public class MybatisLoginRepositoryAdapter implements LoginRepository {
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "mybatisMainTransactionManager")
     public int updateRefreshToken(LoginResDto loginResDto) {
-        // 사용자 ID 기준 refresh token과 만료 일시 갱신
+        // 인증 서비스의 MyBatis 주 트랜잭션 경계 안에서 refresh token과 만료 일시를 갱신한다.
         int affectedRows = userMapper.updateRefreshToken(loginResDto);
         if (affectedRows == 0) {
             throw new BwgAuthException.Builder()

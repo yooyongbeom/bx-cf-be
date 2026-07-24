@@ -32,10 +32,21 @@ public class RedisSessionContextRepository implements SessionContextRepository {
             return 1
             """, Long.class);
 
-    /** TTL 없이 사용자별 세션 생성 차단 tombstone을 저장한다. */
+    /** 삭제 작업 토큰을 값으로 사용해 TTL 없는 tombstone을 최초 작업만 획득한다. */
     private static final RedisScript<Long> BLOCK_SESSION_CREATION_SCRIPT = RedisScript.of("""
-            redis.call('SET', KEYS[1], '1')
-            return 1
+            local acquired = redis.call('SET', KEYS[1], ARGV[1], 'NX')
+            if acquired then
+                return 1
+            end
+            return 0
+            """, Long.class);
+
+    /** 저장된 작업 토큰이 일치할 때만 tombstone을 원자적으로 제거한다. */
+    private static final RedisScript<Long> UNBLOCK_SESSION_CREATION_SCRIPT = RedisScript.of("""
+            if redis.call('GET', KEYS[1]) == ARGV[1] then
+                return redis.call('DEL', KEYS[1])
+            end
+            return 0
             """, Long.class);
 
     /** session:{sessionId} key에 SessionContext 값을 저장하는 RedisTemplate. */
@@ -103,17 +114,29 @@ public class RedisSessionContextRepository implements SessionContextRepository {
     }
 
     @Override
-    public void blockSessionCreation(String userId) {
-        // 삭제가 완료된 뒤에도 유지되도록 만료 기간 없는 tombstone을 먼저 저장한다.
-        redisTemplate.execute(
+    public boolean blockSessionCreation(String userId, String operationId) {
+        // SET NX로 기존 삭제 작업의 소유권을 덮어쓰지 않고 신규 획득 여부를 반환한다.
+        Long acquired = redisTemplate.execute(
                 BLOCK_SESSION_CREATION_SCRIPT,
-                List.of(SessionContextKeys.userSessionBlockKey(userId))
+                List.of(SessionContextKeys.userSessionBlockKey(userId)),
+                operationId
+        );
+        return Long.valueOf(1L).equals(acquired);
+    }
+
+    @Override
+    public void unblockSessionCreation(String userId, String operationId) {
+        // 비교와 삭제를 한 Lua 명령으로 실행해 다른 작업이 소유한 tombstone을 보존한다.
+        redisTemplate.execute(
+                UNBLOCK_SESSION_CREATION_SCRIPT,
+                List.of(SessionContextKeys.userSessionBlockKey(userId)),
+                operationId
         );
     }
 
     @Override
-    public void unblockSessionCreation(String userId) {
-        // 사용자 재등록 또는 삭제 실패 보상 시에만 해당 사용자의 tombstone을 제거한다.
-        redisTemplate.delete(SessionContextKeys.userSessionBlockKey(userId));
+    public boolean isSessionCreationBlocked(String userId) {
+        // marker 값은 삭제 작업 소유권에만 사용하므로 조회 시 역직렬화하지 않는다.
+        return Boolean.TRUE.equals(redisTemplate.hasKey(SessionContextKeys.userSessionBlockKey(userId)));
     }
 }

@@ -45,16 +45,27 @@ public interface SessionContextRepository {
     void deleteByUserId(String userId);
 
     /**
-     * 사용자별 신규 세션 생성을 지속적으로 차단하는 tombstone을 저장한다.
+     * 삭제 작업 토큰을 소유자로 하는 세션 생성 차단 tombstone을 최초 한 번만 저장한다.
      *
      * @param userId 신규 세션 발급을 차단할 사용자 ID
+     * @param operationId tombstone 소유권을 식별하는 삭제 작업 토큰
+     * @return 이 작업이 tombstone을 새로 획득했으면 {@code true}
      */
-    void blockSessionCreation(String userId);
+    boolean blockSessionCreation(String userId, String operationId);
 
     /**
-     * 사용자별 신규 세션 생성 차단 tombstone을 제거한다.
+     * 저장된 소유자 토큰이 일치할 때만 세션 생성 차단 tombstone을 제거한다.
      *
      * @param userId 신규 세션 발급 차단을 해제할 사용자 ID
+     * @param operationId tombstone을 획득한 삭제 작업 토큰
      */
-    void unblockSessionCreation(String userId);
+    void unblockSessionCreation(String userId, String operationId);
+
+    /**
+     * 사용자별 신규 세션 생성 차단 tombstone 존재 여부를 조회한다.
+     *
+     * @param userId 차단 여부를 조회할 사용자 ID
+     * @return tombstone이 존재하면 {@code true}
+     */
+    boolean isSessionCreationBlocked(String userId);
 }

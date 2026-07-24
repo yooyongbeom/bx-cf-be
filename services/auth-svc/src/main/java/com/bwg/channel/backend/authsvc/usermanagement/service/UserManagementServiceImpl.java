@@ -21,10 +21,13 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /** 사용자 관리 권한, 입력값, 사용자ㆍ역할 데이터와 세션 정합성을 처리하는 서비스 구현체. */
 @Service
@@ -77,6 +80,18 @@ public class UserManagementServiceImpl implements UserManagementService {
             throw duplicateUser(data.getUsrId());
         }
 
+        boolean sessionCreationBlocked;
+        try {
+            // 영구 tombstone이 남은 물리 삭제 ID는 신규 계정으로 다시 사용할 수 없다.
+            sessionCreationBlocked = sessionContextService.isSessionCreationBlocked(data.getUsrId());
+        } catch (RuntimeException exception) {
+            // Redis 접근/직렬화 실패만 원인을 보존한 서비스 불가 오류로 변환한다.
+            throw translateSessionStoreFailure(exception, "Unable to verify deleted user ID");
+        }
+        if (sessionCreationBlocked) {
+            throw deletedUserIdReuse(data.getUsrId());
+        }
+
         // 역할 ID를 하드코딩하지 않고 ROLE_USER가 DB에 정확히 하나 존재하는지 확인한다.
         List<Long> roleIds = userManagementRepository.findRoleIdsByName(DEFAULT_ROLE_NAME);
         if (roleIds == null || roleIds.size() != 1) {
@@ -96,13 +111,6 @@ public class UserManagementServiceImpl implements UserManagementService {
             throw duplicateUser(data.getUsrId());
         }
 
-        try {
-            // 삭제된 ID를 재등록한 경우 DB 등록 뒤 남아 있는 세션 생성 tombstone을 제거한다.
-            sessionContextService.unblockSessionCreation(data.getUsrId());
-        } catch (RuntimeException exception) {
-            // Redis 접근 실패는 원인을 보존한 안전한 오류로 변환해 사용자 등록 트랜잭션을 롤백한다.
-            throw translateSessionStoreFailure(exception, "Unable to clear user session block");
-        }
         return ApiResponse.success(null);
     }
 
@@ -138,14 +146,29 @@ public class UserManagementServiceImpl implements UserManagementService {
         String requiredUserId = BusinessValidator.requireNonBlank(userId, "userId");
         requireExistingUser(requiredUserId);
 
+        // 요청마다 고유한 토큰을 만들어 이 삭제 작업이 획득한 tombstone만 보상할 수 있게 한다.
+        String operationId = UUID.randomUUID().toString();
+        boolean blockAcquired;
         try {
-            // 세션 폐기보다 먼저 tombstone을 저장해 삭제와 로그인/재발급 경합을 차단한다.
-            sessionContextService.blockSessionCreation(requiredUserId);
+            // SET NX 획득 결과가 true인 작업만 이후 세션ㆍDB 삭제를 수행한다.
+            blockAcquired = sessionContextService.blockSessionCreation(requiredUserId, operationId);
+        } catch (RuntimeException exception) {
+            // 획득 여부를 확정하지 못한 작업은 소유권이 없으므로 다른 작업의 marker를 보상하지 않는다.
+            throw translateSessionStoreFailure(exception, "Unable to block user sessions");
+        }
+        if (!blockAcquired) {
+            // 다른 작업이 marker를 소유하면 변경 없이 명시적인 업무 충돌로 호출자에게 알린다.
+            throw deleteAlreadyInProgress(requiredUserId);
+        }
+
+        try {
+            // 메서드 반환 뒤 트랜잭션이 롤백되는 경우에도 소유한 marker를 compare-delete로 보상한다.
+            registerTombstoneRollbackCompensation(requiredUserId, operationId);
             sessionContextService.deleteByUserId(requiredUserId);
         } catch (RuntimeException exception) {
-            // block 또는 세션 폐기에 실패하면 tombstone을 best-effort로 제거하고 DB 삭제를 시작하지 않는다.
-            bestEffortUnblockSessionCreation(requiredUserId);
-            throw translateSessionStoreFailure(exception, "Unable to block or revoke user sessions");
+            // 직접 호출에서도 안전하도록 반환 전 실패는 동일 소유자 토큰으로 즉시 보상한다.
+            bestEffortUnblockSessionCreation(requiredUserId, operationId);
+            throw translateSessionStoreFailure(exception, "Unable to revoke user sessions");
         }
 
         try {
@@ -153,8 +176,8 @@ public class UserManagementServiceImpl implements UserManagementService {
             userManagementRepository.deleteUserRoles(requiredUserId);
             requireSingleAffectedRow(userManagementRepository.deleteUser(requiredUserId), "deleteUser");
         } catch (RuntimeException exception) {
-            // 관계형 삭제가 실패하면 사용자가 남아 있으므로 다시 로그인할 수 있도록 tombstone을 제거한다.
-            bestEffortUnblockSessionCreation(requiredUserId);
+            // 관계형 삭제가 실패하면 동일 작업이 소유한 tombstone만 즉시 보상한다.
+            bestEffortUnblockSessionCreation(requiredUserId, operationId);
             throw exception;
         }
         // 물리 삭제 성공 후에는 동일 ID의 세션이 다시 발급되지 않도록 tombstone을 유지한다.
@@ -199,6 +222,24 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .build();
     }
 
+    private BwgBusinessException deletedUserIdReuse(String userId) {
+        // 삭제 tombstone은 과거 in-flight 인증을 계속 거부하므로 관리 API에서 ID 재사용을 금지한다.
+        return new BwgBusinessException.Builder()
+                .code(BusinessErrorCode.BUSINESS_RULE_VIOLATION)
+                .message(BusinessErrorCode.BUSINESS_RULE_VIOLATION.getMsg())
+                .details(Map.of("userId", userId, "reason", "deletedUserIdNotReusable"))
+                .build();
+    }
+
+    private BwgBusinessException deleteAlreadyInProgress(String userId) {
+        // marker 소유권 충돌은 재시도 판단에 필요한 안전한 업무 사유만 노출한다.
+        return new BwgBusinessException.Builder()
+                .code(BusinessErrorCode.BUSINESS_RULE_VIOLATION)
+                .message(BusinessErrorCode.BUSINESS_RULE_VIOLATION.getMsg())
+                .details(Map.of("userId", userId, "reason", "deleteAlreadyInProgress"))
+                .build();
+    }
+
     private void requireSingleAffectedRow(int affectedRows, String operation) {
         // 사용자 변경 SQL은 정확히 한 건만 반영되어야 하며, 그렇지 않으면 저장 실패로 처리한다.
         if (affectedRows != 1) {
@@ -227,10 +268,22 @@ public class UserManagementServiceImpl implements UserManagementService {
         return exception;
     }
 
-    private void bestEffortUnblockSessionCreation(String userId) {
+    private void registerTombstoneRollbackCompensation(String userId, String operationId) {
+        // 트랜잭션 commit 이후에는 durable tombstone을 유지하고 그 외 종료 상태만 보상한다.
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status != TransactionSynchronization.STATUS_COMMITTED) {
+                    bestEffortUnblockSessionCreation(userId, operationId);
+                }
+            }
+        });
+    }
+
+    private void bestEffortUnblockSessionCreation(String userId, String operationId) {
         try {
-            // 최초 실패를 가리지 않도록 tombstone 보상 제거는 best-effort로 수행한다.
-            sessionContextService.unblockSessionCreation(userId);
+            // 최초 실패를 가리지 않으면서 이 작업이 소유한 tombstone만 compare-delete로 제거한다.
+            sessionContextService.unblockSessionCreation(userId, operationId);
         } catch (RuntimeException ignored) {
             // 보상 실패보다 최초 세션/DB 실패 원인을 우선해 호출자에게 전달한다.
         }

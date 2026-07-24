@@ -50,16 +50,27 @@ public interface SessionContextService {
     void deleteByUserId(String userId);
 
     /**
-     * 사용자 삭제 중 로그인 또는 token 재발급으로 신규 세션이 생성되지 않도록 차단한다.
+     * 삭제 작업 토큰으로 사용자별 세션 생성 차단 소유권을 획득한다.
      *
      * @param userId 신규 세션 발급을 차단할 사용자 ID
+     * @param operationId tombstone 소유권을 식별하는 삭제 작업 토큰
+     * @return 이 작업이 tombstone을 새로 획득했으면 {@code true}
      */
-    void blockSessionCreation(String userId);
+    boolean blockSessionCreation(String userId, String operationId);
 
     /**
-     * 사용자별 신규 세션 생성 차단을 해제한다.
+     * 삭제 작업 토큰이 tombstone 소유자와 일치할 때만 사용자별 세션 생성 차단을 해제한다.
      *
      * @param userId 신규 세션 발급 차단을 해제할 사용자 ID
+     * @param operationId tombstone을 획득한 삭제 작업 토큰
      */
-    void unblockSessionCreation(String userId);
+    void unblockSessionCreation(String userId, String operationId);
+
+    /**
+     * 사용자별 신규 세션 생성 차단 여부를 조회한다.
+     *
+     * @param userId 차단 여부를 조회할 사용자 ID
+     * @return tombstone이 존재하면 {@code true}
+     */
+    boolean isSessionCreationBlocked(String userId);
 }

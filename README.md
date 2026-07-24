@@ -287,7 +287,7 @@ POST /channel/backend/api/v1/auth/users/{userId}/update
 POST /channel/backend/api/v1/auth/users/{userId}/delete
 ```
 
-삭제 시 대상 사용자의 Redis 세션과 `USER_ROLES`, `USERS` 데이터를 물리 삭제한다. 비밀번호 암호화와 사용자별 역할 변경은 후속 작업 범위다.
+삭제 시 대상 사용자의 Redis 세션과 `USER_ROLES`, `USERS` 데이터를 물리 삭제하고 세션 생성 차단 tombstone을 유지한다. 물리 삭제된 사용자 ID는 과거 인증 요청의 재유효화를 막기 위해 이 관리 API로 다시 등록할 수 없다. 비밀번호 암호화와 사용자별 역할 변경은 후속 작업 범위다.
 
 ### Product
 

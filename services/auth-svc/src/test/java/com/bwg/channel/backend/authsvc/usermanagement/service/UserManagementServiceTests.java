@@ -13,20 +13,28 @@ import com.bwg.channel.backend.common.domain.dto.ApiResponse;
 import com.bwg.channel.backend.securitycommon.constants.AuthErrorCode;
 import com.bwg.channel.backend.securitycommon.exception.BwgAuthException;
 import com.bwg.channel.backend.sessioncontext.service.SessionContextService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +44,18 @@ class UserManagementServiceTests {
     private final SessionContextService sessionContextService = mock(SessionContextService.class);
     private final UserManagementService service =
             new UserManagementServiceImpl(repository, sessionContextService);
+
+    @BeforeEach
+    void initializeTransactionSynchronization() {
+        TransactionSynchronizationManager.initSynchronization();
+    }
+
+    @AfterEach
+    void clearTransactionSynchronization() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
 
     @Test
     void rejectsNonAdminBeforeRepositoryAccess() {
@@ -101,6 +121,7 @@ class UserManagementServiceTests {
         ApiRequest<UserCreateReqDto> request = new ApiRequest<>();
         request.setData(data);
 
+        when(sessionContextService.isSessionCreationBlocked("new.user")).thenReturn(false);
         when(repository.findRoleIdsByName("ROLE_USER")).thenReturn(List.of(7L));
         when(repository.insertUser(request, "admin")).thenReturn(1);
         when(repository.insertUserRole("new.user", 7L)).thenReturn(1);
@@ -113,10 +134,11 @@ class UserManagementServiceTests {
         assertThat(data.getUsrPwd()).isEqualTo("  password with spaces  ");
         InOrder order = inOrder(repository, sessionContextService);
         order.verify(repository).existsUser("new.user");
+        order.verify(sessionContextService).isSessionCreationBlocked("new.user");
         order.verify(repository).findRoleIdsByName("ROLE_USER");
         order.verify(repository).insertUser(request, "admin");
         order.verify(repository).insertUserRole("new.user", 7L);
-        order.verify(sessionContextService).unblockSessionCreation("new.user");
+        verify(sessionContextService, never()).unblockSessionCreation(eq("new.user"), anyString());
     }
 
     @Test
@@ -176,33 +198,67 @@ class UserManagementServiceTests {
                 .isEqualTo(CommonErrorCode.DB_SAVE_DATA_ERROR);
 
         verify(repository, never()).insertUserRole("new.user", 7L);
-        verify(sessionContextService, never()).unblockSessionCreation("new.user");
+        verify(sessionContextService, never()).unblockSessionCreation(eq("new.user"), anyString());
     }
 
     @Test
-    void rollsBackUserCreationWhenStaleTombstoneCannotBeCleared() {
+    void rejectsDurablyDeletedUserIdWithoutClearingItsTombstoneOrInsertingRows() {
         UserCreateReqDto data = new UserCreateReqDto();
         data.setUsrId("new.user");
         data.setUsrNm("신규 사용자");
         data.setUsrPwd("password");
         ApiRequest<UserCreateReqDto> request = new ApiRequest<>();
         request.setData(data);
+        when(sessionContextService.isSessionCreationBlocked("new.user")).thenReturn(true);
+
+        assertThatThrownBy(() -> service.createUser(request, "admin", "ROLE_ADMIN"))
+                .isInstanceOf(BwgBusinessException.class)
+                .extracting("code")
+                .isEqualTo(BusinessErrorCode.BUSINESS_RULE_VIOLATION);
+
+        verify(repository, never()).findRoleIdsByName("ROLE_USER");
+        verify(repository, never()).insertUser(request, "admin");
+        verify(repository, never()).insertUserRole(eq("new.user"), org.mockito.ArgumentMatchers.anyLong());
+        verify(sessionContextService, never()).unblockSessionCreation(eq("new.user"), anyString());
+    }
+
+    @Test
+    void translatesRedisAccessFailureDuringDeletedIdCheckAndPreservesCause() {
+        ApiRequest<UserCreateReqDto> request = createRequest("new.user");
         RedisConnectionFailureException redisFailure =
                 new RedisConnectionFailureException("Redis is unavailable");
-
-        when(repository.findRoleIdsByName("ROLE_USER")).thenReturn(List.of(7L));
-        when(repository.insertUser(request, "admin")).thenReturn(1);
-        when(repository.insertUserRole("new.user", 7L)).thenReturn(1);
-        doThrow(redisFailure).when(sessionContextService).unblockSessionCreation("new.user");
+        doThrow(redisFailure).when(sessionContextService).isSessionCreationBlocked("new.user");
 
         Throwable thrown = catchThrowable(() -> service.createUser(request, "admin", "ROLE_ADMIN"));
 
         assertThat(thrown).isInstanceOf(BwgAuthException.class).hasCause(redisFailure);
         assertThat(((BwgAuthException) thrown).getCode()).isEqualTo(CommonErrorCode.SERVICE_UNAVAILABLE);
-        InOrder order = inOrder(repository, sessionContextService);
-        order.verify(repository).insertUser(request, "admin");
-        order.verify(repository).insertUserRole("new.user", 7L);
-        order.verify(sessionContextService).unblockSessionCreation("new.user");
+        verify(repository, never()).findRoleIdsByName("ROLE_USER");
+    }
+
+    @Test
+    void translatesRedisSerializationFailureDuringDeletedIdCheckAndPreservesCause() {
+        ApiRequest<UserCreateReqDto> request = createRequest("new.user");
+        SerializationException redisFailure = new SerializationException("Redis response cannot be decoded");
+        doThrow(redisFailure).when(sessionContextService).isSessionCreationBlocked("new.user");
+
+        Throwable thrown = catchThrowable(() -> service.createUser(request, "admin", "ROLE_ADMIN"));
+
+        assertThat(thrown).isInstanceOf(BwgAuthException.class).hasCause(redisFailure);
+        assertThat(((BwgAuthException) thrown).getCode()).isEqualTo(CommonErrorCode.SERVICE_UNAVAILABLE);
+        verify(repository, never()).findRoleIdsByName("ROLE_USER");
+    }
+
+    @Test
+    void preservesUnexpectedDeletedIdCheckFailureType() {
+        ApiRequest<UserCreateReqDto> request = createRequest("new.user");
+        IllegalStateException unexpected = new IllegalStateException("Unexpected session-store failure");
+        doThrow(unexpected).when(sessionContextService).isSessionCreationBlocked("new.user");
+
+        assertThatThrownBy(() -> service.createUser(request, "admin", "ROLE_ADMIN"))
+                .isSameAs(unexpected);
+
+        verify(repository, never()).findRoleIdsByName("ROLE_USER");
     }
 
     @Test
@@ -239,67 +295,73 @@ class UserManagementServiceTests {
     @Test
     void blocksAndRevokesTargetSessionsBeforeDeletingRolesAndUser() {
         when(repository.existsUser("target")).thenReturn(true);
+        when(sessionContextService.blockSessionCreation(eq("target"), anyString())).thenReturn(true);
         when(repository.deleteUser("target")).thenReturn(1);
 
         service.deleteUser("target", "admin", "ROLE_ADMIN");
 
+        ArgumentCaptor<String> operationIdCaptor = ArgumentCaptor.forClass(String.class);
         InOrder order = inOrder(repository, sessionContextService);
         order.verify(repository).existsUser("target");
-        order.verify(sessionContextService).blockSessionCreation("target");
+        order.verify(sessionContextService).blockSessionCreation(eq("target"), operationIdCaptor.capture());
         order.verify(sessionContextService).deleteByUserId("target");
         order.verify(repository).deleteUserRoles("target");
         order.verify(repository).deleteUser("target");
+        assertThat(operationIdCaptor.getValue()).isNotBlank();
+        onlySynchronization().afterCompletion(TransactionSynchronization.STATUS_COMMITTED);
         // 물리 삭제 성공 후 tombstone을 유지해 경합 중인 로그인 세션 발급을 계속 차단한다.
-        verify(sessionContextService, never()).unblockSessionCreation("target");
+        verify(sessionContextService, never()).unblockSessionCreation(eq("target"), anyString());
     }
 
     @Test
-    void unblocksAndDoesNotDeleteDatabaseWhenSessionBlockFails() {
+    void secondDeleteUsesDistinctTokenAndDoesNotCompensateAnotherOwnerMarker() {
+        when(repository.existsUser("target")).thenReturn(true);
+        when(sessionContextService.blockSessionCreation(eq("target"), anyString())).thenReturn(true, false);
+        when(repository.deleteUser("target")).thenReturn(1);
+
+        service.deleteUser("target", "admin", "ROLE_ADMIN");
+        Throwable secondDeleteFailure =
+                catchThrowable(() -> service.deleteUser("target", "admin", "ROLE_ADMIN"));
+
+        assertThat(secondDeleteFailure).isInstanceOf(BwgBusinessException.class);
+        BwgBusinessException concurrentDelete = (BwgBusinessException) secondDeleteFailure;
+        assertThat(concurrentDelete.getCode()).isEqualTo(BusinessErrorCode.BUSINESS_RULE_VIOLATION);
+        assertThat(concurrentDelete.getDetails())
+                .containsEntry("reason", "deleteAlreadyInProgress")
+                .containsEntry("userId", "target");
+        ArgumentCaptor<String> operationIdCaptor = ArgumentCaptor.forClass(String.class);
+        verify(sessionContextService, times(2))
+                .blockSessionCreation(eq("target"), operationIdCaptor.capture());
+        assertThat(operationIdCaptor.getAllValues()).hasSize(2).doesNotHaveDuplicates();
+        verify(sessionContextService, times(1)).deleteByUserId("target");
+        verify(repository, times(1)).deleteUserRoles("target");
+        verify(repository, times(1)).deleteUser("target");
+        verify(sessionContextService, never()).unblockSessionCreation(eq("target"), anyString());
+    }
+
+    @Test
+    void failedBlockAcquisitionDoesNotCompensateWithoutOwnership() {
         when(repository.existsUser("target")).thenReturn(true);
         RedisConnectionFailureException redisFailure =
                 new RedisConnectionFailureException("Redis is unavailable");
         doThrow(redisFailure)
                 .when(sessionContextService)
-                .blockSessionCreation("target");
+                .blockSessionCreation(eq("target"), anyString());
 
         Throwable thrown = catchThrowable(() -> service.deleteUser("target", "admin", "ROLE_ADMIN"));
 
         assertThat(thrown).isInstanceOf(BwgAuthException.class).hasCause(redisFailure);
         assertThat(((BwgAuthException) thrown).getCode()).isEqualTo(CommonErrorCode.SERVICE_UNAVAILABLE);
-        verify(sessionContextService).unblockSessionCreation("target");
+        verify(sessionContextService, never()).unblockSessionCreation(eq("target"), anyString());
         verify(sessionContextService, never()).deleteByUserId("target");
         verify(repository, never()).deleteUserRoles("target");
         verify(repository, never()).deleteUser("target");
     }
 
     @Test
-    void unblocksAndDoesNotDeleteDatabaseWhenSessionRevocationFails() {
+    void failedDeleteImmediatelyUnblocksWithTheCapturedOperationToken() {
         when(repository.existsUser("target")).thenReturn(true);
-        SerializationException redisFailure = new SerializationException("Session cannot be decoded");
-        IllegalStateException cleanupFailure = new IllegalStateException("Cleanup also failed");
-        doThrow(redisFailure)
-                .when(sessionContextService)
-                .deleteByUserId("target");
-        doThrow(cleanupFailure)
-                .when(sessionContextService)
-                .unblockSessionCreation("target");
-
-        Throwable thrown = catchThrowable(() -> service.deleteUser("target", "admin", "ROLE_ADMIN"));
-
-        // best-effort 정리 실패가 최초 Redis 직렬화 실패를 가리거나 원인을 잃게 해서는 안 된다.
-        assertThat(thrown).isInstanceOf(BwgAuthException.class).hasCause(redisFailure);
-        assertThat(((BwgAuthException) thrown).getCode()).isEqualTo(CommonErrorCode.SERVICE_UNAVAILABLE);
-        InOrder order = inOrder(sessionContextService);
-        order.verify(sessionContextService).blockSessionCreation("target");
-        order.verify(sessionContextService).deleteByUserId("target");
-        order.verify(sessionContextService).unblockSessionCreation("target");
-        verify(repository, never()).deleteUserRoles("target");
-        verify(repository, never()).deleteUser("target");
-    }
-
-    @Test
-    void unblocksBeforeRethrowingRelationalDeletionFailure() {
-        when(repository.existsUser("target")).thenReturn(true);
+        when(sessionContextService.blockSessionCreation(eq("target"), anyString())).thenReturn(true);
         when(repository.deleteUser("target")).thenReturn(0);
 
         assertThatThrownBy(() -> service.deleteUser("target", "admin", "ROLE_ADMIN"))
@@ -307,26 +369,42 @@ class UserManagementServiceTests {
                 .extracting("code")
                 .isEqualTo(CommonErrorCode.DB_SAVE_DATA_ERROR);
 
-        InOrder order = inOrder(repository, sessionContextService);
-        order.verify(repository).existsUser("target");
-        order.verify(sessionContextService).blockSessionCreation("target");
-        order.verify(sessionContextService).deleteByUserId("target");
-        order.verify(repository).deleteUserRoles("target");
-        order.verify(repository).deleteUser("target");
-        order.verify(sessionContextService).unblockSessionCreation("target");
+        ArgumentCaptor<String> operationIdCaptor = ArgumentCaptor.forClass(String.class);
+        verify(sessionContextService).blockSessionCreation(eq("target"), operationIdCaptor.capture());
+        verify(sessionContextService)
+                .unblockSessionCreation("target", operationIdCaptor.getValue());
     }
 
     @Test
-    void preservesUnexpectedSessionFailureTypeAfterBestEffortUnblock() {
+    void transactionRollbackCompensatesTheOwnedTombstone() {
         when(repository.existsUser("target")).thenReturn(true);
-        IllegalStateException unexpected = new IllegalStateException("Unexpected session failure");
-        doThrow(unexpected).when(sessionContextService).deleteByUserId("target");
+        when(sessionContextService.blockSessionCreation(eq("target"), anyString())).thenReturn(true);
+        when(repository.deleteUser("target")).thenReturn(1);
 
-        assertThatThrownBy(() -> service.deleteUser("target", "admin", "ROLE_ADMIN"))
-                .isSameAs(unexpected);
+        service.deleteUser("target", "admin", "ROLE_ADMIN");
 
-        verify(sessionContextService).unblockSessionCreation("target");
-        verify(repository, never()).deleteUserRoles("target");
-        verify(repository, never()).deleteUser("target");
+        ArgumentCaptor<String> operationIdCaptor = ArgumentCaptor.forClass(String.class);
+        verify(sessionContextService).blockSessionCreation(eq("target"), operationIdCaptor.capture());
+        onlySynchronization().afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
+
+        verify(sessionContextService)
+                .unblockSessionCreation("target", operationIdCaptor.getValue());
+    }
+
+    private TransactionSynchronization onlySynchronization() {
+        List<TransactionSynchronization> synchronizations =
+                TransactionSynchronizationManager.getSynchronizations();
+        assertThat(synchronizations).hasSize(1);
+        return synchronizations.get(0);
+    }
+
+    private ApiRequest<UserCreateReqDto> createRequest(String userId) {
+        UserCreateReqDto data = new UserCreateReqDto();
+        data.setUsrId(userId);
+        data.setUsrNm("신규 사용자");
+        data.setUsrPwd("password");
+        ApiRequest<UserCreateReqDto> request = new ApiRequest<>();
+        request.setData(data);
+        return request;
     }
 }
