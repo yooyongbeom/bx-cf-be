@@ -275,6 +275,20 @@ POST /channel/backend/api/v1/auth/logout
 Authorization: Bearer <accessToken>
 ```
 
+### Auth - User Management
+
+`ROLE_ADMIN` 권한이 필요하며, 내부 `USERS` 테이블 사용자를 관리한다. 등록 시 기본 `ROLE_USER`를 자동 부여하고, 수정은 기존 역할과 비밀번호를 변경하지 않는다.
+
+```text
+POST /channel/backend/api/v1/auth/users/list
+POST /channel/backend/api/v1/auth/users/{userId}/detail
+POST /channel/backend/api/v1/auth/users/create
+POST /channel/backend/api/v1/auth/users/{userId}/update
+POST /channel/backend/api/v1/auth/users/{userId}/delete
+```
+
+삭제 시 대상 사용자의 Redis 세션과 `USER_ROLES`, `USERS` 데이터를 물리 삭제한다. 비밀번호 암호화와 사용자별 역할 변경은 후속 작업 범위다.
+
 ### Product
 
 ```text
