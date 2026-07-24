@@ -340,7 +340,7 @@ class UserManagementServiceTests {
     }
 
     @Test
-    void failedBlockAcquisitionDoesNotCompensateWithoutOwnership() {
+    void blockExceptionCompensatesWithTheAttemptedOperationToken() {
         when(repository.existsUser("target")).thenReturn(true);
         RedisConnectionFailureException redisFailure =
                 new RedisConnectionFailureException("Redis is unavailable");
@@ -352,7 +352,11 @@ class UserManagementServiceTests {
 
         assertThat(thrown).isInstanceOf(BwgAuthException.class).hasCause(redisFailure);
         assertThat(((BwgAuthException) thrown).getCode()).isEqualTo(CommonErrorCode.SERVICE_UNAVAILABLE);
-        verify(sessionContextService, never()).unblockSessionCreation(eq("target"), anyString());
+        ArgumentCaptor<String> operationIdCaptor = ArgumentCaptor.forClass(String.class);
+        verify(sessionContextService).blockSessionCreation(eq("target"), operationIdCaptor.capture());
+        // SET NX 적용 뒤 응답만 유실됐을 수 있으므로 시도한 동일 토큰으로 compare-delete한다.
+        verify(sessionContextService)
+                .unblockSessionCreation("target", operationIdCaptor.getValue());
         verify(sessionContextService, never()).deleteByUserId("target");
         verify(repository, never()).deleteUserRoles("target");
         verify(repository, never()).deleteUser("target");

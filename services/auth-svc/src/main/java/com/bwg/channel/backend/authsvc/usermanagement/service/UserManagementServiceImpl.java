@@ -153,7 +153,8 @@ public class UserManagementServiceImpl implements UserManagementService {
             // SET NX 획득 결과가 true인 작업만 이후 세션ㆍDB 삭제를 수행한다.
             blockAcquired = sessionContextService.blockSessionCreation(requiredUserId, operationId);
         } catch (RuntimeException exception) {
-            // 획득 여부를 확정하지 못한 작업은 소유권이 없으므로 다른 작업의 marker를 보상하지 않는다.
+            // SET NX가 적용된 뒤 응답만 유실됐을 수 있어 시도한 동일 토큰으로만 best-effort 보상한다.
+            bestEffortUnblockSessionCreation(requiredUserId, operationId);
             throw translateSessionStoreFailure(exception, "Unable to block user sessions");
         }
         if (!blockAcquired) {
