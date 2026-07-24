@@ -103,7 +103,7 @@ public class UserManagementServiceImpl implements UserManagementService {
             requireSingleAffectedRow(userManagementRepository.insertUser(request, createdBy), "insertUser");
             // TODO 사용자 역할 관리 기능이 추가되면 요청 역할 목록을 검증하여 USER_ROLES 연결을 관리한다.
             requireSingleAffectedRow(
-                    userManagementRepository.insertUserRole(data.getUsrId(), roleIds.get(0)),
+                    userManagementRepository.insertUserRole(data.getUsrId(), roleIds.get(0), createdBy),
                     "insertUserRole"
             );
         } catch (DuplicateKeyException exception) {

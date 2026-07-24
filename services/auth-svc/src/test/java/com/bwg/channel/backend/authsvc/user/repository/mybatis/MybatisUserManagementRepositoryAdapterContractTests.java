@@ -11,16 +11,16 @@ import static org.mockito.Mockito.when;
 class MybatisUserManagementRepositoryAdapterContractTests {
 
     @Test
-    void insertsUserRoleWithOnlyUserAndRoleKeys() {
+    void insertsUserRoleWithTrustedSystemActor() {
         UserManagementMapper mapper = mock(UserManagementMapper.class);
         MybatisUserManagementRepositoryAdapter adapter =
                 new MybatisUserManagementRepositoryAdapter(mapper);
-        when(mapper.insertUserRole("user-1", 7L)).thenReturn(1);
+        when(mapper.insertUserRole("user-1", 7L, "admin")).thenReturn(1);
 
-        int affectedRows = adapter.insertUserRole("user-1", 7L);
+        int affectedRows = adapter.insertUserRole("user-1", 7L, "admin");
 
         assertThat(affectedRows).isEqualTo(1);
-        // USER_ROLES에는 감사 열이 없으므로 신뢰된 작업자도 이 저장 계약에는 전달하지 않는다.
-        verify(mapper).insertUserRole("user-1", 7L);
+        // Gateway가 검증한 작업자를 USER_ROLES 시스템 필드 생성에 사용하도록 Mapper까지 전달한다.
+        verify(mapper).insertUserRole("user-1", 7L, "admin");
     }
 }

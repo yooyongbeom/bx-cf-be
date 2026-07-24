@@ -124,7 +124,7 @@ class UserManagementServiceTests {
         when(sessionContextService.isSessionCreationBlocked("new.user")).thenReturn(false);
         when(repository.findRoleIdsByName("ROLE_USER")).thenReturn(List.of(7L));
         when(repository.insertUser(request, "admin")).thenReturn(1);
-        when(repository.insertUserRole("new.user", 7L)).thenReturn(1);
+        when(repository.insertUserRole("new.user", 7L, "admin")).thenReturn(1);
 
         service.createUser(request, " admin ", "ROLE_ADMIN");
 
@@ -137,7 +137,7 @@ class UserManagementServiceTests {
         order.verify(sessionContextService).isSessionCreationBlocked("new.user");
         order.verify(repository).findRoleIdsByName("ROLE_USER");
         order.verify(repository).insertUser(request, "admin");
-        order.verify(repository).insertUserRole("new.user", 7L);
+        order.verify(repository).insertUserRole("new.user", 7L, "admin");
         verify(sessionContextService, never()).unblockSessionCreation(eq("new.user"), anyString());
     }
 
@@ -197,7 +197,7 @@ class UserManagementServiceTests {
                 .extracting("code")
                 .isEqualTo(CommonErrorCode.DB_SAVE_DATA_ERROR);
 
-        verify(repository, never()).insertUserRole("new.user", 7L);
+        verify(repository, never()).insertUserRole("new.user", 7L, "admin");
         verify(sessionContextService, never()).unblockSessionCreation(eq("new.user"), anyString());
     }
 
@@ -218,7 +218,11 @@ class UserManagementServiceTests {
 
         verify(repository, never()).findRoleIdsByName("ROLE_USER");
         verify(repository, never()).insertUser(request, "admin");
-        verify(repository, never()).insertUserRole(eq("new.user"), org.mockito.ArgumentMatchers.anyLong());
+        verify(repository, never()).insertUserRole(
+                eq("new.user"),
+                org.mockito.ArgumentMatchers.anyLong(),
+                eq("admin")
+        );
         verify(sessionContextService, never()).unblockSessionCreation(eq("new.user"), anyString());
     }
 

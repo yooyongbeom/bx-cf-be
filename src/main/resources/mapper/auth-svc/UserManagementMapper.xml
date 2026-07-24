@@ -121,10 +121,18 @@
         INSERT INTO USER_ROLES (
             USER_ID
             ,ROLE_ID
+            ,CREATED_BY
+            ,CREATED_AT
+            ,UPDATED_BY
+            ,UPDATED_AT
         )
         VALUES (
             #{userId}
             ,#{roleId}
+            ,#{createdBy}
+            ,current_timestamp
+            ,#{createdBy}
+            ,current_timestamp
         )
         ]]>
     </insert>

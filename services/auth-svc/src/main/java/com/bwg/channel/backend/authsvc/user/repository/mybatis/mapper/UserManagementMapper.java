@@ -29,7 +29,8 @@ public interface UserManagementMapper {
 
     int insertUserRole(
             @Param("userId") String userId,
-            @Param("roleId") Long roleId
+            @Param("roleId") Long roleId,
+            @Param("createdBy") String createdBy
     );
 
     int updateUser(

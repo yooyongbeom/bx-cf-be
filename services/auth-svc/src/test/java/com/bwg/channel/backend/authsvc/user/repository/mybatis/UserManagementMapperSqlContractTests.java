@@ -35,15 +35,15 @@ class UserManagementMapperSqlContractTests {
                 .contains("INSERT INTO USER_ROLES")
                 .contains("USER_ID")
                 .contains("ROLE_ID")
+                .contains("CREATED_BY")
+                .contains("CREATED_AT")
+                .contains("UPDATED_BY")
+                .contains("UPDATED_AT")
                 .contains("#{userId}")
                 .contains("#{roleId}")
-                // 현재 USER_ROLES 스키마 계약은 사용자와 역할 FK 두 열뿐이다.
-                .doesNotContain("CREATED_BY")
-                .doesNotContain("CREATED_AT")
-                .doesNotContain("UPDATED_BY")
-                .doesNotContain("UPDATED_AT")
-                .doesNotContain("#{createdBy}")
-                .doesNotContain("current_timestamp");
+                // 관계 등록도 Gateway가 검증한 작업자와 DB 시각으로 시스템 필드를 생성한다.
+                .contains("#{createdBy}")
+                .contains("current_timestamp");
     }
 
     @Test
