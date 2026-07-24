@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.bwg.channel.backend.authsvc.usermanagement.repository.mybatis.mapper.UserManagementMapper">
+<mapper namespace="com.bwg.channel.backend.authsvc.user.repository.mybatis.mapper.UserManagementMapper">
 
     <!-- 사용자 목록 응답 DTO 매핑 정보 -->
     <resultMap id="userListResultMap" type="UserListResDto">
