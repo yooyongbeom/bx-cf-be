@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** 사용자 관리 권한, 입력값, 사용자ㆍ역할 데이터와 세션 정합성을 처리하는 서비스 구현체. */
+/** 사용자 관리 관련 처리 서비스 구현 */
 @Service
 @RequiredArgsConstructor
 public class UserManagementServiceImpl implements UserManagementService {
@@ -40,18 +40,36 @@ public class UserManagementServiceImpl implements UserManagementService {
     private final UserManagementRepository userManagementRepository;
     private final SessionContextService sessionContextService;
 
+    /**
+     * 관리자 권한을 검증한 뒤 전체 사용자 목록 반환
+     *
+     * @param roles Gateway가 전달한 콤마(,) 구분 역할 목록
+     * @return 전체 사용자 목록과 페이지 정보가 포함된 응답
+     * @throws BwgAuthException 관리자 권한이 없는 경우
+     */
     @Override
     public ApiResponse<List<UserListResDto>> getUsers(String roles) {
-        // 목록을 조회하기 전에 관리자 역할을 확인하여 일반 사용자의 계정 정보 접근을 차단한다.
+        // 목록을 조회하기 전에 관리자 역할 확인 후 일반 사용자의 계정 정보 접근을 차단한다.
         requireAdmin(roles);
         List<UserListResDto> users = userManagementRepository.findUsers();
         return ApiResponse.success(users, PageUtil.singlePage(users));
     }
 
+    /**
+     * 관리자 권한과 사용자 ID를 검증 후 사용자 상세정보 조회
+     *
+     * @param userId 조회할 사용자 ID
+     * @param roles Gateway가 전달한 콤마 구분 역할 목록
+     * @return 사용자 상세정보가 포함된 응답
+     * @throws BwgAuthException 관리자 권한이 없는 경우
+     * @throws BwgBusinessException 사용자 ID가 없거나 대상 사용자가 존재하지 않는 경우
+     */
     @Override
     public ApiResponse<UserDetailResDto> getUser(String userId, String roles) {
-        // 관리자 역할과 대상 사용자 ID를 검증한 뒤 존재하는 상세 정보만 반환한다.
+        // 관리자 역할 확인
         requireAdmin(roles);
+
+        // 사용자 ID 검증 후 존재하면 상세 정보 반환
         String requiredUserId = BusinessValidator.requireNonBlank(userId, "userId");
         UserDetailResDto user = BusinessValidator.requireFound(
                 userManagementRepository.findUser(requiredUserId),
@@ -60,6 +78,19 @@ public class UserManagementServiceImpl implements UserManagementService {
         return ApiResponse.success(user);
     }
 
+    /**
+     * 등록값과 삭제 사용자 ID 재사용 여부를 검증하고 사용자와 기본 역할을 동일 트랜잭션에서 등록한다.
+     *
+     * <p>사전 중복 검사 이후의 동시 등록으로 발생한 DB 고유키 위반도 동일한 사용자 ID 중복
+     * 업무 오류로 변환한다.</p>
+     *
+     * @param request 등록할 사용자 정보
+     * @param actor Gateway가 검증한 작업자 ID
+     * @param roles Gateway가 전달한 쉼표 구분 역할 목록
+     * @return 등록 성공 응답
+     * @throws BwgAuthException 관리자 권한이 없거나 사용자 또는 세션 저장소 처리에 실패한 경우
+     * @throws BwgBusinessException 필수값이 없거나 사용자 ID가 중복되거나 재사용할 수 없는 경우
+     */
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
     public ApiResponse<Void> createUser(
@@ -114,6 +145,19 @@ public class UserManagementServiceImpl implements UserManagementService {
         return ApiResponse.success(null);
     }
 
+    /**
+     * 관리자 권한과 수정 대상을 검증하고 사용자 기본정보를 수정한다.
+     *
+     * <p>비밀번호와 사용자 역할은 수정하지 않으며, 정확히 한 건이 반영되지 않으면 저장 실패로 처리한다.</p>
+     *
+     * @param userId 수정할 사용자 ID
+     * @param request 수정할 사용자 기본정보
+     * @param actor Gateway가 검증한 작업자 ID
+     * @param roles Gateway가 전달한 쉼표 구분 역할 목록
+     * @return 수정 성공 응답
+     * @throws BwgAuthException 관리자 권한이 없거나 사용자 저장에 실패한 경우
+     * @throws BwgBusinessException 필수값이 없거나 대상 사용자가 존재하지 않는 경우
+     */
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
     public ApiResponse<Void> updateUser(
@@ -137,6 +181,20 @@ public class UserManagementServiceImpl implements UserManagementService {
         return ApiResponse.success(null);
     }
 
+    /**
+     * 사용자 신규 세션 생성을 차단하고 기존 세션과 역할 연결을 제거한 뒤 사용자를 물리 삭제한다.
+     *
+     * <p>Redis tombstone은 작업별 소유권 토큰으로 획득한다. 세션 또는 DB 삭제가 실패하거나
+     * 트랜잭션이 롤백되면 동일 토큰을 소유한 tombstone만 보상 삭제하고, 삭제가 커밋되면
+     * 진행 중이던 인증 요청과 삭제 사용자 ID 재사용을 막기 위해 tombstone을 유지한다.</p>
+     *
+     * @param userId 삭제할 사용자 ID
+     * @param actor Gateway가 검증한 작업자 ID
+     * @param roles Gateway가 전달한 쉼표 구분 역할 목록
+     * @return 삭제 성공 응답
+     * @throws BwgAuthException 관리자 권한이 없거나 세션 또는 사용자 저장소 처리에 실패한 경우
+     * @throws BwgBusinessException 대상 사용자가 없거나 다른 삭제 작업이 진행 중인 경우
+     */
     @Override
     @Transactional(transactionManager = "mybatisMainTransactionManager")
     public ApiResponse<Void> deleteUser(String userId, String actor, String roles) {
@@ -185,8 +243,14 @@ public class UserManagementServiceImpl implements UserManagementService {
         return ApiResponse.success(null);
     }
 
+    /**
+     * Gateway가 전달한 역할 목록에 관리자 역할이 있는지 확인한다.
+     *
+     * @param roles Gateway가 전달한 콤마 구분 역할 목록
+     * @throws BwgAuthException 역할 목록에 {@code ROLE_ADMIN}이 없는 경우
+     */
     private void requireAdmin(String roles) {
-        // 쉼표 구분 역할 문자열에서 ROLE_ADMIN이 정확히 포함된 경우에만 관리 기능을 허용한다.
+        // ROLE_ADMIN이 포함된 경우에만 관리기능 허용
         boolean isAdmin = roles != null && Arrays.stream(roles.split(","))
                 .map(String::trim)
                 .anyMatch(ADMIN_ROLE_NAME::equals);
@@ -198,11 +262,24 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
     }
 
+    /**
+     * 시스템 변경 사용자 필드에 사용할 Gateway 검증 작업자 ID를 확인한다.
+     *
+     * @param actor Gateway가 검증한 작업자 ID
+     * @return 공백을 제거한 작업자 ID
+     * @throws BwgBusinessException 작업자 ID가 없는 경우
+     */
     private String requireTrustedActor(String actor) {
-        // Gateway가 검증된 JWT subject로 주입한 작업자 ID만 감사 필드에 사용한다.
+        // 클라이언트 입력이 아닌 검증된 JWT subject만 시스템 변경 사용자 필드에 사용한다.
         return BusinessValidator.requireNonBlank(actor, "actor");
     }
 
+    /**
+     * 수정 또는 삭제할 사용자가 현재 저장소에 존재하는지 확인한다.
+     *
+     * @param userId 확인할 사용자 ID
+     * @throws BwgBusinessException 대상 사용자가 존재하지 않는 경우
+     */
     private void requireExistingUser(String userId) {
         // 수정ㆍ삭제 대상이 없으면 변경 SQL을 실행하지 않고 표준 미존재 오류를 반환한다.
         if (!userManagementRepository.existsUser(userId)) {
@@ -214,8 +291,14 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
     }
 
+    /**
+     * 사용자 ID 고유성 위반을 나타내는 표준 업무 예외를 생성한다.
+     *
+     * @param userId 중복된 사용자 ID
+     * @return 중복 사용자 ID를 상세정보로 포함한 업무 예외
+     */
     private BwgBusinessException duplicateUser(String userId) {
-        // 사용자 ID 고유성 위반은 사전 검증과 DB 제약 위반 모두 같은 업무 오류로 정규화한다.
+        // 사전 검증과 DB 고유키 위반이 동일한 업무 오류 계약을 사용하도록 예외를 정규화한다.
         return new BwgBusinessException.Builder()
                 .code(BusinessErrorCode.BUSINESS_RULE_VIOLATION)
                 .message(BusinessErrorCode.BUSINESS_RULE_VIOLATION.getMsg())
@@ -223,6 +306,12 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .build();
     }
 
+    /**
+     * 물리 삭제된 사용자 ID를 다시 사용할 수 없음을 나타내는 표준 업무 예외를 생성한다.
+     *
+     * @param userId 재사용을 요청한 삭제 사용자 ID
+     * @return 사용자 ID 재사용 금지 사유를 포함한 업무 예외
+     */
     private BwgBusinessException deletedUserIdReuse(String userId) {
         // 삭제 tombstone은 과거 in-flight 인증을 계속 거부하므로 관리 API에서 ID 재사용을 금지한다.
         return new BwgBusinessException.Builder()
@@ -232,6 +321,12 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .build();
     }
 
+    /**
+     * 다른 요청이 동일 사용자의 삭제 tombstone을 소유하고 있음을 나타내는 업무 예외를 생성한다.
+     *
+     * @param userId 삭제가 진행 중인 사용자 ID
+     * @return 삭제 작업 충돌 사유를 포함한 업무 예외
+     */
     private BwgBusinessException deleteAlreadyInProgress(String userId) {
         // marker 소유권 충돌은 재시도 판단에 필요한 안전한 업무 사유만 노출한다.
         return new BwgBusinessException.Builder()
@@ -241,6 +336,13 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .build();
     }
 
+    /**
+     * 사용자 변경 SQL이 정확히 한 건을 반영했는지 확인한다.
+     *
+     * @param affectedRows SQL 반영 건수
+     * @param operation 오류 상세정보에 기록할 작업 이름
+     * @throws BwgAuthException 반영 건수가 한 건이 아닌 경우
+     */
     private void requireSingleAffectedRow(int affectedRows, String operation) {
         // 사용자 변경 SQL은 정확히 한 건만 반영되어야 하며, 그렇지 않으면 저장 실패로 처리한다.
         if (affectedRows != 1) {
@@ -248,6 +350,12 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
     }
 
+    /**
+     * 사용자 저장 실패의 내부 정보를 노출하지 않는 표준 인증 예외를 생성한다.
+     *
+     * @param operation 실패한 저장 작업 이름
+     * @return 작업 이름만 상세정보로 포함한 저장 실패 예외
+     */
     private BwgAuthException databaseSaveFailure(String operation) {
         // 저장 오류의 세부 원인은 노출하지 않고, 민감하지 않은 작업 이름만 오류 상세 정보에 남긴다.
         return new BwgAuthException.Builder()
@@ -257,6 +365,13 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .build();
     }
 
+    /**
+     * 외부 노출이 안전한 Redis 접근ㆍ직렬화 실패를 표준 서비스 불가 예외로 변환한다.
+     *
+     * @param exception Redis 처리 중 발생한 예외
+     * @param message 호출자에게 전달할 안전한 오류 메시지
+     * @return 알려진 저장소 예외는 표준 인증 예외, 그 외에는 원래 예외
+     */
     private RuntimeException translateSessionStoreFailure(RuntimeException exception, String message) {
         // Redis 계층이 명시한 접근/직렬화 실패만 외부 노출이 안전한 서비스 불가 오류로 변환한다.
         if (exception instanceof DataAccessException || exception instanceof SerializationException) {
@@ -269,9 +384,20 @@ public class UserManagementServiceImpl implements UserManagementService {
         return exception;
     }
 
+    /**
+     * 사용자 삭제 트랜잭션이 커밋되지 않으면 이 작업이 소유한 tombstone을 제거하도록 보상을 등록한다.
+     *
+     * @param userId 삭제 대상 사용자 ID
+     * @param operationId tombstone 소유권을 확인할 삭제 작업 ID
+     */
     private void registerTombstoneRollbackCompensation(String userId, String operationId) {
         // 트랜잭션 commit 이후에는 durable tombstone을 유지하고 그 외 종료 상태만 보상한다.
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            /**
+             * 삭제 트랜잭션이 커밋되지 않았으면 소유권 토큰으로 tombstone 제거를 시도한다.
+             *
+             * @param status Spring 트랜잭션 완료 상태
+             */
             @Override
             public void afterCompletion(int status) {
                 if (status != TransactionSynchronization.STATUS_COMMITTED) {
@@ -281,6 +407,12 @@ public class UserManagementServiceImpl implements UserManagementService {
         });
     }
 
+    /**
+     * 최초 실패 원인을 유지하면서 이 작업이 소유한 세션 생성 차단 tombstone 제거를 시도한다.
+     *
+     * @param userId 세션 생성 차단을 해제할 사용자 ID
+     * @param operationId tombstone 소유권을 확인할 삭제 작업 ID
+     */
     private void bestEffortUnblockSessionCreation(String userId, String operationId) {
         try {
             // 최초 실패를 가리지 않으면서 이 작업이 소유한 tombstone만 compare-delete로 제거한다.

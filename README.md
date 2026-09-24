@@ -90,24 +90,21 @@ Gateway는 Eureka에 등록된 서비스 이름으로 `lb://...` 라우팅. Gate
 
 ## DB 연결 정보
 
-현재 `local`, `dev` profile은 동일한 PostgreSQL DB를 사용.
+`local`, `dev` profile의 PostgreSQL 접속정보는 서비스·프로필별 환경변수로 주입한다.
+비밀값 기본값은 제공하지 않으므로 실행할 서비스에 해당하는 URL, 사용자명, 비밀번호를 모두 설정해야 한다.
 
-| 항목 | 값 |
-| --- | --- |
-| DBMS | PostgreSQL |
-| Host | `192.168.110.217` |
-| Port | `5432` |
-| Database | `bxcfdb` |
-| JDBC URL | `jdbc:postgresql://192.168.110.217:5432/bxcfdb` |
-| Driver | `org.postgresql.Driver` |
-| Username | `bxcf` |
-| Password | `1111` |
+| 서비스 | local 환경변수 접두어 | dev 환경변수 접두어 |
+| --- | --- | --- |
+| `auth-svc` | `BX_AUTH_LOCAL_DB_` | `BX_AUTH_DEV_DB_` |
+| `product-svc` | `BX_PRODUCT_LOCAL_DB_` | `BX_PRODUCT_DEV_DB_` |
+| `system-svc` | `BX_SYSTEM_LOCAL_DB_` | `BX_SYSTEM_DEV_DB_` |
 
-직접 접속 예.
-
-```bash
-PGPASSWORD=1111 psql -h 192.168.110.217 -p 5432 -U bxcf -d bxcfdb
-```
+각 접두어 뒤에 `URL`, `USERNAME`, `PASSWORD`를 붙인다.
+예를 들어 auth-svc의 local 실행에는 `BX_AUTH_LOCAL_DB_URL`,
+`BX_AUTH_LOCAL_DB_USERNAME`, `BX_AUTH_LOCAL_DB_PASSWORD`를 설정한다.
+URL은 `jdbc:postgresql://<host>:<port>/<database>` 형식이며 드라이버는 `org.postgresql.Driver`이다.
+JPA와 MyBatis datasource가 있는 서비스는 해당 프로필의 같은 접속정보를 사용한다.
+IDE 실행 설정이나 서비스 실행 프로세스의 환경변수로 전달하며, `.env` 파일은 자동으로 읽지 않는다.
 
 서비스별 datasource 설정 위치.
 

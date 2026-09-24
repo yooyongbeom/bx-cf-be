@@ -1,17 +1,20 @@
 spring:
+  # DB 접속정보는 프로필별 환경변수로 주입하고 저장소에 자격증명을 남기지 않는다.
   datasource:
+    # 'jpa-main' DataSource (JPA용)
     jpa-main:
-      jdbc-url: jdbc:postgresql://192.168.110.217:5432/bxcfdb
+      jdbc-url: ${BX_PRODUCT_LOCAL_DB_URL}
       driver-class-name: org.postgresql.Driver
-      username: bxcf
-      password: "1111"
+      username: ${BX_PRODUCT_LOCAL_DB_USERNAME}
+      password: ${BX_PRODUCT_LOCAL_DB_PASSWORD}
       hikari:
         pool-name: jpa-main-hikari-pool
+    # 'mybatis-main' DataSource (MyBatis용)
     mybatis-main:
-      jdbc-url: jdbc:postgresql://192.168.110.217:5432/bxcfdb
+      jdbc-url: ${BX_PRODUCT_LOCAL_DB_URL}
       driver-class-name: org.postgresql.Driver
-      username: bxcf
-      password: "1111"
+      username: ${BX_PRODUCT_LOCAL_DB_USERNAME}
+      password: ${BX_PRODUCT_LOCAL_DB_PASSWORD}
       hikari:
         pool-name: mybatis-main-hikari-pool
 

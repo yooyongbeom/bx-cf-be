@@ -40,7 +40,7 @@ public class AuthenticationController {
      * ERP 연동 로그인 요청을 API 저장소 인증 흐름으로 전달하고 refresh token을 쿠키로 내려준다.
      */
     @Operation(summary = "ERP 로그인", description = "ERP 연동 계정으로 로그인하고 토큰을 발급한다.")
-    @PostMapping("erp-login")
+    @PostMapping("/erp-login")
     public ApiResponse<LoginResDto> erpLogin(@RequestBody ApiRequest<LoginReqDto> req, HttpServletResponse response) {
         return writeRefreshCookie(doLogin(req, "apiLogin"), response);
     }
@@ -49,7 +49,7 @@ public class AuthenticationController {
      * 일반 로그인 요청을 MyBatis 저장소 인증 흐름으로 전달하고 refresh token을 응답 본문에서 숨긴다.
      */
     @Operation(summary = "일반 로그인", description = "사용자 ID와 비밀번호로 로그인하고 토큰을 발급한다.")
-    @PostMapping("login")
+    @PostMapping("/login")
     public ApiResponse<LoginResDto> login(@RequestBody ApiRequest<LoginReqDto> req, HttpServletResponse response) {
         return writeRefreshCookie(doLogin(req, "mybatisLogin"), response);
     }
